@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Receipt, Sparkles } from 'lucide-react';
+import { t } from '@/lib/i18n';
 
 interface WelcomeScreenProps {
   onComplete: () => void;
@@ -65,7 +66,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           }`}
         >
           <h1 className="text-6xl md:text-8xl font-bold text-white tracking-wider">
-            Welcome
+            {t('welcome.title')}
           </h1>
         </div>
 
@@ -100,10 +101,10 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           }`}
         >
           <p className="text-xl md:text-2xl text-gray-300 font-light tracking-wide">
-            Expenscan
+            {t('welcome.subtitle')}
           </p>
           <p className="text-sm md:text-base text-gray-400 mt-2 font-light">
-            OCR技術による自動抽出・管理
+            {t('welcome.description')}
           </p>
         </div>
 
