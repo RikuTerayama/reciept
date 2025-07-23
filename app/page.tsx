@@ -94,7 +94,7 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold gradient-text">
-                  レシート経費管理システム
+                  Expenscan
                 </h1>
                 <p className="text-sm text-gray-500 flex items-center space-x-1">
                   <Sparkles className="w-3 h-3" />
@@ -133,7 +133,7 @@ export default function Home() {
       {/* タブナビゲーション */}
       <nav className="glass shadow-glass border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 overflow-x-auto">
+          <div className="flex space-x-4 overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -318,15 +318,11 @@ export default function Home() {
                 <Receipt className="w-6 h-6 text-white" />
               </div>
               <p className="text-xl font-semibold gradient-text">
-                レシート経費管理システム
+                Expenscan
               </p>
             </div>
             <p className="text-gray-600">
-              © 2025 レシート経費管理システム. Developed by RT. All rights reserved.
-            </p>
-            <p className="text-sm text-gray-500 flex items-center justify-center space-x-2">
-              <span>Next.js + Tesseract.js + TailwindCSS で構築</span>
-              <Sparkles className="w-3 h-3" />
+              © 2025 Expenscan. Developed by RT. All rights reserved.
             </p>
           </div>
         </div>
