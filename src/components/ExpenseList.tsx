@@ -1,170 +1,196 @@
 'use client';
 
 import React from 'react';
-import { Trash2, Edit, CheckSquare, Square } from 'lucide-react';
+import { Trash2, Edit, Download, Calendar, DollarSign, Tag, Building, CheckCircle } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
+import { exportExpensesToExcel } from '@/lib/excel';
 import { ExpenseData } from '@/types';
 
 export default function ExpenseList() {
   const { expenses, selectedExpenses, toggleExpenseSelection, deleteExpense } = useExpenseStore();
 
+  const handleDelete = (id: string) => {
+    if (confirm('この経費を削除しますか？')) {
+      deleteExpense(id);
+    }
+  };
+
+  const handleExportSelected = () => {
+    if (selectedExpenses.length === 0) {
+      alert('エクスポートする経費を選択してください。');
+      return;
+    }
+    const selectedExpenseData = expenses.filter(expense => 
+      selectedExpenses.includes(expense.id)
+    );
+    exportExpensesToExcel(selectedExpenseData, 'selected_expenses.xlsx');
+  };
+
   if (expenses.length === 0) {
     return (
-      <div className="w-full max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">経費リスト</h2>
-        <p className="text-center text-gray-500 py-8">
-          経費データがありません。画像をアップロードして経費を追加してください。
-        </p>
+      <div className="card">
+        <div className="card-body text-center py-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+            <Calendar className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">経費データがありません</h3>
+          <p className="text-gray-500">
+            画像をアップロードして経費データを追加してください
+          </p>
+        </div>
       </div>
     );
   }
 
-  const totalAmount = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
-  const selectedAmount = expenses
-    .filter(expense => selectedExpenses.includes(expense.id))
-    .reduce((sum, expense) => sum + expense.totalAmount, 0);
-
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">経費リスト</h2>
-        <div className="text-sm text-gray-600">
-          <span className="mr-4">総額: ¥{totalAmount.toLocaleString()}</span>
+    <div className="space-y-6">
+      {/* アクションバー */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-600">
+            {expenses.length}件の経費データ
+          </span>
           {selectedExpenses.length > 0 && (
-            <span className="text-primary-600">
-              選択済み: ¥{selectedAmount.toLocaleString()} ({selectedExpenses.length}件)
+            <span className="text-sm text-primary-600 font-medium">
+              {selectedExpenses.length}件選択中
             </span>
           )}
         </div>
+        {selectedExpenses.length > 0 && (
+          <button
+            onClick={handleExportSelected}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Download className="w-4 h-4" />
+            <span>選択した経費をエクスポート</span>
+          </button>
+        )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                選択
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                日付
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                金額
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                税率
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                通貨
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                カテゴリ
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                部署
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                適格区分
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {expenses.map((expense) => (
-              <tr
-                key={expense.id}
-                className="border-b hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => toggleExpenseSelection(expense.id)}
-                    className="text-gray-400 hover:text-primary-600 transition-colors"
-                  >
-                    {selectedExpenses.includes(expense.id) ? (
-                      <CheckSquare className="w-5 h-5 text-primary-600" />
-                    ) : (
-                      <Square className="w-5 h-5" />
-                    )}
-                  </button>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {expense.date}
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                  ¥{expense.totalAmount.toLocaleString()}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {expense.taxRate}%
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {expense.currency}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
-                  {expense.category}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {expense.department}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
-                  {expense.isQualified}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        // 編集機能は後で実装
-                        alert('編集機能は準備中です');
-                      }}
-                      className="text-gray-400 hover:text-blue-600 transition-colors"
-                      title="編集"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm('この経費を削除しますか？')) {
-                          deleteExpense(expense.id);
-                        }
-                      }}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
-                      title="削除"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
+      {/* 経費リスト */}
+      <div className="card">
+        <div className="overflow-x-auto">
+          <table className="table">
+            <thead>
+              <tr>
+                <th className="w-12">
+                  <input
+                    type="checkbox"
+                    checked={selectedExpenses.length === expenses.length && expenses.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        expenses.forEach(expense => {
+                          if (!selectedExpenses.includes(expense.id)) {
+                            toggleExpenseSelection(expense.id);
+                          }
+                        });
+                      } else {
+                        selectedExpenses.forEach(id => toggleExpenseSelection(id));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                </th>
+                <th>日付</th>
+                <th>金額</th>
+                <th>カテゴリ</th>
+                <th>部署</th>
+                <th>税率</th>
+                <th>適格区分</th>
+                <th>操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {expenses.map((expense) => (
+                <tr key={expense.id} className="hover:bg-gray-50">
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedExpenses.includes(expense.id)}
+                      onChange={() => toggleExpenseSelection(expense.id)}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                  </td>
+                  <td>
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span>{expense.date}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex items-center space-x-2">
+                      <DollarSign className="w-4 h-4 text-green-500" />
+                      <span className="font-medium">
+                        ¥{expense.totalAmount.toLocaleString()}
+                      </span>
+                      <span className="text-xs text-gray-500">{expense.currency}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex items-center space-x-2">
+                      <Tag className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm">{expense.category}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex items-center space-x-2">
+                      <Building className="w-4 h-4 text-purple-500" />
+                      <span className="text-sm">{expense.department}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      {expense.taxRate}%
+                    </span>
+                  </td>
+                  <td>
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span className="text-sm">{expense.isQualified}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleDelete(expense.id)}
+                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                        title="削除"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* 経費詳細表示 */}
-      {expenses.length > 0 && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-md">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">経費統計</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p className="text-gray-500">総件数</p>
-              <p className="font-medium">{expenses.length}件</p>
-            </div>
-            <div>
-              <p className="text-gray-500">総金額</p>
-              <p className="font-medium">¥{totalAmount.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">平均金額</p>
-              <p className="font-medium">¥{Math.round(totalAmount / expenses.length).toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">選択済み</p>
-              <p className="font-medium">{selectedExpenses.length}件</p>
-            </div>
+      {/* 統計情報 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="stat-card">
+          <div className="stat-number">
+            ¥{expenses.reduce((sum, exp) => sum + exp.totalAmount, 0).toLocaleString()}
           </div>
+          <div className="stat-label">総金額</div>
         </div>
-      )}
+        <div className="stat-card">
+          <div className="stat-number">
+            ¥{expenses
+              .filter(exp => selectedExpenses.includes(exp.id))
+              .reduce((sum, exp) => sum + exp.totalAmount, 0)
+              .toLocaleString()}
+          </div>
+          <div className="stat-label">選択金額</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-number">
+            {expenses.filter(exp => exp.isQualified.includes('Qualified')).length}
+          </div>
+          <div className="stat-label">適格経費</div>
+        </div>
+      </div>
     </div>
   );
 } 
