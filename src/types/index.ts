@@ -8,6 +8,8 @@ export interface ExpenseData {
   department: string;
   isQualified: string;
   imageUrl?: string;
+  imageData?: string; // Base64画像データ
+  receiptNumber?: string; // レシート番号
   ocrText?: string;
   createdAt: Date;
 }
