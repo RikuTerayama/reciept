@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload } from 'lucide-react';
+import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload, Menu, X } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import BatchUpload from '@/components/BatchUpload';
 import ExpenseForm from '@/components/ExpenseForm';
@@ -16,6 +16,7 @@ type TabType = 'upload' | 'batch' | 'form' | 'list' | 'optimizer';
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [showWelcome, setShowWelcome] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { expenses, selectedExpenses, clearSelection } = useExpenseStore();
 
   // 初回訪問チェック
@@ -54,6 +55,12 @@ export default function Home() {
   // OCR完了後の自動遷移処理
   const handleOCRComplete = () => {
     setActiveTab('form');
+  };
+
+  // モバイルメニューのタブ切り替え
+  const handleMobileTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false);
   };
 
   const tabs = [
@@ -125,13 +132,21 @@ export default function Home() {
                   )}
                 </>
               )}
+              
+              {/* ハンバーガーメニューボタン */}
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="hamburger-menu hamburger-button"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* タブナビゲーション */}
-      <nav className="glass shadow-glass border-b border-white/20">
+      {/* デスクトップナビゲーション */}
+      <nav className="glass shadow-glass border-b border-white/20 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-4 overflow-x-auto">
             {tabs.map((tab) => {
@@ -154,6 +169,44 @@ export default function Home() {
           </div>
         </div>
       </nav>
+
+      {/* モバイルメニュー */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu" onClick={() => setMobileMenuOpen(false)}>
+          <div 
+            className={`mobile-menu-content ${mobileMenuOpen ? 'open' : 'closed'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">メニュー</h2>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="py-4">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleMobileTabChange(tab.id)}
+                    className={`
+                      mobile-nav-tab w-full
+                      ${activeTab === tab.id ? 'active' : ''}
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* メインコンテンツ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
