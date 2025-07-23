@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Receipt, FileText, Calculator, Download, Plus, List } from 'lucide-react';
+import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
@@ -35,32 +35,42 @@ export default function Home() {
   };
 
   const tabs = [
-    { id: 'upload' as TabType, label: '画像アップロード', icon: Receipt },
-    { id: 'form' as TabType, label: 'データ入力', icon: Plus },
-    { id: 'list' as TabType, label: '経費リスト', icon: List },
-    { id: 'optimizer' as TabType, label: '予算最適化', icon: Calculator },
+    { id: 'upload' as TabType, label: '画像アップロード', icon: Receipt, description: 'レシート画像をアップロード' },
+    { id: 'form' as TabType, label: 'データ入力', icon: Plus, description: '経費データを入力・編集' },
+    { id: 'list' as TabType, label: '経費リスト', icon: List, description: '登録済み経費の管理' },
+    { id: 'optimizer' as TabType, label: '予算最適化', icon: Calculator, description: '最適な組み合わせを提案' },
   ];
 
+  const totalAmount = expenses.reduce((sum, exp) => sum + exp.totalAmount, 0);
+  const selectedAmount = expenses
+    .filter(exp => selectedExpenses.includes(exp.id))
+    .reduce((sum, exp) => sum + exp.totalAmount, 0);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/80 backdrop-blur-md shadow-elegant border-b border-gray-200/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Receipt className="w-8 h-8 text-primary-600" />
-              <h1 className="text-xl font-bold text-gray-900">
-                レシート経費管理システム
-              </h1>
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl shadow-lg">
+                <Receipt className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                  レシート経費管理システム
+                </h1>
+                <p className="text-sm text-gray-500">OCR技術による自動抽出・管理</p>
+              </div>
             </div>
             
             {/* エクスポートボタン */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               {expenses.length > 0 && (
                 <>
                   <button
                     onClick={handleExportAll}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    className="btn-success flex items-center space-x-2"
                   >
                     <Download className="w-4 h-4" />
                     <span>全件出力</span>
@@ -68,7 +78,7 @@ export default function Home() {
                   {selectedExpenses.length > 0 && (
                     <button
                       onClick={handleExportSelected}
-                      className="flex items-center space-x-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      className="btn-primary flex items-center space-x-2"
                     >
                       <Download className="w-4 h-4" />
                       <span>選択出力</span>
@@ -82,9 +92,9 @@ export default function Home() {
       </header>
 
       {/* タブナビゲーション */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white/60 backdrop-blur-sm border-b border-gray-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
+          <div className="flex space-x-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -92,14 +102,12 @@ export default function Home() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                    ${activeTab === tab.id
-                      ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }
+                    nav-tab rounded-t-lg
+                    ${activeTab === tab.id ? 'active' : ''}
                   `}
+                  title={tab.description}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-5 h-5" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -113,111 +121,147 @@ export default function Home() {
         <div className="space-y-8">
           {/* 統計情報 */}
           {expenses.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold mb-4">統計情報</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{expenses.length}</div>
-                  <div className="text-sm text-blue-700">登録済み経費</div>
+            <div className="card animate-fade-in">
+              <div className="card-header">
+                <div className="flex items-center space-x-3">
+                  <BarChart3 className="w-6 h-6 text-primary-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">統計情報</h2>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    ¥{expenses.reduce((sum, exp) => sum + exp.totalAmount, 0).toLocaleString()}
+              </div>
+              <div className="card-body">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div className="stat-card">
+                    <div className="stat-number">{expenses.length}</div>
+                    <div className="stat-label">登録済み経費</div>
                   </div>
-                  <div className="text-sm text-green-700">総金額</div>
-                </div>
-                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">{selectedExpenses.length}</div>
-                  <div className="text-sm text-orange-700">選択済み</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    ¥{expenses
-                      .filter(exp => selectedExpenses.includes(exp.id))
-                      .reduce((sum, exp) => sum + exp.totalAmount, 0)
-                      .toLocaleString()}
+                  <div className="stat-card">
+                    <div className="stat-number">¥{totalAmount.toLocaleString()}</div>
+                    <div className="stat-label">総金額</div>
                   </div>
-                  <div className="text-sm text-purple-700">選択金額</div>
+                  <div className="stat-card">
+                    <div className="stat-number">{selectedExpenses.length}</div>
+                    <div className="stat-label">選択済み</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-number">¥{selectedAmount.toLocaleString()}</div>
+                    <div className="stat-label">選択金額</div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {/* タブコンテンツ */}
-          {activeTab === 'upload' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  レシート画像をアップロード
-                </h2>
-                <p className="text-gray-600">
-                  OCR技術を使用して画像から経費情報を自動抽出します
-                </p>
-              </div>
-              <ImageUpload />
-            </div>
-          )}
-
-          {activeTab === 'form' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  経費データ入力・編集
-                </h2>
-                <p className="text-gray-600">
-                  OCR結果を確認し、必要に応じて手動で修正してください
-                </p>
-              </div>
-              <ExpenseForm />
-            </div>
-          )}
-
-          {activeTab === 'list' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    経費リスト
-                  </h2>
-                  <p className="text-gray-600">
-                    登録された経費データの一覧と管理
-                  </p>
+          <div className="animate-slide-in">
+            {activeTab === 'upload' && (
+              <div className="space-y-8">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full shadow-lg">
+                    <Receipt className="w-10 h-10 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                      レシート画像をアップロード
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      OCR技術を使用して画像から経費情報を自動抽出します。
+                      JPEG、PNG、GIF、BMP、PDFファイルに対応しています。
+                    </p>
+                  </div>
                 </div>
-                {selectedExpenses.length > 0 && (
-                  <button
-                    onClick={clearSelection}
-                    className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-                  >
-                    選択解除
-                  </button>
-                )}
+                <ImageUpload />
               </div>
-              <ExpenseList />
-            </div>
-          )}
+            )}
 
-          {activeTab === 'optimizer' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  予算最適化エンジン
-                </h2>
-                <p className="text-gray-600">
-                  指定された予算に最も近い経費の組み合わせを自動提案します
-                </p>
+            {activeTab === 'form' && (
+              <div className="space-y-8">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full shadow-lg">
+                    <Plus className="w-10 h-10 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                      経費データ入力・編集
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      OCR結果を確認し、必要に応じて手動で修正してください。
+                      すべての項目を正確に入力することで、より良い分析が可能になります。
+                    </p>
+                  </div>
+                </div>
+                <ExpenseForm />
               </div>
-              <BudgetOptimizer />
-            </div>
-          )}
+            )}
+
+            {activeTab === 'list' && (
+              <div className="space-y-8">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg">
+                        <List className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900">
+                          経費リスト
+                        </h2>
+                        <p className="text-lg text-gray-600">
+                          登録された経費データの一覧と管理
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {selectedExpenses.length > 0 && (
+                    <button
+                      onClick={clearSelection}
+                      className="btn-secondary flex items-center space-x-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>選択解除</span>
+                    </button>
+                  )}
+                </div>
+                <ExpenseList />
+              </div>
+            )}
+
+            {activeTab === 'optimizer' && (
+              <div className="space-y-8">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg">
+                    <Calculator className="w-10 h-10 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                      予算最適化エンジン
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      指定された予算に最も近い経費の組み合わせを自動提案します。
+                      効率的な予算管理にお役立てください。
+                    </p>
+                  </div>
+                </div>
+                <BudgetOptimizer />
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
       {/* フッター */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-500">
-            <p>&copy; 2024 レシート経費管理システム. All rights reserved.</p>
-            <p className="text-sm mt-2">
+      <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200/50 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center space-x-2">
+              <Receipt className="w-6 h-6 text-primary-600" />
+              <p className="text-lg font-semibold text-gray-900">
+                レシート経費管理システム
+              </p>
+            </div>
+            <p className="text-gray-600">
+              &copy; 2024 Receipt Expense Manager. All rights reserved.
+            </p>
+            <p className="text-sm text-gray-500">
               Next.js + Tesseract.js + TailwindCSS で構築
             </p>
           </div>
@@ -225,4 +269,4 @@ export default function Home() {
       </footer>
     </div>
   );
-}
+} 
