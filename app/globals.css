@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 游明朝フォントの適用 */
+@import url('https://fonts.googleapis.com/css2?family=Yu+Mincho:wght@300;400;500;600;700&display=swap');
+
 /* カスタムプロパティ */
 :root {
   --primary-50: #eff6ff;
@@ -36,6 +39,11 @@
   --accent-700: #a21caf;
   --accent-800: #86198f;
   --accent-900: #701a75;
+}
+
+/* 游明朝フォントを全体に適用 */
+* {
+  font-family: 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'HGS明朝E', 'MS P明朝', 'MS Mincho', serif;
 }
 
 /* ガラスモーフィズム効果 */
@@ -282,6 +290,56 @@
   @apply text-sm text-gray-600 mt-1;
 }
 
+/* テーブルスタイル */
+.table {
+  @apply w-full border-collapse;
+}
+
+.table th {
+  @apply px-6 py-4 text-center text-sm font-semibold text-gray-700 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm border-b border-gray-200/50;
+}
+
+.table td {
+  @apply px-6 py-4 text-center text-sm text-gray-900 border-b border-gray-100/50;
+}
+
+.table tbody tr:hover {
+  @apply bg-gradient-to-r from-gray-50/50 to-gray-100/50 backdrop-blur-sm;
+}
+
+/* ハンバーガーメニュー */
+.hamburger-menu {
+  @apply lg:hidden;
+}
+
+.hamburger-button {
+  @apply p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors;
+}
+
+.mobile-menu {
+  @apply lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50;
+}
+
+.mobile-menu-content {
+  @apply fixed top-0 right-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out;
+}
+
+.mobile-menu-content.open {
+  @apply translate-x-0;
+}
+
+.mobile-menu-content.closed {
+  @apply translate-x-full;
+}
+
+.mobile-nav-tab {
+  @apply flex items-center space-x-3 px-6 py-4 text-sm font-medium text-gray-600 border-b border-gray-100 hover:bg-gray-50 hover:text-gray-900 transition-colors;
+}
+
+.mobile-nav-tab.active {
+  @apply bg-primary-50 text-primary-700 border-r-4 border-primary-500;
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 640px) {
   .card {
@@ -302,6 +360,11 @@
   }
   
   .nav-tab {
+    @apply px-3 py-2 text-xs;
+  }
+  
+  .table th,
+  .table td {
     @apply px-3 py-2 text-xs;
   }
 }
@@ -347,6 +410,26 @@
   
   .stat-label {
     @apply text-gray-400;
+  }
+  
+  .table th {
+    @apply bg-gray-700/80 text-gray-200;
+  }
+  
+  .table td {
+    @apply text-gray-200;
+  }
+  
+  .mobile-menu-content {
+    @apply bg-gray-800;
+  }
+  
+  .mobile-nav-tab {
+    @apply text-gray-300 border-gray-700 hover:bg-gray-700 hover:text-white;
+  }
+  
+  .mobile-nav-tab.active {
+    @apply bg-primary-900 text-primary-200 border-primary-700;
   }
 }
 
