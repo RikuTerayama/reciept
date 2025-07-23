@@ -2,13 +2,15 @@
 
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileImage, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, FileImage, FileText, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
 import { extractTextFromImage, validateOCRResult } from '@/lib/ocr';
+import { isPDFFile, validatePDFFile } from '@/lib/pdf';
 
 export default function ImageUpload() {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const { setOCRResult, setProcessing, isProcessing } = useExpenseStore();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -16,14 +18,24 @@ export default function ImageUpload() {
 
     const file = acceptedFiles[0];
     setError(null);
+    setSuccess(null);
     
     // ファイル形式のチェック
     const isImage = file.type.startsWith('image/');
-    const isPDF = file.type === 'application/pdf';
+    const isPDF = isPDFFile(file);
     
     if (!isImage && !isPDF) {
       setError('画像ファイル（JPEG、PNG、GIF、BMP）またはPDFファイルを選択してください');
       return;
+    }
+
+    // PDFファイルの検証
+    if (isPDF) {
+      const pdfErrors = validatePDFFile(file);
+      if (pdfErrors.length > 0) {
+        setError(pdfErrors.join('\n'));
+        return;
+      }
     }
 
     setProcessing(true);
@@ -32,9 +44,8 @@ export default function ImageUpload() {
       let result;
       
       if (isPDF) {
-        // PDFの場合は、まず画像に変換する必要があります
-        // 簡易的な実装として、PDFの処理をスキップしてエラーメッセージを表示
-        setError('PDFファイルの処理は現在準備中です。画像ファイルをご利用ください。');
+        // PDFの場合は、現在サポートされていないことを示す
+        setError('PDFファイルの処理は現在準備中です。画像ファイルをご利用ください。\n\n対応予定：\n• PDFの最初のページを画像に変換\n• 複数ページの処理\n• 高精度なOCR処理');
         setProcessing(false);
         return;
       } else {
@@ -44,13 +55,15 @@ export default function ImageUpload() {
       const errors = validateOCRResult(result);
       
       if (errors.length > 0) {
-        setError(`OCR処理で以下の問題が発生しました:\n${errors.join('\n')}`);
+        setError(`OCR処理で以下の問題が発生しました:\n${errors.join('\n')}\n\n手動でデータを入力することも可能です。`);
+      } else {
+        setSuccess('OCR処理が完了しました！抽出されたデータを確認してください。');
       }
       
       setOCRResult(result);
     } catch (error) {
       console.error('OCR processing error:', error);
-      setError('画像の処理中にエラーが発生しました');
+      setError('画像の処理中にエラーが発生しました。ファイル形式とサイズを確認してください。');
     } finally {
       setProcessing(false);
     }
@@ -62,11 +75,24 @@ export default function ImageUpload() {
       'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp'],
       'application/pdf': ['.pdf']
     },
-    multiple: false
+    multiple: false,
+    maxSize: 10 * 1024 * 1024, // 10MB
+    onDropRejected: (rejectedFiles) => {
+      const errors = rejectedFiles.map(({ file, errors }) => {
+        if (errors.some(e => e.code === 'file-too-large')) {
+          return 'ファイルサイズが大きすぎます（10MB以下にしてください）';
+        }
+        if (errors.some(e => e.code === 'file-invalid-type')) {
+          return 'サポートされていないファイル形式です';
+        }
+        return 'ファイルのアップロードに失敗しました';
+      });
+      setError(errors.join('\n'));
+    }
   });
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto space-y-6">
       <div
         {...getRootProps()}
         className={`
@@ -125,16 +151,29 @@ export default function ImageUpload() {
                 </span>
               </div>
               <p className="text-xs text-gray-400 mt-2">
-                対応形式: JPEG, PNG, GIF, BMP, PDF
+                対応形式: JPEG, PNG, GIF, BMP, PDF (10MB以下)
               </p>
             </div>
           </div>
         )}
       </div>
 
+      {/* 成功メッセージ */}
+      {success && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-green-700">
+              <p className="font-medium">処理完了</p>
+              <p className="mt-1">{success}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* エラーメッセージ */}
       {error && (
-        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-red-700">
@@ -144,6 +183,24 @@ export default function ImageUpload() {
           </div>
         </div>
       )}
+
+      {/* ヒント */}
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex items-start space-x-3">
+          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+            <span className="text-white text-xs">i</span>
+          </div>
+          <div>
+            <h4 className="text-sm font-medium text-blue-700">ヒント</h4>
+            <ul className="text-sm text-blue-600 mt-1 space-y-1">
+              <li>• 高解像度の画像を使用すると、OCR精度が向上します</li>
+              <li>• レシートがはっきりと見えるように撮影してください</li>
+              <li>• PDFファイルの処理は現在準備中です</li>
+              <li>• ファイルサイズは10MB以下にしてください</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 
