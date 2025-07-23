@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import BatchUpload from '@/components/BatchUpload';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 import BudgetOptimizer from '@/components/BudgetOptimizer';
+import WelcomeScreen from '@/components/WelcomeScreen';
 import { useExpenseStore } from '@/lib/store';
 import { exportExpensesToExcel } from '@/lib/excel';
 
@@ -14,7 +15,22 @@ type TabType = 'upload' | 'batch' | 'form' | 'list' | 'optimizer';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
+  const [showWelcome, setShowWelcome] = useState(true);
   const { expenses, selectedExpenses, clearSelection } = useExpenseStore();
+
+  // 初回訪問チェック
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('receipt_expense_manager_visited');
+    if (hasVisited) {
+      setShowWelcome(false);
+    } else {
+      localStorage.setItem('receipt_expense_manager_visited', 'true');
+    }
+  }, []);
+
+  const handleWelcomeComplete = () => {
+    setShowWelcome(false);
+  };
 
   const handleExportAll = () => {
     if (expenses.length === 0) {
@@ -52,6 +68,11 @@ export default function Home() {
   const selectedAmount = expenses
     .filter(exp => selectedExpenses.includes(exp.id))
     .reduce((sum, exp) => sum + exp.totalAmount, 0);
+
+  // ウェルカムスクリーンが表示されている間はメインコンテンツを非表示
+  if (showWelcome) {
+    return <WelcomeScreen onComplete={handleWelcomeComplete} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 particle-bg relative overflow-hidden">
