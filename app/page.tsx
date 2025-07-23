@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload, Menu, X, ImageIcon } from 'lucide-react';
+import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload, Menu, X, Image as ImageIcon } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import BatchUpload from '@/components/BatchUpload';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 import BudgetOptimizer from '@/components/BudgetOptimizer';
 import WelcomeScreen from '@/components/WelcomeScreen';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useExpenseStore } from '@/lib/store';
 import { exportExpensesToExcel } from '@/lib/excel';
+import { t, getCurrentLanguage, Language } from '@/lib/i18n';
 
 type TabType = 'upload' | 'batch' | 'form' | 'list' | 'optimizer';
 
@@ -17,6 +19,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [showWelcome, setShowWelcome] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<Language>(getCurrentLanguage());
   const { expenses, selectedExpenses, clearSelection } = useExpenseStore();
 
   // 初回訪問チェック
@@ -35,7 +38,7 @@ export default function Home() {
 
   const handleExportAll = () => {
     if (expenses.length === 0) {
-      alert('エクスポートする経費データがありません。');
+      alert(t('expenseList.noData'));
       return;
     }
     exportExpensesToExcel(expenses, 'all_expenses.xlsx');
@@ -43,7 +46,7 @@ export default function Home() {
 
   const handleExportSelected = () => {
     if (selectedExpenses.length === 0) {
-      alert('エクスポートする経費を選択してください。');
+      alert(t('expenseList.noData'));
       return;
     }
     const selectedExpenseData = expenses.filter(expense => 
@@ -63,12 +66,17 @@ export default function Home() {
     setMobileMenuOpen(false);
   };
 
+  // 言語変更ハンドラー
+  const handleLanguageChange = (language: Language) => {
+    setCurrentLanguage(language);
+  };
+
   const tabs = [
-    { id: 'upload' as TabType, label: '単一アップロード', icon: Receipt, description: 'レシート画像を1枚ずつアップロード' },
-    { id: 'batch' as TabType, label: '一括アップロード', icon: Upload, description: '複数のレシート画像を同時処理' },
-    { id: 'form' as TabType, label: 'データ入力', icon: Plus, description: '経費データを入力・編集' },
-    { id: 'list' as TabType, label: '経費リスト', icon: List, description: '登録済み経費の管理' },
-    { id: 'optimizer' as TabType, label: '予算最適化', icon: Calculator, description: '最適な組み合わせを提案' },
+    { id: 'upload' as TabType, label: t('navigation.singleUpload'), icon: Receipt, description: t('imageUpload.description') },
+    { id: 'batch' as TabType, label: t('navigation.batchUpload'), icon: Upload, description: t('batchUpload.description') },
+    { id: 'form' as TabType, label: t('navigation.dataInput'), icon: Plus, description: t('dataInput.description') },
+    { id: 'list' as TabType, label: t('navigation.expenseList'), icon: List, description: t('expenseList.description') },
+    { id: 'optimizer' as TabType, label: t('navigation.budgetOptimizer'), icon: Calculator, description: t('budgetOptimizer.description') },
   ];
 
   const totalAmount = expenses.reduce((sum, exp) => sum + exp.totalAmount, 0);
@@ -84,7 +92,7 @@ export default function Home() {
   const downloadSelectedReceiptImages = (expenses: any[], selectedExpenseIds: string[]) => {
     const selectedExpensesData = expenses.filter(expense => selectedExpenseIds.includes(expense.id));
     if (selectedExpensesData.length === 0) {
-      alert('エクスポートする経費を選択してください。');
+      alert(t('expenseList.noData'));
       return;
     }
 
@@ -141,16 +149,16 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold gradient-text">
-                  Expenscan
+                  {t('header.title')}
                 </h1>
                 <p className="text-sm text-gray-500 flex items-center space-x-1">
                   <Sparkles className="w-3 h-3" />
-                  <span>OCR技術による自動抽出・管理</span>
+                  <span>{t('header.subtitle')}</span>
                 </p>
               </div>
             </div>
             
-            {/* エクスポートボタン */}
+            {/* エクスポートボタンと言語切り替え */}
             <div className="flex items-center space-x-3">
               {expenses.length > 0 && (
                 <>
@@ -159,7 +167,7 @@ export default function Home() {
                     className="btn-success flex items-center space-x-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span>全件出力</span>
+                    <span>{t('header.exportAll')}</span>
                   </button>
                   {selectedExpenses.length > 0 && (
                     <>
@@ -168,19 +176,22 @@ export default function Home() {
                         className="btn-primary flex items-center space-x-2"
                       >
                         <Download className="w-4 h-4" />
-                        <span>選択出力</span>
+                        <span>{t('header.exportSelected')}</span>
                       </button>
                       <button
                         onClick={() => downloadSelectedReceiptImages(expenses, selectedExpenses)}
                         className="btn-secondary flex items-center space-x-2"
                       >
                         <ImageIcon className="w-4 h-4" />
-                        <span>画像一括DL</span>
+                        <span>{t('header.downloadImages')}</span>
                       </button>
                     </>
                   )}
                 </>
               )}
+              
+              {/* 言語切り替え */}
+              <LanguageSwitcher onLanguageChange={handleLanguageChange} />
               
               {/* ハンバーガーメニューボタン */}
               <button
@@ -227,7 +238,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">メニュー</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('navigation.menu')}</h2>
               <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
@@ -268,26 +279,26 @@ export default function Home() {
                   <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">統計情報</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">{t('statistics.title')}</h2>
                 </div>
               </div>
               <div className="card-body">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="stat-card">
                     <div className="stat-number">{expenses.length}</div>
-                    <div className="stat-label">登録済み経費</div>
+                    <div className="stat-label">{t('statistics.registeredExpenses')}</div>
                   </div>
                   <div className="stat-card">
                     <div className="stat-number">¥{totalAmount.toLocaleString()}</div>
-                    <div className="stat-label">総金額</div>
+                    <div className="stat-label">{t('statistics.totalAmount')}</div>
                   </div>
                   <div className="stat-card">
                     <div className="stat-number">{selectedExpenses.length}</div>
-                    <div className="stat-label">選択済み</div>
+                    <div className="stat-label">{t('statistics.selected')}</div>
                   </div>
                   <div className="stat-card">
                     <div className="stat-number">¥{selectedAmount.toLocaleString()}</div>
-                    <div className="stat-label">選択金額</div>
+                    <div className="stat-label">{t('statistics.selectedAmount')}</div>
                   </div>
                 </div>
               </div>
@@ -304,11 +315,10 @@ export default function Home() {
                   </div>
                   <div>
                     <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      レシート画像をアップロード
+                      {t('imageUpload.title')}
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      OCR技術を使用して画像から経費情報を自動抽出します。
-                      レシート自動検出機能により、背景を除去して精度を向上させます。
+                      {t('imageUpload.description')}
                     </p>
                   </div>
                 </div>
@@ -324,11 +334,10 @@ export default function Home() {
                   </div>
                   <div>
                     <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      一括アップロード
+                      {t('batchUpload.title')}
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      複数のレシート画像を同時にアップロードして一括処理できます。
-                      レシート自動検出とOCR処理を効率的に実行します。
+                      {t('batchUpload.description')}
                     </p>
                   </div>
                 </div>
@@ -344,11 +353,10 @@ export default function Home() {
                   </div>
                   <div>
                     <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      経費データ入力・編集
+                      {t('dataInput.title')}
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      OCR結果を確認し、必要に応じて手動で修正してください。
-                      すべての項目を正確に入力することで、より良い分析が可能になります。
+                      {t('dataInput.description')}
                     </p>
                   </div>
                 </div>
@@ -366,10 +374,10 @@ export default function Home() {
                       </div>
                       <div>
                         <h2 className="text-4xl font-bold text-gray-900">
-                          経費リスト
+                          {t('expenseList.title')}
                         </h2>
                         <p className="text-lg text-gray-600">
-                          登録された経費データの一覧と管理
+                          {t('expenseList.description')}
                         </p>
                       </div>
                     </div>
@@ -380,7 +388,7 @@ export default function Home() {
                       className="btn-secondary flex items-center space-x-2"
                     >
                       <Settings className="w-4 h-4" />
-                      <span>選択解除</span>
+                      <span>{t('common.clearSelection')}</span>
                     </button>
                   )}
                 </div>
@@ -396,11 +404,10 @@ export default function Home() {
                   </div>
                   <div>
                     <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      予算最適化エンジン
+                      {t('budgetOptimizer.title')}
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      指定された予算に最も近い経費の組み合わせを自動提案します。
-                      効率的な予算管理にお役立てください。
+                      {t('budgetOptimizer.description')}
                     </p>
                   </div>
                 </div>
@@ -420,11 +427,11 @@ export default function Home() {
                 <Receipt className="w-6 h-6 text-white" />
               </div>
               <p className="text-xl font-semibold gradient-text">
-                Expenscan
+                {t('header.title')}
               </p>
             </div>
             <p className="text-gray-600">
-              © 2025 Expenscan. Developed by RT. All rights reserved.
+              {t('footer.copyright')}
             </p>
           </div>
         </div>
