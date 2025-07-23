@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload, Menu, X } from 'lucide-react';
+import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload, Menu, X, ImageIcon } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import BatchUpload from '@/components/BatchUpload';
 import ExpenseForm from '@/components/ExpenseForm';
@@ -81,6 +81,46 @@ export default function Home() {
     return <WelcomeScreen onComplete={handleWelcomeComplete} />;
   }
 
+  const downloadSelectedReceiptImages = (expenses: any[], selectedExpenseIds: string[]) => {
+    const selectedExpensesData = expenses.filter(expense => selectedExpenseIds.includes(expense.id));
+    if (selectedExpensesData.length === 0) {
+      alert('エクスポートする経費を選択してください。');
+      return;
+    }
+
+    const zip = new JSZip();
+    const folder = zip.folder('receipts');
+
+    if (!folder) {
+      alert('ZIPファイルの作成に失敗しました。');
+      return;
+    }
+
+    selectedExpensesData.forEach(expense => {
+      if (expense.receiptImageUrl) {
+        const fileName = `${expense.id}.jpg`;
+        folder.file(fileName, { base64: expense.receiptImageUrl });
+      }
+    });
+
+    zip.generateAsync({ type: 'blob' })
+      .then(content => {
+        const blob = new Blob([content], { type: 'application/zip' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'receipts.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('画像のダウンロードに失敗しました:', error);
+        alert('画像のダウンロードに失敗しました。');
+      });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 particle-bg relative overflow-hidden">
       {/* パーティクルエフェクト */}
@@ -122,13 +162,22 @@ export default function Home() {
                     <span>全件出力</span>
                   </button>
                   {selectedExpenses.length > 0 && (
-                    <button
-                      onClick={handleExportSelected}
-                      className="btn-primary flex items-center space-x-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>選択出力</span>
-                    </button>
+                    <>
+                      <button
+                        onClick={handleExportSelected}
+                        className="btn-primary flex items-center space-x-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>選択出力</span>
+                      </button>
+                      <button
+                        onClick={() => downloadSelectedReceiptImages(expenses, selectedExpenses)}
+                        className="btn-secondary flex items-center space-x-2"
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                        <span>画像一括DL</span>
+                      </button>
+                    </>
                   )}
                 </>
               )}
