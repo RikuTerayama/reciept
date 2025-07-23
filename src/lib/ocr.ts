@@ -1,5 +1,12 @@
 import Tesseract from 'tesseract.js';
-import { OCRResult } from '@/types';
+
+export interface OCRResult {
+  date?: string;
+  totalAmount?: number;
+  taxRate?: number;
+  isQualified?: boolean;
+  text: string;
+}
 
 export async function extractTextFromImage(file: File): Promise<OCRResult> {
   try {
@@ -8,142 +15,206 @@ export async function extractTextFromImage(file: File): Promise<OCRResult> {
     });
 
     const text = result.data.text;
-    console.log('Extracted text:', text);
-    
-    // 基本的な情報抽出（改善版）
-    const extractedData = extractBasicInfo(text);
-    
+    console.log('OCR抽出テキスト:', text);
+
     return {
-      text,
-      ...extractedData
+      date: extractDate(text),
+      totalAmount: extractTotalAmount(text),
+      taxRate: extractTaxRate(text),
+      isQualified: checkQualifiedInvoice(text),
+      text: text
     };
   } catch (error) {
-    console.error('OCR processing error:', error);
-    throw new Error('OCR処理中にエラーが発生しました');
+    console.error('OCR処理エラー:', error);
+    throw new Error('画像の処理中にエラーが発生しました');
   }
 }
 
-function extractBasicInfo(text: string): Partial<OCRResult> {
-  const extracted: Partial<OCRResult> = {};
-  
-  // 日付の抽出（改善版）
+function extractDate(text: string): string | undefined {
+  // 日付パターンの改善
   const datePatterns = [
-    /(\d{4})[年\/\-](\d{1,2})[月\/\-](\d{1,2})/,
-    /(\d{1,2})[月\/\-](\d{1,2})[日\/\-](\d{4})/,
-    /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
-    /(\d{4})\/(\d{1,2})\/(\d{1,2})/,
-    /(\d{1,2})-(\d{1,2})-(\d{4})/,
-    /(\d{4})-(\d{1,2})-(\d{1,2})/
+    // YYYY-MM-DD
+    /(\d{4})[-/](\d{1,2})[-/](\d{1,2})/g,
+    // YYYY年MM月DD日
+    /(\d{4})年(\d{1,2})月(\d{1,2})日/g,
+    // MM/DD/YYYY
+    /(\d{1,2})[/](\d{1,2})[/](\d{4})/g,
+    // DD/MM/YYYY
+    /(\d{1,2})[/](\d{1,2})[/](\d{4})/g,
+    // YYYY.MM.DD
+    /(\d{4})\.(\d{1,2})\.(\d{1,2})/g,
   ];
-  
+
   for (const pattern of datePatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      let year, month, day;
-      if (match[1].length === 4) {
-        // YYYY-MM-DD 形式
-        year = match[1];
-        month = match[2].padStart(2, '0');
-        day = match[3].padStart(2, '0');
+    const matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      const match = matches[0];
+      console.log('日付マッチ:', match);
+      
+      // 日付形式を統一
+      if (match.includes('年')) {
+        // YYYY年MM月DD日 → YYYY-MM-DD
+        const year = match.match(/(\d{4})年/)?.[1];
+        const month = match.match(/(\d{1,2})月/)?.[1];
+        const day = match.match(/(\d{1,2})日/)?.[1];
+        if (year && month && day) {
+          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+      } else if (match.includes('/')) {
+        // MM/DD/YYYY or DD/MM/YYYY → YYYY-MM-DD
+        const parts = match.split('/');
+        if (parts.length === 3) {
+          const [first, second, third] = parts;
+          // 4桁の数字が年と判断
+          if (third.length === 4) {
+            return `${third}-${first.padStart(2, '0')}-${second.padStart(2, '0')}`;
+          } else if (first.length === 4) {
+            return `${first}-${second.padStart(2, '0')}-${third.padStart(2, '0')}`;
+          }
+        }
+      } else if (match.includes('.')) {
+        // YYYY.MM.DD → YYYY-MM-DD
+        return match.replace(/\./g, '-');
       } else {
-        // MM-DD-YYYY 形式
-        year = match[3];
-        month = match[1].padStart(2, '0');
-        day = match[2].padStart(2, '0');
+        // YYYY-MM-DD or YYYY/MM/DD
+        return match.replace(/\//g, '-');
       }
-      extracted.date = `${year}-${month}-${day}`;
-      break;
     }
   }
-  
-  // 金額の抽出（大幅改善版）
-  const amountPatterns = [
-    // 合計金額のパターン（優先度高い）
-    /(?:合計|総額|TOTAL|AMOUNT|合計金額|総計)[\s:：]*[¥￥]?(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
-    /(?:合計|総額|TOTAL|AMOUNT|合計金額|総計)[\s:：]*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)[円]/i,
-    /[¥￥](\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/,
-    /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)[円]/,
-    // 小計のパターン（合計が見つからない場合）
-    /(?:小計|SUBTOTAL|小計金額)[\s:：]*[¥￥]?(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
-    /(?:小計|SUBTOTAL|小計金額)[\s:：]*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)[円]/i,
-    // 一般的な金額パターン
-    /(?:金額|AMOUNT|PRICE)[\s:：]*[¥￥]?(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
-    /(?:金額|AMOUNT|PRICE)[\s:：]*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)[円]/i,
-    // 数字のみのパターン（最後の手段）
-    /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)[円]/
+
+  console.log('日付が見つかりませんでした');
+  return undefined;
+}
+
+function extractTotalAmount(text: string): number | undefined {
+  // 合計金額のパターンを改善
+  const totalPatterns = [
+    // 合計、小計、総計などのキーワード
+    /(?:合計|小計|総計|total|subtotal|amount|sum)[\s:：]*([¥￥]?[\d,]+)/gi,
+    // 金額のみ（最後の大きな金額を優先）
+    /([¥￥]?[\d,]+)/g,
+    // 税込み、税抜きの表記
+    /(?:税込|税抜|税抜き|税込み)[\s:：]*([¥￥]?[\d,]+)/gi,
+    // 消費税の表記
+    /(?:消費税|tax)[\s:：]*([¥￥]?[\d,]+)/gi,
   ];
-  
+
+  let maxAmount = 0;
   let foundAmount = false;
-  for (const pattern of amountPatterns) {
-    const matches = text.match(new RegExp(pattern, 'gi'));
-    if (matches && matches.length > 0) {
-      // 最後のマッチを取得（通常、合計金額は最後に記載される）
-      const lastMatch = matches[matches.length - 1];
-      const amountMatch = lastMatch.match(/(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
-      if (amountMatch) {
-        const amount = parseInt(amountMatch[1].replace(/,/g, ''));
-        if (amount > 0 && amount < 10000000) { // 妥当な範囲
-          extracted.totalAmount = amount;
-          foundAmount = true;
-          console.log(`Found amount: ${amount} from pattern: ${pattern}`);
-          break;
+
+  for (const pattern of totalPatterns) {
+    const matches = text.match(pattern);
+    if (matches) {
+      for (const match of matches) {
+        // 金額部分を抽出
+        const amountMatch = match.match(/[¥￥]?([\d,]+)/);
+        if (amountMatch) {
+          const amountStr = amountMatch[1].replace(/,/g, '');
+          const amount = parseInt(amountStr);
+          
+          if (amount > 0 && amount > maxAmount) {
+            // 明らかに小さい金額（100円未満）は除外
+            if (amount >= 100) {
+              maxAmount = amount;
+              foundAmount = true;
+              console.log('金額マッチ:', match, '→', amount);
+            }
+          }
         }
       }
     }
   }
-  
-  // 金額が見つからない場合のデバッグ情報
-  if (!foundAmount) {
-    console.log('No amount found in text. Available numbers:', text.match(/\d{1,3}(?:,\d{3})*(?:\.\d{2})?/g));
+
+  if (foundAmount) {
+    console.log('最終的な金額:', maxAmount);
+    return maxAmount;
   }
-  
-  // 税率の推定（改善版）
-  if (text.includes('10%') || text.includes('10％') || text.includes('10.0%')) {
-    extracted.taxRate = 10;
-  } else if (text.includes('8%') || text.includes('8％') || text.includes('8.0%')) {
-    extracted.taxRate = 8;
-  } else if (text.includes('0%') || text.includes('0％') || text.includes('非課税') || text.includes('免税')) {
-    extracted.taxRate = 0;
-  } else {
-    extracted.taxRate = 10; // デフォルト
+
+  console.log('合計金額が抽出できませんでした');
+  return undefined;
+}
+
+function extractTaxRate(text: string): number {
+  // 税率の抽出
+  const taxPatterns = [
+    /(?:税率|tax\s*rate)[\s:：]*(\d+(?:\.\d+)?)%/gi,
+    /(\d+(?:\.\d+)?)%\s*(?:税率|tax)/gi,
+    /(?:軽減税率|reduced\s*tax)[\s:：]*(\d+(?:\.\d+)?)%/gi,
+  ];
+
+  for (const pattern of taxPatterns) {
+    const matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      const rateMatch = matches[0].match(/(\d+(?:\.\d+)?)%/);
+      if (rateMatch) {
+        const rate = parseFloat(rateMatch[1]);
+        console.log('税率マッチ:', rate);
+        return rate;
+      }
+    }
   }
-  
-  // 適格区分の推定（改善版）
-  const qualifiedKeywords = ['適格', 'qualified', 'invoice', 'receipt', '領収書', '請求書', 'tax invoice'];
-  const notQualifiedKeywords = ['非適格', 'not qualified', 'not applicable', 'personal'];
-  
-  const hasQualifiedKeywords = qualifiedKeywords.some(keyword => 
-    text.toLowerCase().includes(keyword.toLowerCase())
-  );
-  const hasNotQualifiedKeywords = notQualifiedKeywords.some(keyword => 
-    text.toLowerCase().includes(keyword.toLowerCase())
-  );
-  
-  if (hasNotQualifiedKeywords) {
-    extracted.isQualified = false;
-  } else if (hasQualifiedKeywords) {
-    extracted.isQualified = true;
-  } else {
-    extracted.isQualified = true; // デフォルト
+
+  // デフォルトは10%
+  console.log('税率が見つからないため、デフォルト10%を使用');
+  return 10;
+}
+
+function checkQualifiedInvoice(text: string): boolean {
+  // 適格請求書判定の改善
+  const qualifiedPatterns = [
+    // 登録番号のパターン（T+13桁数字）
+    /T\d{13}/gi,
+    // 登録番号の一般的なパターン
+    /(?:登録番号|registration\s*number)[\s:：]*[T]?\d{13,}/gi,
+    // 適格請求書の明示的な表記
+    /(?:適格請求書|qualified\s*invoice)/gi,
+    // インボイス制度対応の表記
+    /(?:インボイス|invoice\s*system)/gi,
+    // 消費税転嫁の表記
+    /(?:消費税転嫁|tax\s*transfer)/gi,
+  ];
+
+  for (const pattern of qualifiedPatterns) {
+    const matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      console.log('適格請求書マッチ:', matches[0]);
+      return true;
+    }
   }
-  
-  return extracted;
+
+  // 非適格の表記があるかチェック
+  const nonQualifiedPatterns = [
+    /(?:非適格|non.?qualified)/gi,
+    /(?:簡易課税|simplified\s*taxation)/gi,
+    /(?:免税|tax\s*exempt)/gi,
+  ];
+
+  for (const pattern of nonQualifiedPatterns) {
+    const matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      console.log('非適格マッチ:', matches[0]);
+      return false;
+    }
+  }
+
+  console.log('適格性が判定できないため、非適格として扱います');
+  return false;
 }
 
 export function validateOCRResult(result: OCRResult): string[] {
   const errors: string[] = [];
-  
-  if (!result.text || result.text.trim().length === 0) {
-    errors.push('テキストが抽出されませんでした');
-  }
-  
+
   if (!result.date) {
-    errors.push('日付が抽出されませんでした');
+    errors.push('日付が抽出できませんでした');
   }
-  
-  if (!result.totalAmount || result.totalAmount <= 0) {
-    errors.push('有効な金額が抽出されませんでした');
+
+  if (!result.totalAmount) {
+    errors.push('合計金額が抽出できませんでした');
   }
-  
+
+  if (result.totalAmount && result.totalAmount <= 0) {
+    errors.push('抽出された金額が無効です');
+  }
+
   return errors;
 } 
