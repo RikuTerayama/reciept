@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings } from 'lucide-react';
+import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
@@ -47,20 +47,31 @@ export default function Home() {
     .reduce((sum, exp) => sum + exp.totalAmount, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 particle-bg relative overflow-hidden">
+      {/* パーティクルエフェクト */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-2 h-2 bg-primary-400 rounded-full animate-float opacity-60"></div>
+        <div className="absolute top-40 right-20 w-1 h-1 bg-secondary-400 rounded-full animate-float opacity-40" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-40 left-20 w-3 h-3 bg-accent-400 rounded-full animate-float opacity-30" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-20 right-10 w-1 h-1 bg-primary-300 rounded-full animate-float opacity-50" style={{ animationDelay: '0.5s' }}></div>
+      </div>
+
       {/* ヘッダー */}
-      <header className="bg-white/80 backdrop-blur-md shadow-elegant border-b border-gray-200/50 sticky top-0 z-50">
+      <header className="glass-strong shadow-glass border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl shadow-lg">
+              <div className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl shadow-lg neon-glow">
                 <Receipt className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold gradient-text">
                   レシート経費管理システム
                 </h1>
-                <p className="text-sm text-gray-500">OCR技術による自動抽出・管理</p>
+                <p className="text-sm text-gray-500 flex items-center space-x-1">
+                  <Sparkles className="w-3 h-3" />
+                  <span>OCR技術による自動抽出・管理</span>
+                </p>
               </div>
             </div>
             
@@ -92,7 +103,7 @@ export default function Home() {
       </header>
 
       {/* タブナビゲーション */}
-      <nav className="bg-white/60 backdrop-blur-sm border-b border-gray-200/50">
+      <nav className="glass shadow-glass border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-1">
             {tabs.map((tab) => {
@@ -102,7 +113,7 @@ export default function Home() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    nav-tab rounded-t-lg
+                    nav-tab
                     ${activeTab === tab.id ? 'active' : ''}
                   `}
                   title={tab.description}
@@ -117,14 +128,16 @@ export default function Home() {
       </nav>
 
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="space-y-8">
           {/* 統計情報 */}
           {expenses.length > 0 && (
             <div className="card animate-fade-in">
               <div className="card-header">
                 <div className="flex items-center space-x-3">
-                  <BarChart3 className="w-6 h-6 text-primary-600" />
+                  <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
                   <h2 className="text-xl font-semibold text-gray-900">統計情報</h2>
                 </div>
               </div>
@@ -155,12 +168,12 @@ export default function Home() {
           <div className="animate-slide-in">
             {activeTab === 'upload' && (
               <div className="space-y-8">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full shadow-lg">
-                    <Receipt className="w-10 h-10 text-white" />
+                <div className="text-center space-y-6">
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-3xl shadow-2xl neon-glow animate-float">
+                    <Receipt className="w-12 h-12 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
                       レシート画像をアップロード
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -175,12 +188,12 @@ export default function Home() {
 
             {activeTab === 'form' && (
               <div className="space-y-8">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full shadow-lg">
-                    <Plus className="w-10 h-10 text-white" />
+                <div className="text-center space-y-6">
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-3xl shadow-2xl neon-glow animate-float">
+                    <Plus className="w-12 h-12 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
                       経費データ入力・編集
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -196,13 +209,13 @@ export default function Home() {
             {activeTab === 'list' && (
               <div className="space-y-8">
                 <div className="flex justify-between items-center">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg">
-                        <List className="w-6 h-6 text-white" />
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-4">
+                      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg neon-glow">
+                        <List className="w-8 h-8 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-3xl font-bold text-gray-900">
+                        <h2 className="text-4xl font-bold text-gray-900">
                           経費リスト
                         </h2>
                         <p className="text-lg text-gray-600">
@@ -227,12 +240,12 @@ export default function Home() {
 
             {activeTab === 'optimizer' && (
               <div className="space-y-8">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg">
-                    <Calculator className="w-10 h-10 text-white" />
+                <div className="text-center space-y-6">
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl shadow-2xl neon-glow animate-float">
+                    <Calculator className="w-12 h-12 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
                       予算最適化エンジン
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -249,20 +262,23 @@ export default function Home() {
       </main>
 
       {/* フッター */}
-      <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200/50 mt-16">
+      <footer className="glass-strong shadow-glass border-t border-white/20 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center space-x-2">
-              <Receipt className="w-6 h-6 text-primary-600" />
-              <p className="text-lg font-semibold text-gray-900">
+          <div className="text-center space-y-6">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
+                <Receipt className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-xl font-semibold gradient-text">
                 レシート経費管理システム
               </p>
             </div>
             <p className="text-gray-600">
               &copy; 2024 Receipt Expense Manager. All rights reserved.
             </p>
-            <p className="text-sm text-gray-500">
-              Next.js + Tesseract.js + TailwindCSS で構築
+            <p className="text-sm text-gray-500 flex items-center justify-center space-x-2">
+              <span>Next.js + Tesseract.js + TailwindCSS で構築</span>
+              <Sparkles className="w-3 h-3" />
             </p>
           </div>
         </div>
