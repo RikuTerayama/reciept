@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Save, ArrowLeft, Calculator, AlertCircle, CheckCircle, DollarSign, Calendar, Percent, Building, FileText } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
-import { ExpenseData, CURRENCIES, EXPENSE_CATEGORIES, TAX_RATES, DEPARTMENTS, QUALIFICATION_TYPES } from '@/types';
+import { CURRENCIES, EXPENSE_CATEGORIES, TAX_RATES, DEPARTMENTS, QUALIFICATION_TYPES, ExpenseData } from '@/types';
 
 export default function ExpenseForm() {
-  const { ocrResult, addExpense, expenses } = useExpenseStore();
+  const { ocrResult, addExpense, setOCRResult } = useExpenseStore();
+  
   const [formData, setFormData] = useState<Partial<ExpenseData>>({
     date: '',
     totalAmount: 0,
@@ -13,10 +15,15 @@ export default function ExpenseForm() {
     currency: 'JPY',
     category: '',
     department: '',
-    isQualified: 'Qualified invoice/receipt',
+    isQualified: 'Not Qualified',
+    ocrText: ''
   });
 
-  // OCR結果が更新されたらフォームに反映
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  // OCR結果がある場合、フォームに自動入力
   useEffect(() => {
     if (ocrResult) {
       setFormData(prev => ({
@@ -24,25 +31,97 @@ export default function ExpenseForm() {
         date: ocrResult.date || '',
         totalAmount: ocrResult.totalAmount || 0,
         taxRate: ocrResult.taxRate || 10,
-        isQualified: ocrResult.isQualified 
-          ? 'Qualified invoice/receipt' 
-          : 'Not Qualified',
+        isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
+        ocrText: ocrResult.text
       }));
     }
   }, [ocrResult]);
 
-  const handleInputChange = (field: keyof ExpenseData, value: string | number) => {
+  // 金額の自動計算
+  const calculateTotal = (baseAmount: number, taxRate: number): number => {
+    return Math.round(baseAmount * (1 + taxRate / 100));
+  };
+
+  // 税抜き金額から税込み金額を計算
+  const calculateTotalFromBase = (baseAmount: number, taxRate: number): number => {
+    return calculateTotal(baseAmount, taxRate);
+  };
+
+  // 税込み金額から税抜き金額を計算
+  const calculateBaseFromTotal = (totalAmount: number, taxRate: number): number => {
+    return Math.round(totalAmount / (1 + taxRate / 100));
+  };
+
+  // 金額フィールドの変更処理
+  const handleAmountChange = (field: 'baseAmount' | 'totalAmount', value: string) => {
+    const numValue = parseFloat(value) || 0;
+    const taxRate = formData.taxRate || 10;
+    
+    setIsCalculating(true);
+    
+    if (field === 'baseAmount') {
+      const total = calculateTotalFromBase(numValue, taxRate);
+      setFormData(prev => ({
+        ...prev,
+        totalAmount: total
+      }));
+    } else {
+      const base = calculateBaseFromTotal(numValue, taxRate);
+      setFormData(prev => ({
+        ...prev,
+        totalAmount: numValue
+      }));
+    }
+    
+    // 計算中の表示を少し遅延させる
+    setTimeout(() => setIsCalculating(false), 300);
+  };
+
+  // 税率変更時の自動再計算
+  const handleTaxRateChange = (taxRate: number) => {
+    const currentTotal = formData.totalAmount || 0;
+    const baseAmount = calculateBaseFromTotal(currentTotal, formData.taxRate || 10);
+    const newTotal = calculateTotalFromBase(baseAmount, taxRate);
+    
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      taxRate,
+      totalAmount: newTotal
     }));
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.date) {
+      newErrors.date = '日付は必須です';
+    } else {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(formData.date)) {
+        newErrors.date = '日付はYYYY-MM-DD形式で入力してください';
+      }
+    }
+
+    if (!formData.totalAmount || formData.totalAmount <= 0) {
+      newErrors.totalAmount = '合計金額は0より大きい値を入力してください';
+    }
+
+    if (!formData.category) {
+      newErrors.category = '経費カテゴリは必須です';
+    }
+
+    if (!formData.department) {
+      newErrors.department = '所属組織は必須です';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.date || !formData.totalAmount || !formData.category || !formData.department) {
-      alert('必須項目を入力してください');
+    if (!validateForm()) {
       return;
     }
 
@@ -55,11 +134,12 @@ export default function ExpenseForm() {
       category: formData.category!,
       department: formData.department!,
       isQualified: formData.isQualified!,
-      ocrText: ocrResult?.text,
-      createdAt: new Date(),
+      ocrText: formData.ocrText,
+      createdAt: new Date()
     };
 
     addExpense(newExpense);
+    setSuccess('経費データが正常に保存されました！');
     
     // フォームをリセット
     setFormData({
@@ -67,176 +147,295 @@ export default function ExpenseForm() {
       totalAmount: 0,
       taxRate: 10,
       currency: 'JPY',
-      category: '',
-      department: '',
-      isQualified: 'Qualified invoice/receipt',
+        category: '',
+        department: '',
+        isQualified: 'Not Qualified',
+        ocrText: ''
     });
+    
+    // OCR結果をクリア
+    setOCRResult(null);
+    
+    // 成功メッセージを3秒後にクリア
+    setTimeout(() => setSuccess(null), 3000);
   };
 
-  if (!ocrResult) {
-    return (
-      <div className="w-full max-w-2xl mx-auto p-6 bg-gray-50 rounded-lg">
-        <p className="text-center text-gray-500">
-          画像をアップロードしてOCR処理を実行してください
-        </p>
-      </div>
-    );
-  }
+  const baseAmount = calculateBaseFromTotal(formData.totalAmount || 0, formData.taxRate || 10);
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-6">経費データ入力</h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 日付 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              日付 *
-            </label>
-            <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => handleInputChange('date', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              required
-            />
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* 成功メッセージ */}
+      {success && (
+        <div className="card border-green-200 bg-green-50 animate-fade-in">
+          <div className="card-body">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="w-6 h-6 text-green-500" />
+              <div>
+                <h3 className="font-semibold text-green-800">保存完了</h3>
+                <p className="text-green-700">{success}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OCR結果表示 */}
+      {ocrResult && (
+        <div className="card border-blue-200 bg-blue-50">
+          <div className="card-header">
+            <div className="flex items-center space-x-3">
+              <FileText className="w-6 h-6 text-blue-500" />
+              <h3 className="text-lg font-semibold text-blue-800">OCR抽出結果</h3>
+            </div>
+          </div>
+          <div className="card-body">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-blue-700">抽出テキスト:</span>
+                <div className="mt-2 p-3 bg-white rounded-lg border text-gray-700 max-h-32 overflow-y-auto">
+                  {ocrResult.text}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div><span className="font-medium text-blue-700">抽出日付:</span> {ocrResult.date || '未検出'}</div>
+                <div><span className="font-medium text-blue-700">抽出金額:</span> ¥{ocrResult.totalAmount?.toLocaleString() || '未検出'}</div>
+                <div><span className="font-medium text-blue-700">適格判定:</span> {ocrResult.isQualified ? '適格' : '非適格'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* メインフォーム */}
+      <form onSubmit={handleSubmit} className="card animate-slide-in">
+        <div className="card-header">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+              <Save className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">経費データ入力</h2>
+          </div>
+        </div>
+
+        <div className="card-body space-y-8">
+          {/* 基本情報 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 日付 */}
+            <div className="form-group">
+              <label className="form-label">
+                <Calendar className="w-4 h-4" />
+                日付 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                className={`form-input ${errors.date ? 'error' : ''}`}
+                required
+              />
+              {errors.date && <p className="form-error">{errors.date}</p>}
+            </div>
+
+            {/* 通貨 */}
+            <div className="form-group">
+              <label className="form-label">
+                <DollarSign className="w-4 h-4" />
+                通貨
+              </label>
+              <select
+                value={formData.currency}
+                onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
+                className="form-select"
+              >
+                {CURRENCIES.map(currency => (
+                  <option key={currency} value={currency}>{currency}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* 合計金額 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              合計金額 *
-            </label>
-            <input
-              type="number"
-              value={formData.totalAmount}
-              onChange={(e) => handleInputChange('totalAmount', parseInt(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              required
-            />
+          {/* 金額計算セクション */}
+          <div className="card border-primary-200 bg-primary-50">
+            <div className="card-header">
+              <div className="flex items-center space-x-3">
+                <Calculator className="w-6 h-6 text-primary-600" />
+                <h3 className="text-lg font-semibold text-primary-800">金額計算</h3>
+                {isCalculating && (
+                  <div className="flex items-center space-x-2 text-primary-600">
+                    <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-sm">計算中...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="card-body">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* 税抜き金額 */}
+                <div className="form-group">
+                  <label className="form-label">税抜き金額</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={baseAmount}
+                      onChange={(e) => handleAmountChange('baseAmount', e.target.value)}
+                      className="form-input pr-12"
+                      min="0"
+                      step="1"
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                      {formData.currency}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">税抜き金額を入力すると自動計算されます</p>
+                </div>
+
+                {/* 税率 */}
+                <div className="form-group">
+                  <label className="form-label">
+                    <Percent className="w-4 h-4" />
+                    税率
+                  </label>
+                  <select
+                    value={formData.taxRate}
+                    onChange={(e) => handleTaxRateChange(Number(e.target.value))}
+                    className="form-select"
+                  >
+                    {TAX_RATES.map(rate => (
+                      <option key={rate} value={rate}>{rate}%</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 合計金額（税込み） */}
+                <div className="form-group">
+                  <label className="form-label">
+                    <DollarSign className="w-4 h-4" />
+                    合計金額（税込み）<span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={formData.totalAmount}
+                      onChange={(e) => handleAmountChange('totalAmount', e.target.value)}
+                      className={`form-input pr-12 ${errors.totalAmount ? 'error' : ''}`}
+                      min="0"
+                      step="1"
+                      required
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                      {formData.currency}
+                    </span>
+                  </div>
+                  {errors.totalAmount && <p className="form-error">{errors.totalAmount}</p>}
+                  <p className="text-xs text-gray-500 mt-1">税込み金額を直接入力することも可能です</p>
+                </div>
+              </div>
+
+              {/* 計算結果表示 */}
+              <div className="mt-4 p-4 bg-white rounded-lg border border-primary-200">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-600">税抜き金額:</span>
+                    <span className="ml-2 font-semibold text-gray-900">
+                      {formData.currency} {baseAmount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">消費税:</span>
+                    <span className="ml-2 font-semibold text-gray-900">
+                      {formData.currency} {(formData.totalAmount || 0) - baseAmount} ({formData.taxRate}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* 税率 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              税率
-            </label>
-            <select
-              value={formData.taxRate}
-              onChange={(e) => handleInputChange('taxRate', parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              {TAX_RATES.map(rate => (
-                <option key={rate} value={rate}>{rate}%</option>
-              ))}
-            </select>
+          {/* 分類情報 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 経費カテゴリ */}
+            <div className="form-group">
+              <label className="form-label">
+                <FileText className="w-4 h-4" />
+                経費カテゴリ <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                className={`form-select ${errors.category ? 'error' : ''}`}
+                required
+              >
+                <option value="">カテゴリを選択してください</option>
+                {EXPENSE_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+              {errors.category && <p className="form-error">{errors.category}</p>}
+            </div>
+
+            {/* 所属組織 */}
+            <div className="form-group">
+              <label className="form-label">
+                <Building className="w-4 h-4" />
+                所属組織 <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.department}
+                onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                className={`form-select ${errors.department ? 'error' : ''}`}
+                required
+              >
+                <option value="">組織を選択してください</option>
+                {DEPARTMENTS.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+              {errors.department && <p className="form-error">{errors.department}</p>}
+            </div>
           </div>
 
-          {/* 通貨 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              通貨
-            </label>
-            <select
-              value={formData.currency}
-              onChange={(e) => handleInputChange('currency', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              {CURRENCIES.map(currency => (
-                <option key={currency} value={currency}>{currency}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* カテゴリ */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              経費カテゴリ *
-            </label>
-            <select
-              value={formData.category}
-              onChange={(e) => handleInputChange('category', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              required
-            >
-              <option value="">選択してください</option>
-              {EXPENSE_CATEGORIES.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 部署 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              所属部署 *
-            </label>
-            <select
-              value={formData.department}
-              onChange={(e) => handleInputChange('department', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              required
-            >
-              <option value="">選択してください</option>
-              {DEPARTMENTS.map(department => (
-                <option key={department} value={department}>{department}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* 適格区分 */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              適格/非適格の区分
+          {/* 適格性 */}
+          <div className="form-group">
+            <label className="form-label">
+              <AlertCircle className="w-4 h-4" />
+              適格／非適格区分
             </label>
             <select
               value={formData.isQualified}
-              onChange={(e) => handleInputChange('isQualified', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              onChange={(e) => setFormData(prev => ({ ...prev, isQualified: e.target.value }))}
+              className="form-select"
             >
               {QUALIFICATION_TYPES.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
+            <p className="text-xs text-gray-500 mt-1">
+              登録番号またはT+13桁数字がある場合は適格請求書として判定されます
+            </p>
           </div>
         </div>
 
-        <div className="flex justify-end space-x-4 pt-4">
-          <button
-            type="button"
-            onClick={() => setFormData({
-              date: '',
-              totalAmount: 0,
-              taxRate: 10,
-              currency: 'JPY',
-              category: '',
-              department: '',
-              isQualified: 'Qualified invoice/receipt',
-            })}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-          >
-            リセット
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-          >
-            追加
-          </button>
+        {/* フォームアクション */}
+        <div className="card-footer">
+          <div className="flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="btn-secondary flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>戻る</span>
+            </button>
+            <button
+              type="submit"
+              className="btn-primary flex items-center space-x-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>保存</span>
+            </button>
+          </div>
         </div>
       </form>
-
-      {/* OCR結果の表示 */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-md">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">OCR抽出結果</h3>
-        <div className="text-sm text-gray-600 space-y-1">
-          <p><strong>抽出テキスト:</strong></p>
-          <pre className="whitespace-pre-wrap text-xs bg-white p-2 rounded border">
-            {ocrResult.text}
-          </pre>
-        </div>
-      </div>
     </div>
   );
-}
+} 
