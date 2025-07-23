@@ -1,143 +1,178 @@
 import { ExpenseData, OptimizedExpense } from '@/types';
 
+// 動的計画法を使用した予算最適化アルゴリズム
 export function findOptimalExpenseCombination(
   expenses: ExpenseData[],
   targetBudget: number
-): OptimizedExpense | null {
-  if (expenses.length === 0) return null;
+): OptimizedExpense {
+  if (expenses.length === 0 || targetBudget <= 0) {
+    return {
+      expenses: [],
+      totalAmount: 0,
+      difference: targetBudget
+    };
+  }
 
-  // 動的計画法を使用して最適な組み合わせを見つける
-  const dp: boolean[][] = Array(expenses.length + 1)
+  // 経費を金額でソート（降順）
+  const sortedExpenses = [...expenses].sort((a, b) => b.totalAmount - a.totalAmount);
+  
+  // 動的計画法のテーブル
+  const dp: number[][] = Array(expenses.length + 1)
+    .fill(null)
+    .map(() => Array(targetBudget + 1).fill(0));
+  
+  // 選択された経費を追跡するテーブル
+  const selected: boolean[][] = Array(expenses.length + 1)
     .fill(null)
     .map(() => Array(targetBudget + 1).fill(false));
 
-  // 初期化
-  dp[0][0] = true;
-
-  // 動的計画法の実行
+  // 動的計画法で最適解を計算
   for (let i = 1; i <= expenses.length; i++) {
-    for (let j = 0; j <= targetBudget; j++) {
-      dp[i][j] = dp[i - 1][j];
-      if (j >= expenses[i - 1].totalAmount) {
-        dp[i][j] = dp[i][j] || dp[i - 1][j - expenses[i - 1].totalAmount];
+    const expense = sortedExpenses[i - 1];
+    
+    for (let budget = 0; budget <= targetBudget; budget++) {
+      // 現在の経費を選択しない場合
+      dp[i][budget] = dp[i - 1][budget];
+      
+      // 現在の経費を選択できる場合
+      if (expense.totalAmount <= budget) {
+        const valueWithCurrent = dp[i - 1][budget - expense.totalAmount] + expense.totalAmount;
+        
+        if (valueWithCurrent > dp[i][budget]) {
+          dp[i][budget] = valueWithCurrent;
+          selected[i][budget] = true;
+        }
       }
     }
   }
 
-  // 最適な組み合わせを復元
-  let bestSum = 0;
-  for (let j = targetBudget; j >= 0; j--) {
-    if (dp[expenses.length][j]) {
-      bestSum = j;
-      break;
+  // 最適解を復元
+  const selectedExpenses: ExpenseData[] = [];
+  let currentBudget = targetBudget;
+  
+  for (let i = expenses.length; i > 0; i--) {
+    if (selected[i][currentBudget]) {
+      const expense = sortedExpenses[i - 1];
+      selectedExpenses.push(expense);
+      currentBudget -= expense.totalAmount;
     }
   }
 
-  if (bestSum === 0) return null;
+  const totalAmount = selectedExpenses.reduce((sum, exp) => sum + exp.totalAmount, 0);
+  const difference = targetBudget - totalAmount;
 
-  // 選択された経費を復元
-  const selectedExpenses: ExpenseData[] = [];
-  let remainingSum = bestSum;
+  return {
+    expenses: selectedExpenses,
+    totalAmount,
+    difference
+  };
+}
+
+// 貪欲法を使用した簡易最適化（高速だが最適解ではない）
+export function findGreedyExpenseCombination(
+  expenses: ExpenseData[],
+  targetBudget: number
+): OptimizedExpense {
+  if (expenses.length === 0 || targetBudget <= 0) {
+    return {
+      expenses: [],
+      totalAmount: 0,
+      difference: targetBudget
+    };
+  }
+
+  // 金額で降順ソート
+  const sortedExpenses = [...expenses].sort((a, b) => b.totalAmount - a.totalAmount);
   
-  for (let i = expenses.length; i > 0 && remainingSum > 0; i--) {
-    if (remainingSum >= expenses[i - 1].totalAmount && dp[i - 1][remainingSum - expenses[i - 1].totalAmount]) {
-      selectedExpenses.unshift(expenses[i - 1]);
-      remainingSum -= expenses[i - 1].totalAmount;
+  const selectedExpenses: ExpenseData[] = [];
+  let currentTotal = 0;
+
+  for (const expense of sortedExpenses) {
+    if (currentTotal + expense.totalAmount <= targetBudget) {
+      selectedExpenses.push(expense);
+      currentTotal += expense.totalAmount;
     }
   }
 
   return {
     expenses: selectedExpenses,
-    totalAmount: bestSum,
-    difference: targetBudget - bestSum,
+    totalAmount: currentTotal,
+    difference: targetBudget - currentTotal
   };
 }
 
-export function findMultipleOptimalCombinations(
+// 複数の最適化戦略を比較
+export function compareOptimizationStrategies(
   expenses: ExpenseData[],
-  targetBudget: number,
-  maxCombinations: number = 3
-): OptimizedExpense[] {
-  const combinations: OptimizedExpense[] = [];
-  
-  // 全ての可能な組み合わせを生成（小規模な場合のみ）
-  if (expenses.length <= 20) {
-    const allCombinations = generateAllCombinations(expenses);
-    
-    // 予算内の組み合わせをフィルタリング
-    const validCombinations = allCombinations
-      .map(combo => ({
-        expenses: combo,
-        totalAmount: combo.reduce((sum, exp) => sum + exp.totalAmount, 0),
-        difference: 0
-      }))
-      .filter(combo => combo.totalAmount <= targetBudget)
-      .map(combo => ({
-        ...combo,
-        difference: targetBudget - combo.totalAmount
-      }))
-      .sort((a, b) => a.difference - b.difference);
+  targetBudget: number
+): {
+  dynamic: OptimizedExpense;
+  greedy: OptimizedExpense;
+  comparison: {
+    dynamicBetter: boolean;
+    improvement: number;
+    improvementPercentage: number;
+  };
+} {
+  const dynamicResult = findOptimalExpenseCombination(expenses, targetBudget);
+  const greedyResult = findGreedyExpenseCombination(expenses, targetBudget);
 
-    return validCombinations.slice(0, maxCombinations);
-  }
-
-  // 大規模な場合は動的計画法を使用
-  const optimal = findOptimalExpenseCombination(expenses, targetBudget);
-  if (optimal) {
-    combinations.push(optimal);
-  }
-
-  return combinations;
-}
-
-function generateAllCombinations(expenses: ExpenseData[]): ExpenseData[][] {
-  const combinations: ExpenseData[][] = [];
-  
-  function backtrack(start: number, current: ExpenseData[]) {
-    combinations.push([...current]);
-    
-    for (let i = start; i < expenses.length; i++) {
-      current.push(expenses[i]);
-      backtrack(i + 1, current);
-      current.pop();
-    }
-  }
-  
-  backtrack(0, []);
-  return combinations;
-}
-
-export function calculateExpenseStatistics(expenses: ExpenseData[]) {
-  if (expenses.length === 0) {
-    return {
-      totalAmount: 0,
-      averageAmount: 0,
-      minAmount: 0,
-      maxAmount: 0,
-      categoryBreakdown: {},
-      departmentBreakdown: {},
-    };
-  }
-
-  const amounts = expenses.map(exp => exp.totalAmount);
-  const totalAmount = amounts.reduce((sum, amount) => sum + amount, 0);
-  
-  const categoryBreakdown = expenses.reduce((acc, exp) => {
-    acc[exp.category] = (acc[exp.category] || 0) + exp.totalAmount;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const departmentBreakdown = expenses.reduce((acc, exp) => {
-    acc[exp.department] = (acc[exp.department] || 0) + exp.totalAmount;
-    return acc;
-  }, {} as Record<string, number>);
+  const improvement = dynamicResult.totalAmount - greedyResult.totalAmount;
+  const improvementPercentage = greedyResult.totalAmount > 0 
+    ? (improvement / greedyResult.totalAmount) * 100 
+    : 0;
 
   return {
-    totalAmount,
-    averageAmount: totalAmount / expenses.length,
-    minAmount: Math.min(...amounts),
-    maxAmount: Math.max(...amounts),
-    categoryBreakdown,
-    departmentBreakdown,
+    dynamic: dynamicResult,
+    greedy: greedyResult,
+    comparison: {
+      dynamicBetter: dynamicResult.totalAmount > greedyResult.totalAmount,
+      improvement,
+      improvementPercentage
+    }
+  };
+}
+
+// 予算範囲での最適化（複数の予算でテスト）
+export function findOptimalBudgetRange(
+  expenses: ExpenseData[],
+  minBudget: number,
+  maxBudget: number,
+  step: number = 10000
+): Array<{ budget: number; result: OptimizedExpense }> {
+  const results: Array<{ budget: number; result: OptimizedExpense }> = [];
+  
+  for (let budget = minBudget; budget <= maxBudget; budget += step) {
+    const result = findOptimalExpenseCombination(expenses, budget);
+    results.push({ budget, result });
+  }
+  
+  return results;
+}
+
+// 効率性指標の計算
+export function calculateEfficiencyMetrics(
+  expenses: ExpenseData[],
+  optimizedResult: OptimizedExpense,
+  targetBudget: number
+): {
+  budgetUtilization: number;
+  averageValue: number;
+  selectionEfficiency: number;
+  costEffectiveness: number;
+} {
+  const budgetUtilization = (optimizedResult.totalAmount / targetBudget) * 100;
+  const averageValue = optimizedResult.expenses.length > 0 
+    ? optimizedResult.totalAmount / optimizedResult.expenses.length 
+    : 0;
+  const selectionEfficiency = (optimizedResult.expenses.length / expenses.length) * 100;
+  const costEffectiveness = optimizedResult.difference >= 0 ? 100 : 
+    Math.max(0, 100 + (optimizedResult.difference / targetBudget) * 100);
+
+  return {
+    budgetUtilization,
+    averageValue,
+    selectionEfficiency,
+    costEffectiveness
   };
 } 
