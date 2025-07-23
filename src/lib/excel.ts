@@ -1,61 +1,132 @@
 import * as XLSX from 'xlsx';
 import { ExpenseData } from '@/types';
+import { downloadImagesAsZip, downloadMultipleImages } from './image-utils';
 
-export function exportExpensesToExcel(expenses: ExpenseData[], filename: string = 'expenses.xlsx') {
-  try {
-    // データをExcel用に変換（添付画像の順序に合わせて調整）
-    const excelData = expenses.map(expense => ({
-      'Receipt #': expense.id,
-      'Receipt Date': expense.date,
-      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
-      'Currency': expense.currency,
-      'Category': expense.category,
-      'Description': expense.ocrText || '',
-      'Recharged to client?': 'No', // デフォルト値
-      'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
-      'Tax Rate (%)': expense.taxRate,
-      'Company Nar': expense.department, // Company Nameの代わりに部署を使用
-      '# Participant from client': 1, // デフォルト値
-      '# Participant from company': 1, // デフォルト値
-      'Division': expense.department,
-      'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
-    }));
+export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string) => {
+  // ワークブックとワークシートを作成
+  const workbook = XLSX.utils.book_new();
+  
+  // データを準備
+  const data = expenses.map(expense => ({
+    '日付': expense.date,
+    '金額': expense.totalAmount,
+    '税率': expense.taxRate,
+    '通貨': expense.currency,
+    'カテゴリ': expense.category,
+    '部署': expense.department,
+    '適格区分': expense.isQualified,
+    'レシート番号': expense.receiptNumber || '',
+    '作成日': expense.createdAt.toLocaleDateString('ja-JP'),
+  }));
 
-    // ワークブックとワークシートを作成
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
+  // ワークシートを作成
+  const worksheet = XLSX.utils.json_to_sheet(data);
 
-    // 列幅の自動調整（添付画像の順序に合わせて）
-    const columnWidths = [
-      { wch: 12 }, // Receipt #
-      { wch: 12 }, // Receipt Date
-      { wch: 25 }, // Total Amount (Inclusive GST/VAT)
-      { wch: 8 },  // Currency
-      { wch: 30 }, // Category
-      { wch: 40 }, // Description
-      { wch: 15 }, // Recharged to client?
-      { wch: 15 }, // GST/VAT applicable
-      { wch: 12 }, // Tax Rate (%)
-      { wch: 15 }, // Company Nar
-      { wch: 20 }, // # Participant from client
-      { wch: 20 }, // # Participant from company
-      { wch: 15 }, // Division
-      { wch: 12 }  // Tax Credit Q
-    ];
-    worksheet['!cols'] = columnWidths;
+  // 列幅を設定
+  const columnWidths = [
+    { wch: 12 }, // 日付
+    { wch: 12 }, // 金額
+    { wch: 8 },  // 税率
+    { wch: 8 },  // 通貨
+    { wch: 40 }, // カテゴリ
+    { wch: 10 }, // 部署
+    { wch: 30 }, // 適格区分
+    { wch: 20 }, // レシート番号
+    { wch: 12 }, // 作成日
+  ];
+  worksheet['!cols'] = columnWidths;
 
-    // ワークシートをワークブックに追加
-    XLSX.utils.book_append_sheet(workbook, worksheet, '経費データ');
+  // ワークブックにワークシートを追加
+  XLSX.utils.book_append_sheet(workbook, worksheet, '経費データ');
 
-    // ファイルをダウンロード
-    XLSX.writeFile(workbook, filename);
+  // Excelファイルをダウンロード
+  XLSX.writeFile(workbook, filename);
+};
 
-    console.log(`Excel file exported: ${filename}`);
-  } catch (error) {
-    console.error('Excel export error:', error);
-    throw new Error('Excelファイルのエクスポートに失敗しました');
+// 選択された経費の画像を一括ダウンロード
+export const downloadSelectedReceiptImages = async (expenses: ExpenseData[], selectedIds: string[]) => {
+  const selectedExpenses = expenses.filter(expense => selectedIds.includes(expense.id));
+  
+  // 画像データがある経費のみをフィルタリング
+  const expensesWithImages = selectedExpenses.filter(expense => expense.imageData);
+  
+  if (expensesWithImages.length === 0) {
+    alert('ダウンロード可能な画像がありません。');
+    return;
   }
-}
+
+  // 画像データとファイル名を準備
+  const images = expensesWithImages.map(expense => ({
+    base64: expense.imageData!,
+    filename: `${expense.receiptNumber || expense.id}_${expense.date}.jpg`
+  }));
+
+  try {
+    // ZIPファイルとしてダウンロード
+    await downloadImagesAsZip(images);
+  } catch (error) {
+    console.error('ZIPダウンロードエラー:', error);
+    // フォールバック: 個別ダウンロード
+    await downloadMultipleImages(images);
+  }
+};
+
+// 全経費の画像を一括ダウンロード
+export const downloadAllReceiptImages = async (expenses: ExpenseData[]) => {
+  // 画像データがある経費のみをフィルタリング
+  const expensesWithImages = expenses.filter(expense => expense.imageData);
+  
+  if (expensesWithImages.length === 0) {
+    alert('ダウンロード可能な画像がありません。');
+    return;
+  }
+
+  // 画像データとファイル名を準備
+  const images = expensesWithImages.map(expense => ({
+    base64: expense.imageData!,
+    filename: `${expense.receiptNumber || expense.id}_${expense.date}.jpg`
+  }));
+
+  try {
+    // ZIPファイルとしてダウンロード
+    await downloadImagesAsZip(images);
+  } catch (error) {
+    console.error('ZIPダウンロードエラー:', error);
+    // フォールバック: 個別ダウンロード
+    await downloadMultipleImages(images);
+  }
+};
+
+// 月別の画像を一括ダウンロード
+export const downloadMonthlyReceiptImages = async (expenses: ExpenseData[], year: number, month: number) => {
+  const monthStr = month.toString().padStart(2, '0');
+  const yearMonth = `${year}-${monthStr}`;
+  
+  // 指定月の経費のみをフィルタリング
+  const monthlyExpenses = expenses.filter(expense => 
+    expense.date.startsWith(yearMonth) && expense.imageData
+  );
+  
+  if (monthlyExpenses.length === 0) {
+    alert(`${year}年${month}月のダウンロード可能な画像がありません。`);
+    return;
+  }
+
+  // 画像データとファイル名を準備
+  const images = monthlyExpenses.map(expense => ({
+    base64: expense.imageData!,
+    filename: `${expense.receiptNumber || expense.id}_${expense.date}.jpg`
+  }));
+
+  try {
+    // ZIPファイルとしてダウンロード
+    await downloadImagesAsZip(images);
+  } catch (error) {
+    console.error('ZIPダウンロードエラー:', error);
+    // フォールバック: 個別ダウンロード
+    await downloadMultipleImages(images);
+  }
+};
 
 export function exportBudgetOptimizationToExcel(
   originalExpenses: ExpenseData[],
