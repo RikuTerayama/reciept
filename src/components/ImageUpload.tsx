@@ -2,10 +2,11 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileImage, FileText, Loader2, AlertCircle, CheckCircle, Camera } from 'lucide-react';
+import { Upload, FileImage, FileText, Loader2, AlertCircle, CheckCircle, Camera, Crop } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
 import { extractTextFromImage, validateOCRResult } from '@/lib/ocr';
 import { isPDFFile, validatePDFFile } from '@/lib/pdf';
+import { detectReceiptInImage, simpleReceiptDetection } from '@/lib/receipt-detection';
 
 interface ImageUploadProps {
   onOCRComplete?: () => void;
@@ -16,6 +17,8 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [useReceiptDetection, setUseReceiptDetection] = useState(true);
+  const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const { setOCRResult, setProcessing, isProcessing } = useExpenseStore();
 
   // モバイルデバイス検出
@@ -29,43 +32,51 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
     checkMobile();
   }, []);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-
-    const file = acceptedFiles[0];
+  const processImage = async (file: File) => {
     setError(null);
     setSuccess(null);
-    
-    // ファイル形式のチェック
-    const isImage = file.type.startsWith('image/');
-    const isPDF = isPDFFile(file);
-    
-    if (!isImage && !isPDF) {
-      setError('画像ファイル（JPEG、PNG、GIF、BMP）またはPDFファイルを選択してください');
-      return;
-    }
-
-    // PDFファイルの検証
-    if (isPDF) {
-      const pdfErrors = validatePDFFile(file);
-      if (pdfErrors.length > 0) {
-        setError(pdfErrors.join('\n'));
-        return;
-      }
-    }
-
+    setCroppedImage(null);
     setProcessing(true);
     
     try {
+      let processedFile = file;
+      let detectionResult = null;
+
+      // レシート検出を実行
+      if (useReceiptDetection && file.type.startsWith('image/')) {
+        try {
+          detectionResult = await detectReceiptInImage(file);
+          
+          if (detectionResult.success && detectionResult.croppedImage) {
+            // 検出されたレシート領域を使用
+            setCroppedImage(detectionResult.croppedImage);
+            // Base64からBlobに変換
+            const response = await fetch(detectionResult.croppedImage);
+            processedFile = await response.blob() as File;
+          } else {
+            // 検出に失敗した場合は簡易版を使用
+            const simpleResult = await simpleReceiptDetection(file);
+            if (simpleResult.success && simpleResult.croppedImage) {
+              setCroppedImage(simpleResult.croppedImage);
+              const response = await fetch(simpleResult.croppedImage);
+              processedFile = await response.blob() as File;
+            }
+          }
+        } catch (detectionError) {
+          console.warn('レシート検出に失敗しました:', detectionError);
+          // 検出に失敗しても元の画像で処理を続行
+        }
+      }
+
+      // OCR処理を実行
       let result;
       
-      if (isPDF) {
-        // PDFの場合は、現在サポートされていないことを示す
-        setError('PDFファイルの処理は現在準備中です。画像ファイルをご利用ください。\n\n対応予定：\n• PDFの最初のページを画像に変換\n• 複数ページの処理\n• 高精度なOCR処理');
+      if (isPDFFile(file)) {
+        setError('PDFファイルの処理は現在準備中です。画像ファイルをご利用ください。');
         setProcessing(false);
         return;
       } else {
-        result = await extractTextFromImage(file);
+        result = await extractTextFromImage(processedFile);
       }
       
       const errors = validateOCRResult(result);
@@ -89,7 +100,33 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
     } finally {
       setProcessing(false);
     }
-  }, [setOCRResult, setProcessing, onOCRComplete]);
+  };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+
+    const file = acceptedFiles[0];
+    
+    // ファイル形式のチェック
+    const isImage = file.type.startsWith('image/');
+    const isPDF = isPDFFile(file);
+    
+    if (!isImage && !isPDF) {
+      setError('画像ファイル（JPEG、PNG、GIF、BMP）またはPDFファイルを選択してください');
+      return;
+    }
+
+    // PDFファイルの検証
+    if (isPDF) {
+      const pdfErrors = validatePDFFile(file);
+      if (pdfErrors.length > 0) {
+        setError(pdfErrors.join('\n'));
+        return;
+      }
+    }
+
+    await processImage(file);
+  }, [useReceiptDetection, onOCRComplete]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -122,7 +159,7 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        onDrop([file]);
+        processImage(file);
       }
     };
     input.click();
@@ -130,6 +167,30 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
+      {/* レシート検出設定 */}
+      <div className="card">
+        <div className="card-body">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Crop className="w-5 h-5 text-primary-600" />
+              <div>
+                <h3 className="font-semibold text-gray-900">レシート自動検出</h3>
+                <p className="text-sm text-gray-600">画像からレシート領域を自動的に検出して切り抜きます</p>
+              </div>
+            </div>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={useReceiptDetection}
+                onChange={(e) => setUseReceiptDetection(e.target.checked)}
+                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm font-medium text-gray-700">有効</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div
         {...getRootProps()}
         className={`
@@ -155,7 +216,9 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
             </div>
             <div className="space-y-2">
               <p className="text-xl font-semibold text-gray-900">画像を処理中...</p>
-              <p className="text-sm text-gray-500">OCR処理には数秒かかる場合があります</p>
+              <p className="text-sm text-gray-500">
+                {useReceiptDetection ? 'レシート検出とOCR処理を実行中' : 'OCR処理を実行中'}
+              </p>
             </div>
           </div>
         ) : (
@@ -207,7 +270,37 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
           </button>
           <p className="text-xs text-gray-500 mt-2">
             スマートフォンからカメラで直接撮影できます
+            {useReceiptDetection && '（レシート自動検出対応）'}
           </p>
+        </div>
+      )}
+
+      {/* 切り抜き結果表示 */}
+      {croppedImage && (
+        <div className="card border-green-200 bg-green-50">
+          <div className="card-header">
+            <div className="flex items-center space-x-3">
+              <Crop className="w-5 h-5 text-green-600" />
+              <h3 className="text-lg font-semibold text-green-800">レシート検出完了</h3>
+            </div>
+          </div>
+          <div className="card-body">
+            <div className="flex items-center space-x-4">
+              <img
+                src={croppedImage}
+                alt="検出されたレシート"
+                className="w-32 h-32 object-cover rounded-lg border"
+              />
+              <div className="flex-1">
+                <p className="text-sm text-green-700">
+                  レシート領域を自動検出し、切り抜きました。
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  この画像を使用してOCR処理を実行します。
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -248,6 +341,7 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
             <ul className="text-sm text-blue-600 mt-1 space-y-1">
               <li>• 高解像度の画像を使用すると、OCR精度が向上します</li>
               <li>• レシートがはっきりと見えるように撮影してください</li>
+              <li>• レシート自動検出により、背景を除去して精度を向上させます</li>
               <li>• PDFファイルの処理は現在準備中です</li>
               <li>• ファイルサイズは10MB以下にしてください</li>
               {isMobile && (
