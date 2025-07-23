@@ -100,7 +100,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           }`}
         >
           <p className="text-xl md:text-2xl text-gray-300 font-light tracking-wide">
-            レシート経費管理システム
+            Expenscan
           </p>
           <p className="text-sm md:text-base text-gray-400 mt-2 font-light">
             OCR技術による自動抽出・管理
