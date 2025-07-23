@@ -1,17 +1,33 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileImage, FileText, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileImage, FileText, Loader2, AlertCircle, CheckCircle, Camera } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
 import { extractTextFromImage, validateOCRResult } from '@/lib/ocr';
 import { isPDFFile, validatePDFFile } from '@/lib/pdf';
 
-export default function ImageUpload() {
+interface ImageUploadProps {
+  onOCRComplete?: () => void;
+}
+
+export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const { setOCRResult, setProcessing, isProcessing } = useExpenseStore();
+
+  // モバイルデバイス検出
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkMobile();
+  }, []);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
@@ -57,7 +73,13 @@ export default function ImageUpload() {
       if (errors.length > 0) {
         setError(`OCR処理で以下の問題が発生しました:\n${errors.join('\n')}\n\n手動でデータを入力することも可能です。`);
       } else {
-        setSuccess('OCR処理が完了しました！抽出されたデータを確認してください。');
+        setSuccess('OCR処理が完了しました！自動的にデータ入力画面に遷移します。');
+        // 自動遷移のためのコールバック実行
+        setTimeout(() => {
+          if (onOCRComplete) {
+            onOCRComplete();
+          }
+        }, 2000);
       }
       
       setOCRResult(result);
@@ -67,7 +89,7 @@ export default function ImageUpload() {
     } finally {
       setProcessing(false);
     }
-  }, [setOCRResult, setProcessing]);
+  }, [setOCRResult, setProcessing, onOCRComplete]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -90,6 +112,21 @@ export default function ImageUpload() {
       setError(errors.join('\n'));
     }
   });
+
+  // カメラ起動用のinput要素
+  const handleCameraCapture = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment'; // 背面カメラを起動
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        onDrop([file]);
+      }
+    };
+    input.click();
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
@@ -158,6 +195,22 @@ export default function ImageUpload() {
         )}
       </div>
 
+      {/* モバイル用カメラボタン */}
+      {isMobile && !isProcessing && (
+        <div className="text-center">
+          <button
+            onClick={handleCameraCapture}
+            className="btn-primary flex items-center justify-center space-x-2 mx-auto"
+          >
+            <Camera className="w-5 h-5" />
+            <span>カメラで撮影</span>
+          </button>
+          <p className="text-xs text-gray-500 mt-2">
+            スマートフォンからカメラで直接撮影できます
+          </p>
+        </div>
+      )}
+
       {/* 成功メッセージ */}
       {success && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -197,6 +250,9 @@ export default function ImageUpload() {
               <li>• レシートがはっきりと見えるように撮影してください</li>
               <li>• PDFファイルの処理は現在準備中です</li>
               <li>• ファイルサイズは10MB以下にしてください</li>
+              {isMobile && (
+                <li>• スマートフォンからはカメラで直接撮影できます</li>
+              )}
             </ul>
           </div>
         </div>
