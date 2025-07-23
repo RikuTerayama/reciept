@@ -34,6 +34,11 @@ export default function Home() {
     exportExpensesToExcel(selectedExpenseData, 'selected_expenses.xlsx');
   };
 
+  // OCR完了後の自動遷移処理
+  const handleOCRComplete = () => {
+    setActiveTab('form');
+  };
+
   const tabs = [
     { id: 'upload' as TabType, label: '画像アップロード', icon: Receipt, description: 'レシート画像をアップロード' },
     { id: 'form' as TabType, label: 'データ入力', icon: Plus, description: '経費データを入力・編集' },
@@ -182,7 +187,7 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                <ImageUpload />
+                <ImageUpload onOCRComplete={handleOCRComplete} />
               </div>
             )}
 
@@ -274,7 +279,7 @@ export default function Home() {
               </p>
             </div>
             <p className="text-gray-600">
-              &copy; 2024 Receipt Expense Manager. All rights reserved.
+              © 2025 レシート経費管理システム. Developed by RT. All rights reserved.
             </p>
             <p className="text-sm text-gray-500 flex items-center justify-center space-x-2">
               <span>Next.js + Tesseract.js + TailwindCSS で構築</span>
