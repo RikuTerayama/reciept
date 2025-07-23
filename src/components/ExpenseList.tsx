@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Trash2, Edit, Download, Calendar, DollarSign, Tag, Building, CheckCircle } from 'lucide-react';
+import { Trash2, Edit, Download, Calendar, DollarSign, Tag, Building, CheckCircle, Image as ImageIcon } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
-import { exportExpensesToExcel } from '@/lib/excel';
+import { exportExpensesToExcel, downloadSelectedReceiptImages } from '@/lib/excel';
 import { ExpenseData } from '@/types';
 
 export default function ExpenseList() {
@@ -24,6 +24,14 @@ export default function ExpenseList() {
       selectedExpenses.includes(expense.id)
     );
     exportExpensesToExcel(selectedExpenseData, 'selected_expenses.xlsx');
+  };
+
+  const handleDownloadSelectedImages = async () => {
+    if (selectedExpenses.length === 0) {
+      alert('ダウンロードする経費を選択してください。');
+      return;
+    }
+    await downloadSelectedReceiptImages(expenses, selectedExpenses);
   };
 
   if (expenses.length === 0) {
@@ -57,13 +65,22 @@ export default function ExpenseList() {
           )}
         </div>
         {selectedExpenses.length > 0 && (
-          <button
-            onClick={handleExportSelected}
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>選択した経費をエクスポート</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleExportSelected}
+              className="btn-primary flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>選択した経費をエクスポート</span>
+            </button>
+            <button
+              onClick={handleDownloadSelectedImages}
+              className="btn-secondary flex items-center space-x-2"
+            >
+              <ImageIcon className="w-4 h-4" />
+              <span>画像一括ダウンロード</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -97,6 +114,7 @@ export default function ExpenseList() {
                 <th>部署</th>
                 <th>税率</th>
                 <th>適格区分</th>
+                <th>レシート番号</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -148,6 +166,11 @@ export default function ExpenseList() {
                       <CheckCircle className="w-4 h-4 text-green-500" />
                       <span className="text-sm">{expense.isQualified}</span>
                     </div>
+                  </td>
+                  <td>
+                    <span className="text-sm text-gray-600 font-mono">
+                      {expense.receiptNumber || 'N/A'}
+                    </span>
                   </td>
                   <td>
                     <div className="flex items-center space-x-2">
