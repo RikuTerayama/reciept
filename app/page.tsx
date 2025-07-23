@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles } from 'lucide-react';
+import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
+import BatchUpload from '@/components/BatchUpload';
 import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 import BudgetOptimizer from '@/components/BudgetOptimizer';
 import { useExpenseStore } from '@/lib/store';
 import { exportExpensesToExcel } from '@/lib/excel';
 
-type TabType = 'upload' | 'form' | 'list' | 'optimizer';
+type TabType = 'upload' | 'batch' | 'form' | 'list' | 'optimizer';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
@@ -40,7 +41,8 @@ export default function Home() {
   };
 
   const tabs = [
-    { id: 'upload' as TabType, label: '画像アップロード', icon: Receipt, description: 'レシート画像をアップロード' },
+    { id: 'upload' as TabType, label: '単一アップロード', icon: Receipt, description: 'レシート画像を1枚ずつアップロード' },
+    { id: 'batch' as TabType, label: '一括アップロード', icon: Upload, description: '複数のレシート画像を同時処理' },
     { id: 'form' as TabType, label: 'データ入力', icon: Plus, description: '経費データを入力・編集' },
     { id: 'list' as TabType, label: '経費リスト', icon: List, description: '登録済み経費の管理' },
     { id: 'optimizer' as TabType, label: '予算最適化', icon: Calculator, description: '最適な組み合わせを提案' },
@@ -110,7 +112,7 @@ export default function Home() {
       {/* タブナビゲーション */}
       <nav className="glass shadow-glass border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1">
+          <div className="flex space-x-1 overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -118,7 +120,7 @@ export default function Home() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    nav-tab
+                    nav-tab whitespace-nowrap
                     ${activeTab === tab.id ? 'active' : ''}
                   `}
                   title={tab.description}
@@ -183,11 +185,31 @@ export default function Home() {
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                       OCR技術を使用して画像から経費情報を自動抽出します。
-                      JPEG、PNG、GIF、BMP、PDFファイルに対応しています。
+                      レシート自動検出機能により、背景を除去して精度を向上させます。
                     </p>
                   </div>
                 </div>
                 <ImageUpload onOCRComplete={handleOCRComplete} />
+              </div>
+            )}
+
+            {activeTab === 'batch' && (
+              <div className="space-y-8">
+                <div className="text-center space-y-6">
+                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl shadow-2xl neon-glow animate-float">
+                    <Upload className="w-12 h-12 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
+                      一括アップロード
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      複数のレシート画像を同時にアップロードして一括処理できます。
+                      レシート自動検出とOCR処理を効率的に実行します。
+                    </p>
+                  </div>
+                </div>
+                <BatchUpload />
               </div>
             )}
 
