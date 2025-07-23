@@ -3,34 +3,44 @@ import { ExpenseData } from '@/types';
 
 export function exportExpensesToExcel(expenses: ExpenseData[], filename: string = 'expenses.xlsx') {
   try {
-    // データをExcel用に変換
+    // データをExcel用に変換（添付画像の順序に合わせて調整）
     const excelData = expenses.map(expense => ({
-      '日付': expense.date,
-      '合計金額': expense.totalAmount,
-      '税率': `${expense.taxRate}%`,
-      '通貨': expense.currency,
-      'カテゴリ': expense.category,
-      '部署': expense.department,
-      '適格区分': expense.isQualified,
-      '作成日時': expense.createdAt.toLocaleString('ja-JP'),
-      'OCRテキスト': expense.ocrText || ''
+      'Receipt #': expense.id,
+      'Receipt Date': expense.date,
+      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
+      'Currency': expense.currency,
+      'Category': expense.category,
+      'Description': expense.ocrText || '',
+      'Recharged to client?': 'No', // デフォルト値
+      'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
+      'Tax Rate (%)': expense.taxRate,
+      'Company Nar': expense.department, // Company Nameの代わりに部署を使用
+      '# Participant from client': 1, // デフォルト値
+      '# Participant from company': 1, // デフォルト値
+      'Division': expense.department,
+      'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
     }));
 
     // ワークブックとワークシートを作成
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-    // 列幅の自動調整
+    // 列幅の自動調整（添付画像の順序に合わせて）
     const columnWidths = [
-      { wch: 12 }, // 日付
-      { wch: 12 }, // 合計金額
-      { wch: 8 },  // 税率
-      { wch: 6 },  // 通貨
-      { wch: 30 }, // カテゴリ
-      { wch: 10 }, // 部署
-      { wch: 25 }, // 適格区分
-      { wch: 20 }, // 作成日時
-      { wch: 50 }  // OCRテキスト
+      { wch: 12 }, // Receipt #
+      { wch: 12 }, // Receipt Date
+      { wch: 25 }, // Total Amount (Inclusive GST/VAT)
+      { wch: 8 },  // Currency
+      { wch: 30 }, // Category
+      { wch: 40 }, // Description
+      { wch: 15 }, // Recharged to client?
+      { wch: 15 }, // GST/VAT applicable
+      { wch: 12 }, // Tax Rate (%)
+      { wch: 15 }, // Company Nar
+      { wch: 20 }, // # Participant from client
+      { wch: 20 }, // # Participant from company
+      { wch: 15 }, // Division
+      { wch: 12 }  // Tax Credit Q
     ];
     worksheet['!cols'] = columnWidths;
 
@@ -56,25 +66,37 @@ export function exportBudgetOptimizationToExcel(
   try {
     const workbook = XLSX.utils.book_new();
 
-    // 元の経費データ
+    // 元の経費データ（添付画像の順序に合わせて）
     const originalData = originalExpenses.map(expense => ({
-      '日付': expense.date,
-      '合計金額': expense.totalAmount,
-      'カテゴリ': expense.category,
-      '部署': expense.department,
-      '適格区分': expense.isQualified
+      'Receipt #': expense.id,
+      'Receipt Date': expense.date,
+      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
+      'Currency': expense.currency,
+      'Category': expense.category,
+      'Description': expense.ocrText || '',
+      'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
+      'Tax Rate (%)': expense.taxRate,
+      'Company Nar': expense.department,
+      'Division': expense.department,
+      'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
     }));
 
     const originalWorksheet = XLSX.utils.json_to_sheet(originalData);
     XLSX.utils.book_append_sheet(workbook, originalWorksheet, '全経費データ');
 
-    // 最適化された経費データ
+    // 最適化された経費データ（添付画像の順序に合わせて）
     const optimizedData = optimizedExpenses.map(expense => ({
-      '日付': expense.date,
-      '合計金額': expense.totalAmount,
-      'カテゴリ': expense.category,
-      '部署': expense.department,
-      '適格区分': expense.isQualified
+      'Receipt #': expense.id,
+      'Receipt Date': expense.date,
+      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
+      'Currency': expense.currency,
+      'Category': expense.category,
+      'Description': expense.ocrText || '',
+      'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
+      'Tax Rate (%)': expense.taxRate,
+      'Company Nar': expense.department,
+      'Division': expense.department,
+      'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
     }));
 
     const optimizedWorksheet = XLSX.utils.json_to_sheet(optimizedData);
