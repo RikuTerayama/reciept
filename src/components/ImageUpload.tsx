@@ -38,10 +38,10 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
       if (showReceiptDetection) {
         setProcessingStatus('レシートを検出中...');
         try {
-          const detectedImage = await detectReceipt(base64Image);
-          if (detectedImage) {
-            processedImage = detectedImage;
-            setCroppedImage(detectedImage);
+          const detectionResult = await detectReceipt(file);
+          if (detectionResult.success && detectionResult.croppedImage) {
+            processedImage = detectionResult.croppedImage;
+            setCroppedImage(detectionResult.croppedImage);
             setProcessingStatus('レシート検出完了');
           } else {
             setProcessingStatus('レシート検出に失敗しました。元画像を使用します。');
@@ -58,7 +58,7 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
 
       // OCR処理
       setProcessingStatus('OCR処理中...');
-      const ocrResult = await processImageWithOCR(compressedImage);
+      const ocrResult = await processImageWithOCR(file);
 
       // OCR結果を保存
       setOCRResult({
