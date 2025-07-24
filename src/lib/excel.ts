@@ -99,7 +99,7 @@ export const downloadAllReceiptImages = async (expenses: ExpenseData[]) => {
 
 // 月別の画像を一括ダウンロード
 export const downloadMonthlyReceiptImages = async (expenses: ExpenseData[], year: number, month: number) => {
-  const monthStr = month.toString().padStart(2, '0');
+  const monthStr = month < 10 ? `0${month}` : month.toString();
   const yearMonth = `${year}-${monthStr}`;
   
   // 指定月の経費のみをフィルタリング
