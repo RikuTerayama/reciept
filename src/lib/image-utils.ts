@@ -92,52 +92,45 @@ export const downloadImage = (base64: string, filename: string) => {
 
 // 複数画像の一括ダウンロード
 export const downloadMultipleImages = async (images: Array<{ base64: string; filename: string }>) => {
-  // ブラウザが複数ダウンロードをサポートしている場合
-  if ('showSaveFilePicker' in window) {
-    try {
-      // 各画像を個別にダウンロード
-      for (const image of images) {
-        await new Promise(resolve => setTimeout(resolve, 100)); // 少し遅延を入れる
-        downloadImage(image.base64, image.filename);
-      }
-    } catch (error) {
-      console.error('一括ダウンロードエラー:', error);
-      // フォールバック: 個別ダウンロード
-      images.forEach(image => downloadImage(image.base64, image.filename));
-    }
-  } else {
-    // フォールバック: 個別ダウンロード
-    images.forEach(image => downloadImage(image.base64, image.filename));
+  // 各画像を個別にダウンロード
+  for (const image of images) {
+    await new Promise(resolve => setTimeout(resolve, 100)); // 少し遅延を入れる
+    downloadImage(image.base64, image.filename);
   }
 };
 
-// ZIPファイルでの一括ダウンロード（JSZip使用）
+// ZIPファイルでの一括ダウンロード（フォールバック: 個別ダウンロード）
 export const downloadImagesAsZip = async (images: Array<{ base64: string; filename: string }>) => {
   try {
-    // JSZipを動的インポート
-    const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
-    
-    // 各画像をZIPに追加
-    images.forEach(({ base64, filename }) => {
-      const blob = base64ToBlob(base64);
-      zip.file(filename, blob);
-    });
-    
-    // ZIPファイルを生成
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
-    
-    // ダウンロード
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(zipBlob);
-    link.download = `receipts_${new Date().toISOString().split('T')[0]}.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    // JSZipが利用可能な場合のみZIPダウンロードを試行
+    if (typeof window !== 'undefined' && 'JSZip' in window) {
+      const JSZip = (window as any).JSZip;
+      const zip = new JSZip();
+      
+      // 各画像をZIPに追加
+      images.forEach(({ base64, filename }) => {
+        const blob = base64ToBlob(base64);
+        zip.file(filename, blob);
+      });
+      
+      // ZIPファイルを生成
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      
+      // ダウンロード
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `receipts_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } else {
+      // JSZipが利用できない場合は個別ダウンロード
+      await downloadMultipleImages(images);
+    }
   } catch (error) {
     console.error('ZIPダウンロードエラー:', error);
     // フォールバック: 個別ダウンロード
-    downloadMultipleImages(images);
+    await downloadMultipleImages(images);
   }
 }; 
