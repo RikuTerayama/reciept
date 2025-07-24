@@ -38,9 +38,10 @@ export const fileToBase64 = (file: File): Promise<string> => {
 // レシート番号を生成
 export const generateReceiptNumber = (date: string, amount: number): string => {
   const dateStr = date.replace(/-/g, '');
-  const amountStr = amount.toString().padStart(8, '0');
+  const amountStr = amount.toString();
+  const paddedAmount = amountStr.length < 8 ? '0'.repeat(8 - amountStr.length) + amountStr : amountStr;
   const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `R${dateStr}${amountStr}${randomStr}`;
+  return `R${dateStr}${paddedAmount}${randomStr}`;
 };
 
 // 画像の圧縮
