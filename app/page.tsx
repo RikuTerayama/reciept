@@ -9,24 +9,49 @@ import ExpenseList from '@/components/ExpenseList';
 import BudgetOptimizer from '@/components/BudgetOptimizer';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import UserSetup from '@/components/UserSetup';
+import MobileStatistics from '@/components/MobileStatistics';
+import EnhancedImageUpload from '@/components/EnhancedImageUpload';
 import { useExpenseStore } from '@/lib/store';
 import { exportExpensesToExcel } from '@/lib/excel';
 import { t, getCurrentLanguage, Language } from '@/lib/i18n';
 
 type TabType = 'upload' | 'batch' | 'form' | 'list' | 'optimizer';
 
+interface UserInfo {
+  email: string;
+  targetMonth: string;
+  department: string;
+  budget: number;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showUserSetup, setShowUserSetup] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<Language>(getCurrentLanguage());
   const { expenses, selectedExpenses, clearSelection } = useExpenseStore();
 
-  // 初回訪問チェック
+  // 初回訪問チェックとユーザー情報チェック
   useEffect(() => {
     const hasVisited = localStorage.getItem('receipt_expense_manager_visited');
+    const savedUserInfo = localStorage.getItem('user_info');
+    
     if (hasVisited) {
       setShowWelcome(false);
+      if (savedUserInfo) {
+        try {
+          const parsed = JSON.parse(savedUserInfo);
+          setUserInfo(parsed);
+        } catch (error) {
+          console.error('Failed to parse saved user info:', error);
+          setShowUserSetup(true);
+        }
+      } else {
+        setShowUserSetup(true);
+      }
     } else {
       localStorage.setItem('receipt_expense_manager_visited', 'true');
     }
@@ -34,6 +59,12 @@ export default function Home() {
 
   const handleWelcomeComplete = () => {
     setShowWelcome(false);
+    setShowUserSetup(true);
+  };
+
+  const handleUserSetupComplete = (userData: UserInfo) => {
+    setUserInfo(userData);
+    setShowUserSetup(false);
   };
 
   const handleExportAll = () => {
@@ -87,6 +118,11 @@ export default function Home() {
   // ウェルカムスクリーンが表示されている間はメインコンテンツを非表示
   if (showWelcome) {
     return <WelcomeScreen onComplete={handleWelcomeComplete} />;
+  }
+
+  // ユーザー設定が表示されている間はメインコンテンツを非表示
+  if (showUserSetup) {
+    return <UserSetup onComplete={handleUserSetupComplete} />;
   }
 
   const downloadSelectedReceiptImages = (expenses: any[], selectedExpenseIds: string[]) => {
@@ -146,8 +182,8 @@ export default function Home() {
               </div>
             </div>
             
-            {/* エクスポートボタンと言語切り替え */}
-            <div className="flex items-center space-x-3">
+            {/* デスクトップ用エクスポートボタンと言語切り替え */}
+            <div className="hidden lg:flex items-center space-x-3">
               {expenses.length > 0 && (
                 <>
                   <button
@@ -179,6 +215,12 @@ export default function Home() {
               )}
               
               {/* 言語切り替え */}
+              <LanguageSwitcher onLanguageChange={handleLanguageChange} />
+            </div>
+
+            {/* モバイル用言語切り替えとハンバーガーメニュー */}
+            <div className="lg:hidden flex items-center space-x-3">
+              {/* 言語切り替え（モバイル用） */}
               <LanguageSwitcher onLanguageChange={handleLanguageChange} />
               
               {/* ハンバーガーメニューボタン */}
@@ -259,9 +301,12 @@ export default function Home() {
       {/* メインコンテンツ */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="space-y-8">
-          {/* 統計情報 */}
+          {/* スマホ用統計情報 */}
+          {userInfo && <MobileStatistics expenses={expenses} userInfo={userInfo} />}
+
+          {/* デスクトップ用統計情報 */}
           {expenses.length > 0 && (
-            <div className="card animate-fade-in">
+            <div className="hidden lg:block card animate-fade-in">
               <div className="card-header">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
@@ -301,7 +346,7 @@ export default function Home() {
                   <h1 className="text-3xl font-bold text-white">{t('imageUpload.title')}</h1>
                   <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('imageUpload.description')}</p>
                 </div>
-                <ImageUpload onOCRComplete={handleOCRComplete} />
+                <EnhancedImageUpload onOCRComplete={handleOCRComplete} />
               </div>
             )}
 
@@ -345,19 +390,11 @@ export default function Home() {
       </main>
 
       {/* フッター */}
-      <footer className="glass-strong shadow-glass border-t border-white/20 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center space-y-6">
-            <div className="flex items-center justify-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
-                <Receipt className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-xl font-semibold gradient-text">
-                {t('header.title')}
-              </p>
-            </div>
-            <p className="text-gray-600">
-              {t('footer.copyright')}
+      <footer className="glass shadow-glass border-t border-white/20 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <p className="text-gray-300">
+              © 2024 Expenscan. All rights reserved.
             </p>
           </div>
         </div>
