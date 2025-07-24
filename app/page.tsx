@@ -96,37 +96,25 @@ export default function Home() {
       return;
     }
 
-    const zip = new JSZip();
-    const folder = zip.folder('receipts');
-
-    if (!folder) {
-      alert('ZIPファイルの作成に失敗しました。');
+    // 画像データがある経費のみをフィルタリング
+    const expensesWithImages = selectedExpensesData.filter(expense => expense.imageData);
+    
+    if (expensesWithImages.length === 0) {
+      alert('ダウンロード可能な画像がありません。');
       return;
     }
 
-    selectedExpensesData.forEach(expense => {
-      if (expense.receiptImageUrl) {
-        const fileName = `${expense.id}.jpg`;
-        folder.file(fileName, { base64: expense.receiptImageUrl });
+    // 各画像を個別にダウンロード
+    expensesWithImages.forEach(expense => {
+      if (expense.imageData) {
+        const link = document.createElement('a');
+        link.href = expense.imageData;
+        link.download = `${expense.receiptNumber || expense.id}_${expense.date}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
     });
-
-    zip.generateAsync({ type: 'blob' })
-      .then(content => {
-        const blob = new Blob([content], { type: 'application/zip' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'receipts.zip';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      })
-      .catch(error => {
-        console.error('画像のダウンロードに失敗しました:', error);
-        alert('画像のダウンロードに失敗しました。');
-      });
   };
 
   return (
