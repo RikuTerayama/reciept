@@ -1,12 +1,5 @@
 import Tesseract from 'tesseract.js';
-
-export interface OCRResult {
-  date?: string;
-  totalAmount?: number;
-  taxRate?: number;
-  isQualified?: boolean;
-  text: string;
-}
+import { OCRResult } from '@/types';
 
 // ImageUpload.tsxで使用するためのprocessImageWithOCR関数
 export async function processImageWithOCR(file: File): Promise<OCRResult> {
