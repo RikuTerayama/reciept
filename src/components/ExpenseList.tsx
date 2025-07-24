@@ -38,11 +38,11 @@ export default function ExpenseList() {
     return (
       <div className="card">
         <div className="card-body text-center py-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-800/50 rounded-full mb-4">
             <Calendar className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">経費データがありません</h3>
-          <p className="text-gray-500">
+          <h3 className="text-lg font-medium text-white mb-2">経費データがありません</h3>
+          <p className="text-gray-300">
             画像をアップロードして経費データを追加してください
           </p>
         </div>
@@ -52,14 +52,20 @@ export default function ExpenseList() {
 
   return (
     <div className="space-y-6">
+      {/* ヘッダー（中央揃え） */}
+      <div className="expense-list-header">
+        <h1 className="expense-list-title">経費リスト</h1>
+        <p className="expense-list-description">登録された経費データの一覧と管理</p>
+      </div>
+
       {/* アクションバー */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-300">
             {expenses.length}件の経費データ
           </span>
           {selectedExpenses.length > 0 && (
-            <span className="text-sm text-primary-600 font-medium">
+            <span className="text-sm text-primary-400 font-medium">
               {selectedExpenses.length}件選択中
             </span>
           )}
