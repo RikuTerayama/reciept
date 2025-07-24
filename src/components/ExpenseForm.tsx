@@ -5,8 +5,16 @@ import { Save, ArrowLeft, Calculator, AlertCircle, CheckCircle, DollarSign, Cale
 import { useExpenseStore } from '@/lib/store';
 import { CURRENCIES, EXPENSE_CATEGORIES, TAX_RATES, DEPARTMENTS, QUALIFICATION_TYPES, ExpenseData } from '@/types';
 
+interface UserInfo {
+  email: string;
+  targetMonth: string;
+  department: string;
+  budget: number;
+}
+
 export default function ExpenseForm() {
   const { ocrResult, addExpense, setOCRResult } = useExpenseStore();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   
   const [formData, setFormData] = useState<Partial<ExpenseData>>({
     date: '',
@@ -22,6 +30,25 @@ export default function ExpenseForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // ユーザー情報を読み込み
+  useEffect(() => {
+    const savedUserInfo = localStorage.getItem('user_info');
+    if (savedUserInfo) {
+      try {
+        const parsed = JSON.parse(savedUserInfo);
+        setUserInfo(parsed);
+        // ユーザー設定から通貨と組織を設定
+        setFormData(prev => ({
+          ...prev,
+          currency: 'JPY', // デフォルトはJPY
+          department: parsed.department
+        }));
+      } catch (error) {
+        console.error('Failed to parse saved user info:', error);
+      }
+    }
+  }, []);
 
   // OCR結果がある場合、フォームに自動入力
   useEffect(() => {
@@ -226,7 +253,7 @@ export default function ExpenseForm() {
             <div className="form-group">
               <label className="form-label">
                 <Calendar className="w-4 h-4" />
-                日付 <span className="text-red-500">*</span>
+                日付 <span className="text-red-400">*</span>
               </label>
               <input
                 type="date"
@@ -238,21 +265,16 @@ export default function ExpenseForm() {
               {errors.date && <p className="form-error">{errors.date}</p>}
             </div>
 
-            {/* 通貨 */}
+            {/* 通貨（固定表示） */}
             <div className="form-group">
               <label className="form-label">
                 <DollarSign className="w-4 h-4" />
                 通貨
               </label>
-              <select
-                value={formData.currency}
-                onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
-                className="form-select"
-              >
-                {CURRENCIES.map(currency => (
-                  <option key={currency} value={currency}>{currency}</option>
-                ))}
-              </select>
+              <div className="form-input bg-gray-700/50 text-gray-300 cursor-not-allowed">
+                {formData.currency}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">ユーザー設定から自動設定されます</p>
             </div>
           </div>
 
@@ -359,7 +381,7 @@ export default function ExpenseForm() {
             <div className="form-group">
               <label className="form-label">
                 <FileText className="w-4 h-4" />
-                経費カテゴリ <span className="text-red-500">*</span>
+                経費カテゴリ <span className="text-red-400">*</span>
               </label>
               <select
                 value={formData.category}
@@ -375,24 +397,16 @@ export default function ExpenseForm() {
               {errors.category && <p className="form-error">{errors.category}</p>}
             </div>
 
-            {/* 所属組織 */}
+            {/* 所属組織（固定表示） */}
             <div className="form-group">
               <label className="form-label">
                 <Building className="w-4 h-4" />
-                所属組織 <span className="text-red-500">*</span>
+                所属組織
               </label>
-              <select
-                value={formData.department}
-                onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                className={`form-select ${errors.department ? 'error' : ''}`}
-                required
-              >
-                <option value="">組織を選択してください</option>
-                {DEPARTMENTS.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-              {errors.department && <p className="form-error">{errors.department}</p>}
+              <div className="form-input bg-gray-700/50 text-gray-300 cursor-not-allowed">
+                {formData.department || '未設定'}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">ユーザー設定から自動設定されます</p>
             </div>
           </div>
 
