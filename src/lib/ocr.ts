@@ -8,6 +8,11 @@ export interface OCRResult {
   text: string;
 }
 
+// ImageUpload.tsxで使用するためのprocessImageWithOCR関数
+export async function processImageWithOCR(file: File): Promise<OCRResult> {
+  return await extractTextFromImage(file);
+}
+
 export async function extractTextFromImage(file: File): Promise<OCRResult> {
   try {
     const result = await Tesseract.recognize(file, 'jpn+eng', {
