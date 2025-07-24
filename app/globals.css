@@ -389,70 +389,6 @@ body {
   }
 }
 
-/* ダークモード対応 */
-@media (prefers-color-scheme: dark) {
-  .card {
-    @apply bg-gray-800 border-gray-700;
-  }
-  
-  .card-header {
-    @apply border-gray-700;
-  }
-  
-  .card-footer {
-    @apply border-gray-700 bg-gray-900;
-  }
-  
-  .form-input,
-  .form-select {
-    @apply bg-gray-700 border-gray-600 text-white;
-  }
-  
-  .form-label {
-    @apply text-gray-300;
-  }
-  
-  .nav-tab {
-    @apply text-gray-300 hover:bg-gray-700 hover:text-white;
-  }
-  
-  .nav-tab.active {
-    @apply bg-primary-900 text-primary-200 border-primary-700;
-  }
-  
-  .stat-card {
-    @apply bg-gray-800 border-gray-700;
-  }
-  
-  .stat-number {
-    @apply text-white;
-  }
-  
-  .stat-label {
-    @apply text-gray-400;
-  }
-  
-  .table th {
-    @apply bg-gray-700/80 text-gray-200;
-  }
-  
-  .table td {
-    @apply text-gray-200;
-  }
-  
-  .mobile-menu-content {
-    @apply bg-gray-800;
-  }
-  
-  .mobile-nav-tab {
-    @apply text-gray-300 border-gray-700 hover:bg-gray-700 hover:text-white;
-  }
-  
-  .mobile-nav-tab.active {
-    @apply bg-primary-900 text-primary-200 border-primary-700;
-  }
-}
-
 /* ウェルカムスクリーン専用スタイル */
 .welcome-screen {
   background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
@@ -474,7 +410,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* フォーカス表示の改善 */
+/* フォーカス表示の改善（ダークテーマ対応） */
 *:focus {
   outline: 2px solid var(--primary-500);
   outline-offset: 2px;
