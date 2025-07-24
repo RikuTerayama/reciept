@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, ArrowLeft, Calculator, AlertCircle, CheckCircle, DollarSign, Calendar, Percent, Building, FileText } from 'lucide-react';
+import { Save, ArrowLeft, Calculator, AlertCircle, CheckCircle, DollarSign, Calendar, Percent, Building, FileText, User, Users } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
 import { CURRENCIES, EXPENSE_CATEGORIES, TAX_RATES, DEPARTMENTS, QUALIFICATION_TYPES, ExpenseData } from '@/types';
 
@@ -24,7 +24,10 @@ export default function ExpenseForm() {
     category: '',
     department: '',
     isQualified: 'Not Qualified',
-    ocrText: ''
+    ocrText: '',
+    description: '',
+    participantFromClient: '',
+    participantFromCompany: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -164,6 +167,9 @@ export default function ExpenseForm() {
       department: formData.department!,
       isQualified: formData.isQualified!,
       ocrText: formData.ocrText,
+      description: formData.description || '',
+      participantFromClient: formData.participantFromClient || '',
+      participantFromCompany: formData.participantFromCompany || '',
       createdAt: new Date()
     };
 
@@ -179,7 +185,10 @@ export default function ExpenseForm() {
         category: '',
         department: '',
         isQualified: 'Not Qualified',
-        ocrText: ''
+        ocrText: '',
+        description: '',
+        participantFromClient: '',
+        participantFromCompany: ''
     });
     
     // OCR結果をクリア
@@ -428,6 +437,66 @@ export default function ExpenseForm() {
             <p className="text-xs text-gray-500 mt-1">
               登録番号またはT+13桁数字がある場合は適格請求書として判定されます
             </p>
+          </div>
+
+          {/* 追加情報 */}
+          <div className="space-y-6">
+            {/* Description */}
+            <div className="form-group">
+              <label className="form-label">
+                <FileText className="w-4 h-4" />
+                説明 (Description)
+              </label>
+              <textarea
+                value={formData.description || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="form-input min-h-[100px] resize-y"
+                placeholder="経費の詳細な説明を入力してください..."
+                rows={4}
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Excelエクスポート時に含まれる説明文です
+              </p>
+            </div>
+
+            {/* 参加者情報 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Participant from Client */}
+              <div className="form-group">
+                <label className="form-label">
+                  <User className="w-4 h-4" />
+                  # Participant from Client
+                </label>
+                <input
+                  type="text"
+                  value={formData.participantFromClient || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, participantFromClient: e.target.value }))}
+                  className="form-input"
+                  placeholder="クライアント側の参加者名を入力..."
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  クライアント側の参加者情報
+                </p>
+              </div>
+
+              {/* Participant from Company */}
+              <div className="form-group">
+                <label className="form-label">
+                  <Users className="w-4 h-4" />
+                  # Participant from Company
+                </label>
+                <input
+                  type="text"
+                  value={formData.participantFromCompany || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, participantFromCompany: e.target.value }))}
+                  className="form-input"
+                  placeholder="会社側の参加者名を入力..."
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  会社側の参加者情報
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
