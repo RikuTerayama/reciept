@@ -1,274 +1,277 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Calculator, Target, TrendingUp, Download, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calculator, Download, Image as ImageIcon, DollarSign, FileText, CheckCircle } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
-import { findOptimalExpenseCombination } from '@/lib/optimizer';
-import { exportBudgetOptimizationToExcel } from '@/lib/excel';
-import { BUDGET_OPTIONS, OptimizedExpense } from '@/types';
+import { ExpenseData } from '@/types';
+
+interface OptimizationResult {
+  id: string;
+  expenses: ExpenseData[];
+  totalAmount: number;
+  difference: number;
+  score: number;
+}
 
 export default function BudgetOptimizer() {
   const { expenses } = useExpenseStore();
-  const [selectedBudget, setSelectedBudget] = useState<number>(100000);
-  const [customBudget, setCustomBudget] = useState<string>('');
-  const [optimizedResult, setOptimizedResult] = useState<OptimizedExpense | null>(null);
+  const [targetBudget, setTargetBudget] = useState(100000);
+  const [optimizationResults, setOptimizationResults] = useState<OptimizationResult[]>([]);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+
+  const budgetTargets = [100000, 150000, 200000];
+
+  // 予算最適化アルゴリズム
+  const optimizeBudget = (target: number): OptimizationResult[] => {
+    const results: OptimizationResult[] = [];
+    const n = expenses.length;
+    
+    // 全組み合わせを生成（最大10個の経費まで）
+    const maxCombinations = Math.min(10, n);
+    
+    for (let size = 1; size <= maxCombinations; size++) {
+      const combinations = generateCombinations(expenses, size);
+      
+      combinations.forEach((combination, index) => {
+        const totalAmount = combination.reduce((sum, exp) => sum + exp.totalAmount, 0);
+        const difference = Math.abs(target - totalAmount);
+        const score = 1 / (1 + difference / target); // 0-1のスコア
+        
+        results.push({
+          id: `${size}-${index}`,
+          expenses: combination,
+          totalAmount,
+          difference,
+          score
+        });
+      });
+    }
+    
+    // スコアでソート（上位10件）
+    return results
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+  };
+
+  // 組み合わせ生成
+  const generateCombinations = (items: ExpenseData[], size: number): ExpenseData[][] => {
+    if (size === 0) return [[]];
+    if (items.length === 0) return [];
+    
+    const [first, ...rest] = items;
+    const withoutFirst = generateCombinations(rest, size);
+    const withFirst = generateCombinations(rest, size - 1).map(combo => [first, ...combo]);
+    
+    return [...withoutFirst, ...withFirst];
+  };
 
   const handleOptimize = () => {
-    if (expenses.length === 0) {
-      alert('最適化する経費データがありません。');
-      return;
-    }
-
-    const budget = customBudget ? parseInt(customBudget) : selectedBudget;
-    if (isNaN(budget) || budget <= 0) {
-      alert('有効な予算を入力してください。');
-      return;
-    }
-
-    const result = findOptimalExpenseCombination(expenses, budget);
-    setOptimizedResult(result);
+    setIsOptimizing(true);
+    
+    // 最適化処理を非同期で実行
+    setTimeout(() => {
+      const results = optimizeBudget(targetBudget);
+      setOptimizationResults(results);
+      setIsOptimizing(false);
+    }, 1000);
   };
 
-  const handleExport = () => {
-    if (!optimizedResult) {
-      alert('エクスポートする最適化結果がありません。');
+  const handleDownloadImages = (result: OptimizationResult) => {
+    const expensesWithImages = result.expenses.filter(expense => expense.imageData);
+    
+    if (expensesWithImages.length === 0) {
+      alert('ダウンロード可能な画像がありません。');
       return;
     }
 
-    const budget = customBudget ? parseInt(customBudget) : selectedBudget;
-    exportBudgetOptimizationToExcel(
-      expenses,
-      optimizedResult.expenses,
-      budget,
-      `budget_optimization_${budget.toLocaleString()}.xlsx`
-    );
+    // 各画像を個別にダウンロード
+    expensesWithImages.forEach(expense => {
+      if (expense.imageData) {
+        const link = document.createElement('a');
+        link.href = expense.imageData;
+        link.download = `${expense.receiptNumber || expense.id}_${expense.date}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    });
   };
 
-  const totalExpenses = useMemo(() => 
-    expenses.reduce((sum, exp) => sum + exp.totalAmount, 0), 
-    [expenses]
-  );
-
-  const averageExpense = useMemo(() => 
-    expenses.length > 0 ? totalExpenses / expenses.length : 0, 
-    [expenses, totalExpenses]
-  );
-
-  if (expenses.length === 0) {
-    return (
-      <div className="card">
-        <div className="card-body text-center py-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-            <Calculator className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">経費データがありません</h3>
-          <p className="text-gray-500">
-            最適化する経費データを追加してください
-          </p>
-        </div>
-      </div>
+  const handleDownloadAllImages = () => {
+    const allExpenses = optimizationResults.flatMap(result => result.expenses);
+    const uniqueExpenses = allExpenses.filter((expense, index, self) => 
+      index === self.findIndex(e => e.id === expense.id)
     );
-  }
+    
+    const expensesWithImages = uniqueExpenses.filter(expense => expense.imageData);
+    
+    if (expensesWithImages.length === 0) {
+      alert('ダウンロード可能な画像がありません。');
+      return;
+    }
+
+    // 各画像を個別にダウンロード
+    expensesWithImages.forEach(expense => {
+      if (expense.imageData) {
+        const link = document.createElement('a');
+        link.href = expense.imageData;
+        link.download = `${expense.receiptNumber || expense.id}_${expense.date}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    });
+  };
 
   return (
     <div className="space-y-8">
-      {/* 統計情報 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="stat-card">
-          <div className="stat-number">{expenses.length}</div>
-          <div className="stat-label">利用可能な経費</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">¥{totalExpenses.toLocaleString()}</div>
-          <div className="stat-label">総金額</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">¥{Math.round(averageExpense).toLocaleString()}</div>
-          <div className="stat-label">平均金額</div>
-        </div>
-      </div>
-
-      {/* 予算設定 */}
+      {/* 最適化設定 */}
       <div className="card">
         <div className="card-header">
           <div className="flex items-center space-x-3">
-            <Target className="w-6 h-6 text-primary-600" />
-            <h2 className="text-xl font-semibold text-gray-900">予算設定</h2>
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+              <Calculator className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-xl font-semibold text-white">予算最適化</h2>
           </div>
         </div>
-        <div className="card-body space-y-6">
-          {/* プリセット予算 */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">プリセット予算</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {BUDGET_OPTIONS.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => {
-                    setSelectedBudget(option.amount);
-                    setCustomBudget('');
-                  }}
-                  className={`
-                    p-4 rounded-lg border-2 transition-all duration-200 text-left
-                    ${selectedBudget === option.amount && !customBudget
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }
-                  `}
-                >
-                  <div className="font-semibold text-lg">{option.label}</div>
-                  <div className="text-sm text-gray-600">¥{option.amount.toLocaleString()}</div>
-                </button>
-              ))}
+        <div className="card-body">
+          <div className="space-y-6">
+            <div>
+              <label className="form-label">目標予算</label>
+              <div className="flex space-x-4">
+                {budgetTargets.map(budget => (
+                  <button
+                    key={budget}
+                    onClick={() => setTargetBudget(budget)}
+                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                      targetBudget === budget
+                        ? 'border-primary-500 bg-primary-500/20 text-primary-300'
+                        : 'border-gray-600 text-gray-300 hover:border-gray-500'
+                    }`}
+                  >
+                    ¥{budget.toLocaleString()}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* カスタム予算 */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">カスタム予算</h3>
-            <div className="flex items-center space-x-4">
-              <input
-                type="number"
-                value={customBudget}
-                onChange={(e) => {
-                  setCustomBudget(e.target.value);
-                  setSelectedBudget(0);
-                }}
-                placeholder="予算を入力してください"
-                className="form-input flex-1"
-                min="1"
-                max="10000000"
-              />
-              <span className="text-gray-500">円</span>
-            </div>
-          </div>
-
-          {/* 最適化ボタン */}
-          <div className="flex justify-center">
+            
             <button
               onClick={handleOptimize}
+              disabled={expenses.length === 0 || isOptimizing}
               className="btn-primary flex items-center space-x-2"
             >
-              <TrendingUp className="w-5 h-5" />
-              <span>最適化実行</span>
+              {isOptimizing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>最適化中...</span>
+                </>
+              ) : (
+                <>
+                  <Calculator className="w-4 h-4" />
+                  <span>最適化実行</span>
+                </>
+              )}
             </button>
           </div>
         </div>
       </div>
 
       {/* 最適化結果 */}
-      {optimizedResult && (
-        <div className="card animate-fade-in">
+      {optimizationResults.length > 0 && (
+        <div className="card">
           <div className="card-header">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-                <h2 className="text-xl font-semibold text-gray-900">最適化結果</h2>
-              </div>
+              <h3 className="text-lg font-semibold text-white">最適化結果</h3>
               <button
-                onClick={handleExport}
-                className="btn-success flex items-center space-x-2"
+                onClick={handleDownloadAllImages}
+                className="btn-secondary flex items-center space-x-2"
               >
                 <Download className="w-4 h-4" />
-                <span>エクスポート</span>
+                <span>全画像ダウンロード</span>
               </button>
             </div>
           </div>
-          <div className="card-body space-y-6">
-            {/* 結果サマリー */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="stat-card">
-                <div className="stat-number">
-                  ¥{(customBudget ? parseInt(customBudget) : selectedBudget).toLocaleString()}
-                </div>
-                <div className="stat-label">目標予算</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">
-                  ¥{optimizedResult.totalAmount.toLocaleString()}
-                </div>
-                <div className="stat-label">最適化後合計</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">
-                  ¥{optimizedResult.difference.toLocaleString()}
-                </div>
-                <div className="stat-label">差額</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">
-                  {optimizedResult.expenses.length}
-                </div>
-                <div className="stat-label">選択経費数</div>
-              </div>
-            </div>
-
-            {/* 選択された経費リスト */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">選択された経費</h3>
-              <div className="overflow-x-auto">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>日付</th>
-                      <th>金額</th>
-                      <th>カテゴリ</th>
-                      <th>部署</th>
-                      <th>適格区分</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {optimizedResult.expenses.map((expense) => (
-                      <tr key={expense.id} className="hover:bg-gray-50">
-                        <td>{expense.date}</td>
-                        <td className="font-medium">
-                          ¥{expense.totalAmount.toLocaleString()}
-                        </td>
-                        <td>{expense.category}</td>
-                        <td>{expense.department}</td>
-                        <td>{expense.isQualified}</td>
-                      </tr>
+          <div className="card-body">
+            <div className="space-y-4">
+              {optimizationResults.map((result, index) => (
+                <div key={result.id} className="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary-500 rounded-full">
+                        <span className="text-white font-bold">{index + 1}</span>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium">
+                          組み合わせ {index + 1}
+                        </h4>
+                        <p className="text-sm text-gray-300">
+                          スコア: {(result.score * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-white">
+                        ¥{result.totalAmount.toLocaleString()}
+                      </div>
+                      <div className={`text-sm ${result.difference === 0 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        差額: ¥{result.difference.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 経費リスト */}
+                  <div className="space-y-2 mb-4">
+                    {result.expenses.map(expense => (
+                      <div key={expense.id} className="flex items-center justify-between p-2 bg-gray-700/30 rounded">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-gray-600 rounded flex items-center justify-center">
+                            <FileText className="w-4 h-4 text-gray-300" />
+                          </div>
+                          <div>
+                            <p className="text-white text-sm">{expense.receiptNumber || expense.id}</p>
+                            <p className="text-gray-300 text-xs">{expense.date}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-white text-sm">¥{expense.totalAmount.toLocaleString()}</p>
+                          <p className="text-gray-300 text-xs">{expense.category}</p>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* 効率性指標 */}
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
-                  <span className="text-white text-xs">i</span>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-blue-700">最適化効率</h4>
-                  <div className="text-sm text-blue-600 mt-1 space-y-1">
-                    <p>• 予算使用率: {((optimizedResult.totalAmount / (customBudget ? parseInt(customBudget) : selectedBudget)) * 100).toFixed(1)}%</p>
-                    <p>• 平均単価: ¥{Math.round(optimizedResult.totalAmount / optimizedResult.expenses.length).toLocaleString()}</p>
-                    <p>• 選択効率: {((optimizedResult.expenses.length / expenses.length) * 100).toFixed(1)}%</p>
+                  </div>
+                  
+                  {/* アクションボタン */}
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => handleDownloadImages(result)}
+                      className="btn-secondary flex items-center space-x-1 text-xs"
+                    >
+                      <ImageIcon className="w-3 h-3" />
+                      <span>画像ダウンロード</span>
+                    </button>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* ヒント */}
-      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div className="flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-          <div>
-            <h4 className="text-sm font-medium text-yellow-700">最適化アルゴリズムについて</h4>
-            <ul className="text-sm text-yellow-600 mt-1 space-y-1">
-              <li>• 動的計画法を使用して最適な組み合わせを計算</li>
-              <li>• 予算を超えない範囲で最大の価値を提供</li>
-              <li>• 複数の経費の組み合わせを考慮</li>
-              <li>• 結果は即座に計算され、リアルタイムで表示</li>
-            </ul>
+      {/* 経費データがない場合 */}
+      {expenses.length === 0 && (
+        <div className="card">
+          <div className="card-body text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-800/50 rounded-full mb-4">
+              <Calculator className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-white mb-2">経費データがありません</h3>
+            <p className="text-gray-300">
+              最適化するには、まず経費データを登録してください
+            </p>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 } 
