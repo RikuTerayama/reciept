@@ -298,17 +298,8 @@ export default function Home() {
             {activeTab === 'upload' && (
               <div className="space-y-8">
                 <div className="text-center space-y-6">
-                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-3xl shadow-2xl neon-glow animate-float">
-                    <Receipt className="w-12 h-12 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      {t('imageUpload.title')}
-                    </h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      {t('imageUpload.description')}
-                    </p>
-                  </div>
+                  <h1 className="text-3xl font-bold text-white">{t('imageUpload.title')}</h1>
+                  <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('imageUpload.description')}</p>
                 </div>
                 <ImageUpload onOCRComplete={handleOCRComplete} />
               </div>
@@ -317,17 +308,8 @@ export default function Home() {
             {activeTab === 'batch' && (
               <div className="space-y-8">
                 <div className="text-center space-y-6">
-                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl shadow-2xl neon-glow animate-float">
-                    <Upload className="w-12 h-12 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      {t('batchUpload.title')}
-                    </h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      {t('batchUpload.description')}
-                    </p>
-                  </div>
+                  <h1 className="text-3xl font-bold text-white">{t('batchUpload.title')}</h1>
+                  <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('batchUpload.description')}</p>
                 </div>
                 <BatchUpload />
               </div>
@@ -336,17 +318,8 @@ export default function Home() {
             {activeTab === 'form' && (
               <div className="space-y-8">
                 <div className="text-center space-y-6">
-                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-3xl shadow-2xl neon-glow animate-float">
-                    <Plus className="w-12 h-12 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      {t('dataInput.title')}
-                    </h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      {t('dataInput.description')}
-                    </p>
-                  </div>
+                  <h1 className="text-3xl font-bold text-white">{t('dataInput.title')}</h1>
+                  <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('dataInput.description')}</p>
                 </div>
                 <ExpenseForm />
               </div>
@@ -354,32 +327,6 @@ export default function Home() {
 
             {activeTab === 'list' && (
               <div className="space-y-8">
-                <div className="flex justify-between items-center">
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-4">
-                      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg neon-glow">
-                        <List className="w-8 h-8 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-4xl font-bold text-gray-900">
-                          {t('expenseList.title')}
-                        </h2>
-                        <p className="text-lg text-gray-600">
-                          {t('expenseList.description')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  {selectedExpenses.length > 0 && (
-                    <button
-                      onClick={clearSelection}
-                      className="btn-secondary flex items-center space-x-2"
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span>{t('common.clearSelection')}</span>
-                    </button>
-                  )}
-                </div>
                 <ExpenseList />
               </div>
             )}
@@ -387,17 +334,8 @@ export default function Home() {
             {activeTab === 'optimizer' && (
               <div className="space-y-8">
                 <div className="text-center space-y-6">
-                  <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl shadow-2xl neon-glow animate-float">
-                    <Calculator className="w-12 h-12 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-4xl font-bold text-gray-900 mb-3">
-                      {t('budgetOptimizer.title')}
-                    </h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                      {t('budgetOptimizer.description')}
-                    </p>
-                  </div>
+                  <h1 className="text-3xl font-bold text-white">{t('budgetOptimizer.title')}</h1>
+                  <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('budgetOptimizer.description')}</p>
                 </div>
                 <BudgetOptimizer />
               </div>
