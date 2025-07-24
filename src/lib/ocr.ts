@@ -259,51 +259,142 @@ function extractDate(text: string): string | undefined {
 }
 
 function extractTotalAmount(text: string): number | undefined {
-  // 合計金額のパターンを改善
-  const totalPatterns = [
-    // 合計、小計、総計などのキーワード
-    /(?:合計|小計|総計|total|subtotal|amount|sum)[\s:：]*([¥￥]?[\d,]+)/gi,
-    // 金額のみ（最後の大きな金額を優先）
-    /([¥￥]?[\d,]+)/g,
-    // 税込み、税抜きの表記
+  // テキストの正規化（全角→半角、空白除去）
+  const normalizedText = text
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+    .replace(/[￥]/g, '¥')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  console.log('金額抽出用正規化テキスト:', normalizedText);
+
+  // 金額候補を格納する配列
+  const amountCandidates: Array<{ amount: number; priority: number; source: string }> = [];
+
+  // 1. 合計・小計・総計などのキーワード付き金額（最高優先度）
+  const totalKeywords = [
+    /(?:合計|小計|総計|total|subtotal|amount|sum|請求額|税込合計|税抜合計)[\s:：]*([¥￥]?[\d,]+)/gi,
     /(?:税込|税抜|税抜き|税込み)[\s:：]*([¥￥]?[\d,]+)/gi,
-    // 消費税の表記
     /(?:消費税|tax)[\s:：]*([¥￥]?[\d,]+)/gi,
   ];
 
-  let maxAmount = 0;
-  let foundAmount = false;
-
-  for (const pattern of totalPatterns) {
-    const matches = text.match(pattern);
+  for (const pattern of totalKeywords) {
+    const matches = normalizedText.match(pattern);
     if (matches) {
       for (const match of matches) {
-        // 金額部分を抽出
         const amountMatch = match.match(/[¥￥]?([\d,]+)/);
         if (amountMatch) {
           const amountStr = amountMatch[1].replace(/,/g, '');
           const amount = parseInt(amountStr);
-          
-          if (amount > 0 && amount > maxAmount) {
-            // 明らかに小さい金額（100円未満）は除外
-            if (amount >= 100) {
-              maxAmount = amount;
-              foundAmount = true;
-              console.log('金額マッチ:', match, '→', amount);
-            }
+          if (amount >= 100 && amount <= 1000000) {
+            amountCandidates.push({
+              amount,
+              priority: 10,
+              source: match
+            });
+            console.log('キーワード付き金額:', match, '→', amount);
           }
         }
       }
     }
   }
 
-  if (foundAmount) {
-    console.log('最終的な金額:', maxAmount);
-    return maxAmount;
+  // 2. 通貨記号付き金額（高優先度）
+  const currencyPattern = /[¥￥]([\d,]+)/g;
+  let currencyMatch;
+  while ((currencyMatch = currencyPattern.exec(normalizedText)) !== null) {
+    const amountStr = currencyMatch[1].replace(/,/g, '');
+    const amount = parseInt(amountStr);
+    if (amount >= 100 && amount <= 1000000) {
+      amountCandidates.push({
+        amount,
+        priority: 8,
+        source: currencyMatch[0]
+      });
+      console.log('通貨記号付き金額:', currencyMatch[0], '→', amount);
+    }
+  }
+
+  // 3. 円記号付き金額
+  const yenPattern = /([\d,]+)円/g;
+  let yenMatch;
+  while ((yenMatch = yenPattern.exec(normalizedText)) !== null) {
+    const amountStr = yenMatch[1].replace(/,/g, '');
+    const amount = parseInt(amountStr);
+    if (amount >= 100 && amount <= 1000000) {
+      amountCandidates.push({
+        amount,
+        priority: 7,
+        source: yenMatch[0]
+      });
+      console.log('円記号付き金額:', yenMatch[0], '→', amount);
+    }
+  }
+
+  // 4. 3桁以上の数字（カンマ区切りあり）
+  const commaPattern = /([\d]{1,3}(?:,[\d]{3})*)/g;
+  let commaMatch;
+  while ((commaMatch = commaPattern.exec(normalizedText)) !== null) {
+    const amountStr = commaMatch[1].replace(/,/g, '');
+    const amount = parseInt(amountStr);
+    if (amount >= 100 && amount <= 1000000) {
+      amountCandidates.push({
+        amount,
+        priority: 5,
+        source: commaMatch[0]
+      });
+      console.log('カンマ区切り金額:', commaMatch[0], '→', amount);
+    }
+  }
+
+  // 5. 3桁以上の連続数字（カンマなし）
+  const digitPattern = /([\d]{3,6})/g;
+  let digitMatch;
+  while ((digitMatch = digitPattern.exec(normalizedText)) !== null) {
+    const amount = parseInt(digitMatch[1]);
+    if (amount >= 100 && amount <= 1000000) {
+      // 明らかに小さい金額や日付っぽい数字は除外
+      if (amount < 1000 || (amount >= 1000 && amount <= 9999 && !isLikelyDate(amount))) {
+        amountCandidates.push({
+          amount,
+          priority: 3,
+          source: digitMatch[0]
+        });
+        console.log('連続数字金額:', digitMatch[0], '→', amount);
+      }
+    }
+  }
+
+  // 候補を優先度順にソート
+  amountCandidates.sort((a, b) => {
+    if (a.priority !== b.priority) {
+      return b.priority - a.priority; // 優先度の高い順
+    }
+    return b.amount - a.amount; // 同じ優先度なら金額の高い順
+  });
+
+  console.log('金額候補（優先度順）:', amountCandidates);
+
+  // 最適な候補を選択
+  if (amountCandidates.length > 0) {
+    const bestCandidate = amountCandidates[0];
+    console.log('選択された金額:', bestCandidate.source, '→', bestCandidate.amount);
+    return bestCandidate.amount;
   }
 
   console.log('合計金額が抽出できませんでした');
   return undefined;
+}
+
+// 日付っぽい数字かどうかを判定するヘルパー関数
+function isLikelyDate(num: number): boolean {
+  const str = num.toString();
+  if (str.length === 4) {
+    const year = parseInt(str.substring(0, 2));
+    const month = parseInt(str.substring(2, 4));
+    return year >= 20 && year <= 99 && month >= 1 && month <= 12;
+  }
+  return false;
 }
 
 function extractTaxRate(text: string): number {
