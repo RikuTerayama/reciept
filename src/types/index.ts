@@ -20,6 +20,8 @@ export interface OCRResult {
   taxRate?: number;
   isQualified?: boolean;
   text: string;
+  imageData?: string; // Base64画像データ
+  receiptNumber?: string; // レシート番号
 }
 
 export interface BudgetOption {
