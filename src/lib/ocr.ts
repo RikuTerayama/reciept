@@ -16,7 +16,7 @@ export async function processImageWithOCR(file: File): Promise<OCRResult> {
 export async function extractTextFromImage(file: File): Promise<OCRResult> {
   try {
     const result = await Tesseract.recognize(file, 'jpn+eng', {
-      logger: m => console.log(m)
+      logger: (m: any) => console.log(m)
     });
 
     const text = result.data.text;
@@ -63,7 +63,9 @@ function extractDate(text: string): string | undefined {
         const month = match.match(/(\d{1,2})月/)?.[1];
         const day = match.match(/(\d{1,2})日/)?.[1];
         if (year && month && day) {
-          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          const paddedMonth = month.length < 2 ? '0' + month : month;
+          const paddedDay = day.length < 2 ? '0' + day : day;
+          return `${year}-${paddedMonth}-${paddedDay}`;
         }
       } else if (match.includes('/')) {
         // MM/DD/YYYY or DD/MM/YYYY → YYYY-MM-DD
@@ -72,9 +74,13 @@ function extractDate(text: string): string | undefined {
           const [first, second, third] = parts;
           // 4桁の数字が年と判断
           if (third.length === 4) {
-            return `${third}-${first.padStart(2, '0')}-${second.padStart(2, '0')}`;
+            const paddedFirst = first.length < 2 ? '0' + first : first;
+            const paddedSecond = second.length < 2 ? '0' + second : second;
+            return `${third}-${paddedFirst}-${paddedSecond}`;
           } else if (first.length === 4) {
-            return `${first}-${second.padStart(2, '0')}-${third.padStart(2, '0')}`;
+            const paddedSecond = second.length < 2 ? '0' + second : second;
+            const paddedThird = third.length < 2 ? '0' + third : third;
+            return `${first}-${paddedSecond}-${paddedThird}`;
           }
         }
       } else if (match.includes('.')) {
