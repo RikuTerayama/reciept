@@ -12,6 +12,16 @@ export interface ReceiptDetectionResult {
   error?: string;
 }
 
+// ImageUpload.tsxで使用するためのdetectReceipt関数
+export async function detectReceipt(imageFile: File): Promise<ReceiptDetectionResult> {
+  try {
+    return await detectReceiptInImage(imageFile);
+  } catch (error) {
+    // エラーが発生した場合は簡易版を使用
+    return await simpleReceiptDetection(imageFile);
+  }
+}
+
 // レシート検出のための設定
 const DETECTION_CONFIG = {
   minAspectRatio: 0.5, // 最小縦横比
