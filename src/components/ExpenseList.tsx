@@ -58,8 +58,8 @@ export default function ExpenseList() {
         <p className="expense-list-description">登録された経費データの一覧と管理</p>
       </div>
 
-      {/* アクションバー */}
-      <div className="flex justify-between items-center">
+      {/* アクションバー（中央揃え） */}
+      <div className="flex flex-col items-center space-y-4">
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-300">
             {expenses.length}件の経費データ
