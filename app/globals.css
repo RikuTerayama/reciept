@@ -166,6 +166,27 @@ export default function ExpenseList() {
                     </div>
                   </td>
                   <td>
+                    <div className="max-w-xs">
+                      <span className="text-sm text-gray-300">
+                        {expense.description || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="max-w-xs">
+                      <span className="text-sm text-gray-300">
+                        {expense.participantFromClient || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="max-w-xs">
+                      <span className="text-sm text-gray-300">
+                        {expense.participantFromCompany || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                       {expense.taxRate}%
                     </span>
