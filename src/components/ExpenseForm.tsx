@@ -257,14 +257,14 @@ export default function ExpenseForm() {
           </div>
 
           {/* 金額計算セクション */}
-          <div className="card border-primary-200 bg-primary-50">
+          <div className="card border-primary-500/30 bg-primary-900/20">
             <div className="card-header">
               <div className="flex items-center space-x-3">
-                <Calculator className="w-6 h-6 text-primary-600" />
-                <h3 className="text-lg font-semibold text-primary-800">金額計算</h3>
+                <Calculator className="w-6 h-6 text-primary-400" />
+                <h3 className="text-lg font-semibold text-primary-300">金額計算</h3>
                 {isCalculating && (
-                  <div className="flex items-center space-x-2 text-primary-600">
-                    <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="flex items-center space-x-2 text-primary-400">
+                    <div className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div>
                     <span className="text-sm">計算中...</span>
                   </div>
                 )}
@@ -284,11 +284,11 @@ export default function ExpenseForm() {
                       min="0"
                       step="1"
                     />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                       {formData.currency}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">税抜き金額を入力すると自動計算されます</p>
+                  <p className="text-xs text-gray-400 mt-1">税抜き金額を入力すると自動計算されます</p>
                 </div>
 
                 {/* 税率 */}
@@ -312,7 +312,7 @@ export default function ExpenseForm() {
                 <div className="form-group">
                   <label className="form-label">
                     <DollarSign className="w-4 h-4" />
-                    合計金額（税込み）<span className="text-red-500">*</span>
+                    合計金額（税込み）<span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -324,27 +324,27 @@ export default function ExpenseForm() {
                       step="1"
                       required
                     />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                       {formData.currency}
                     </span>
                   </div>
                   {errors.totalAmount && <p className="form-error">{errors.totalAmount}</p>}
-                  <p className="text-xs text-gray-500 mt-1">税込み金額を直接入力することも可能です</p>
+                  <p className="text-xs text-gray-400 mt-1">税込み金額を直接入力することも可能です</p>
                 </div>
               </div>
 
               {/* 計算結果表示 */}
-              <div className="mt-4 p-4 bg-white rounded-lg border border-primary-200">
+              <div className="mt-4 p-4 bg-gray-800/80 rounded-lg border border-gray-600/50">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium text-gray-600">税抜き金額:</span>
-                    <span className="ml-2 font-semibold text-gray-900">
+                    <span className="font-medium text-gray-300">税抜き金額:</span>
+                    <span className="ml-2 font-semibold text-white">
                       {formData.currency} {baseAmount.toLocaleString()}
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-600">消費税:</span>
-                    <span className="ml-2 font-semibold text-gray-900">
+                    <span className="font-medium text-gray-300">消費税:</span>
+                    <span className="ml-2 font-semibold text-white">
                       {formData.currency} {(formData.totalAmount || 0) - baseAmount} ({formData.taxRate}%)
                     </span>
                   </div>
