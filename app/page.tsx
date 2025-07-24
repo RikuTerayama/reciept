@@ -225,11 +225,11 @@ export default function Home() {
             className={`mobile-menu-content ${mobileMenuOpen ? 'open' : 'closed'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">{t('navigation.menu')}</h2>
+            <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
+              <h2 className="text-lg font-semibold text-white">{t('navigation.menu')}</h2>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/50 transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -267,7 +267,7 @@ export default function Home() {
                   <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">{t('statistics.title')}</h2>
+                  <h2 className="text-xl font-semibold text-white">{t('statistics.title')}</h2>
                 </div>
               </div>
               <div className="card-body">
