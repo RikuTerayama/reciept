@@ -41,16 +41,21 @@
   --accent-900: #701a75;
 }
 
-/* 游明朝フォントを全体に適用 */
-* {
-  font-family: 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'HGS明朝E', 'MS P明朝', 'MS Mincho', serif;
-}
-
 /* シックなダークテーマ */
 body {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
   color: #ffffff;
   min-height: 100vh;
+}
+
+/* すべてのテキストを白に設定 */
+* {
+  color: #ffffff;
+}
+
+/* 游明朝フォントを全体に適用 */
+* {
+  font-family: 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'HGS明朝E', 'MS P明朝', 'MS Mincho', serif;
 }
 
 /* ガラスモーフィズム効果（ダークテーマ対応） */
