@@ -156,7 +156,7 @@ function extractDate(text: string): string | undefined {
     {
       pattern: /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2}),?\s+(\d{4})/gi,
       handler: (match: string) => {
-        const monthNames = {
+        const monthNames: { [key: string]: string } = {
           jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
           jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
         };
@@ -171,7 +171,7 @@ function extractDate(text: string): string | undefined {
     {
       pattern: /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/gi,
       handler: (match: string) => {
-        const monthNames = {
+        const monthNames: { [key: string]: string } = {
           jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
           jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
         };
@@ -398,26 +398,70 @@ function isLikelyDate(num: number): boolean {
 }
 
 function extractTaxRate(text: string): number {
-  // 税率の抽出
+  // テキストの正規化
+  const normalizedText = text
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 税率パターンの定義（優先度順）
   const taxPatterns = [
+    // 1. 明示的な税率表記（最高優先度）
     /(?:税率|tax\s*rate)[\s:：]*(\d+(?:\.\d+)?)%/gi,
     /(\d+(?:\.\d+)?)%\s*(?:税率|tax)/gi,
     /(?:軽減税率|reduced\s*tax)[\s:：]*(\d+(?:\.\d+)?)%/gi,
+    /(?:標準税率|standard\s*tax)[\s:：]*(\d+(?:\.\d+)?)%/gi,
+    
+    // 2. 消費税の表記
+    /(?:消費税|consumption\s*tax)[\s:：]*(\d+(?:\.\d+)?)%/gi,
+    /(\d+(?:\.\d+)?)%\s*(?:消費税|consumption\s*tax)/gi,
+    
+    // 3. 税込み・税抜きの表記から推定
+    /(?:税込|税込み|including\s*tax)[\s:：]*(\d+(?:\.\d+)?)%/gi,
+    /(?:税抜|税抜き|excluding\s*tax)[\s:：]*(\d+(?:\.\d+)?)%/gi,
+    
+    // 4. 一般的な税率パターン
+    /(\d+(?:\.\d+)?)%/g,
   ];
 
   for (const pattern of taxPatterns) {
-    const matches = text.match(pattern);
+    const matches = normalizedText.match(pattern);
     if (matches && matches.length > 0) {
-      const rateMatch = matches[0].match(/(\d+(?:\.\d+)?)%/);
-      if (rateMatch) {
-        const rate = parseFloat(rateMatch[1]);
-        console.log('税率マッチ:', rate);
-        return rate;
+      for (const match of matches) {
+        const rateMatch = match.match(/(\d+(?:\.\d+)?)%/);
+        if (rateMatch) {
+          const rate = parseFloat(rateMatch[1]);
+          // 妥当な税率範囲（0-20%）かチェック
+          if (rate >= 0 && rate <= 20) {
+            console.log('税率マッチ:', match, '→', rate);
+            return rate;
+          }
+        }
       }
     }
   }
 
-  // デフォルトは10%
+  // 5. 文脈から税率を推定
+  const contextPatterns = [
+    // 軽減税率のキーワード
+    /(?:軽減|reduced|food|飲食|食品)/gi,
+    // 標準税率のキーワード
+    /(?:標準|standard|一般|general)/gi,
+  ];
+
+  for (const pattern of contextPatterns) {
+    const matches = normalizedText.match(pattern);
+    if (matches && matches.length > 0) {
+      if (pattern.source.includes('軽減') || pattern.source.includes('reduced') || 
+          pattern.source.includes('food') || pattern.source.includes('飲食') || 
+          pattern.source.includes('食品')) {
+        console.log('軽減税率の文脈を検出、8%を適用');
+        return 8;
+      }
+    }
+  }
+
+  // デフォルトは10%（標準税率）
   console.log('税率が見つからないため、デフォルト10%を使用');
   return 10;
 }
