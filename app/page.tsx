@@ -238,7 +238,7 @@ export default function Home() {
       {/* デスクトップナビゲーション */}
       <nav className="glass shadow-glass border-b border-white/20 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-4 overflow-x-auto">
+          <div className="flex space-x-8 overflow-x-auto py-4">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -246,13 +246,13 @@ export default function Home() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    nav-tab whitespace-nowrap
+                    nav-tab whitespace-nowrap px-6 py-4
                     ${activeTab === tab.id ? 'active' : ''}
                   `}
                   title={tab.description}
                 >
                   <Icon className="w-5 h-5" />
-                  <span>{tab.label}</span>
+                  <span className="ml-2">{tab.label}</span>
                 </button>
               );
             })}
@@ -342,7 +342,7 @@ export default function Home() {
           <div className="animate-slide-in">
             {activeTab === 'upload' && (
               <div className="space-y-8">
-                <div className="text-center space-y-6">
+                <div className="text-center space-y-6 mt-8">
                   <h1 className="text-3xl font-bold text-white">{t('imageUpload.title')}</h1>
                   <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('imageUpload.description')}</p>
                 </div>
@@ -352,7 +352,7 @@ export default function Home() {
 
             {activeTab === 'batch' && (
               <div className="space-y-8">
-                <div className="text-center space-y-6">
+                <div className="text-center space-y-6 mt-8">
                   <h1 className="text-3xl font-bold text-white">{t('batchUpload.title')}</h1>
                   <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('batchUpload.description')}</p>
                 </div>
@@ -362,7 +362,7 @@ export default function Home() {
 
             {activeTab === 'form' && (
               <div className="space-y-8">
-                <div className="text-center space-y-6">
+                <div className="text-center space-y-6 mt-8">
                   <h1 className="text-3xl font-bold text-white">{t('dataInput.title')}</h1>
                   <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('dataInput.description')}</p>
                 </div>
@@ -378,7 +378,7 @@ export default function Home() {
 
             {activeTab === 'optimizer' && (
               <div className="space-y-8">
-                <div className="text-center space-y-6">
+                <div className="text-center space-y-6 mt-8">
                   <h1 className="text-3xl font-bold text-white">{t('budgetOptimizer.title')}</h1>
                   <p className="text-lg text-gray-300 max-w-2xl mx-auto">{t('budgetOptimizer.description')}</p>
                 </div>
