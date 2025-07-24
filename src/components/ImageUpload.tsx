@@ -124,9 +124,9 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
             type="checkbox"
             checked={showReceiptDetection}
             onChange={(e) => setShowReceiptDetection(e.target.checked)}
-            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            className="rounded border-gray-600 text-primary-600 focus:ring-primary-500 bg-gray-800"
           />
-          <span className="text-sm font-medium text-gray-700">レシート自動検出</span>
+          <span className="text-sm font-medium text-gray-300">レシート自動検出</span>
         </label>
       </div>
 
@@ -136,8 +136,8 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
         className={`
           border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300
           ${isDragActive 
-            ? 'border-primary-500 bg-primary-50' 
-            : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
+            ? 'border-primary-500 bg-primary-500/10' 
+            : 'border-gray-600 hover:border-primary-400 hover:bg-gray-800/50'
           }
         `}
       >
@@ -155,10 +155,10 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 レシート画像をアップロード
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-300 mb-4">
                 ドラッグ&ドロップまたはクリックして画像を選択
               </p>
               
@@ -192,7 +192,7 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
         {isProcessing && (
           <div className="space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-            <p className="text-gray-600">{processingStatus}</p>
+            <p className="text-gray-300">{processingStatus}</p>
           </div>
         )}
 
@@ -200,10 +200,10 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
         {previewImage && !isProcessing && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">アップロード完了</h3>
+              <h3 className="text-lg font-semibold text-white">アップロード完了</h3>
               <button
                 onClick={clearPreview}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800/50 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -212,12 +212,12 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 元画像 */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">元画像</h4>
+                <h4 className="text-sm font-medium text-gray-300">元画像</h4>
                 <div className="relative">
                   <img
                     src={previewImage}
                     alt="元画像"
-                    className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                    className="w-full h-48 object-cover rounded-lg border border-gray-600"
                   />
                 </div>
               </div>
@@ -225,22 +225,22 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
               {/* 処理済み画像 */}
               {croppedImage && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-700 flex items-center space-x-1">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  <h4 className="text-sm font-medium text-gray-300 flex items-center space-x-1">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
                     <span>レシート検出済み</span>
                   </h4>
                   <div className="relative">
                     <img
                       src={croppedImage}
                       alt="処理済み画像"
-                      className="w-full h-48 object-cover rounded-lg border border-green-200"
+                      className="w-full h-48 object-cover rounded-lg border border-green-500/30"
                     />
                   </div>
                 </div>
               )}
             </div>
             
-            <div className="flex items-center space-x-2 text-sm text-green-600">
+            <div className="flex items-center space-x-2 text-sm text-green-400">
               <CheckCircle className="w-4 h-4" />
               <span>画像が正常に処理されました。データ入力画面に移動してください。</span>
             </div>
@@ -249,10 +249,10 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
       </div>
 
       {/* サポート情報 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
         <div className="flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
-          <div className="text-sm text-blue-700">
+          <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
+          <div className="text-sm text-blue-300">
             <h4 className="font-medium mb-1">サポートされている形式</h4>
             <p>JPEG, PNG, GIF, BMP形式の画像ファイル</p>
             <p className="mt-1">レシート自動検出機能により、背景を除去して精度を向上させます。</p>
