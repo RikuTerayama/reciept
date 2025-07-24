@@ -368,6 +368,18 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
           </div>
         </div>
       )}
+
+      {/* サポート情報 */}
+      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
+          <div className="text-sm text-blue-300">
+            <h4 className="font-medium mb-1">サポートされている形式</h4>
+            <p>JPEG, PNG, GIF, BMP形式の画像ファイル</p>
+            <p className="mt-1">レシート自動検出機能により、背景を除去して精度を向上させます。</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 
