@@ -282,7 +282,7 @@ body {
 
 /* ナビゲーションタブ（ダークテーマ対応） */
 .nav-tab {
-  @apply flex items-center space-x-2 px-4 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-800/50 hover:text-white transition-colors;
+  @apply flex items-center space-x-2 px-6 py-4 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-800/50 hover:text-white transition-colors min-w-fit;
 }
 
 .nav-tab.active {
