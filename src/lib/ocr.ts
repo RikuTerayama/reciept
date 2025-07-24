@@ -85,59 +85,171 @@ export async function extractTextFromImage(file: File): Promise<OCRResult> {
 }
 
 function extractDate(text: string): string | undefined {
-  // 日付パターンの改善
+  // テキストの正規化（全角→半角、空白除去）
+  const normalizedText = text
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  console.log('正規化されたテキスト:', normalizedText);
+
+  // 日付パターンの定義（優先度順）
   const datePatterns = [
-    // YYYY-MM-DD
-    /(\d{4})[-/](\d{1,2})[-/](\d{1,2})/g,
-    // YYYY年MM月DD日
-    /(\d{4})年(\d{1,2})月(\d{1,2})日/g,
-    // MM/DD/YYYY
-    /(\d{1,2})[/](\d{1,2})[/](\d{4})/g,
-    // DD/MM/YYYY
-    /(\d{1,2})[/](\d{1,2})[/](\d{4})/g,
-    // YYYY.MM.DD
-    /(\d{4})\.(\d{1,2})\.(\d{1,2})/g,
+    // 1. YYYY-MM-DD, YYYY/MM/DD
+    {
+      pattern: /(\d{4})[-/](\d{1,2})[-/](\d{1,2})/g,
+      handler: (match: string) => {
+        const parts = match.split(/[-/]/);
+        const year = parts[0];
+        const month = parts[1].padStart(2, '0');
+        const day = parts[2].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    },
+    // 2. YYYY年MM月DD日
+    {
+      pattern: /(\d{4})年(\d{1,2})月(\d{1,2})日/g,
+      handler: (match: string) => {
+        const year = match.match(/(\d{4})年/)?.[1];
+        const month = match.match(/(\d{1,2})月/)?.[1]?.padStart(2, '0');
+        const day = match.match(/(\d{1,2})日/)?.[1]?.padStart(2, '0');
+        if (year && month && day) {
+          return `${year}-${month}-${day}`;
+        }
+        return null;
+      }
+    },
+    // 3. MM/DD/YYYY (アメリカ形式)
+    {
+      pattern: /(\d{1,2})\/(\d{1,2})\/(\d{4})/g,
+      handler: (match: string) => {
+        const parts = match.split('/');
+        const month = parts[0].padStart(2, '0');
+        const day = parts[1].padStart(2, '0');
+        const year = parts[2];
+        return `${year}-${month}-${day}`;
+      }
+    },
+    // 4. DD/MM/YYYY (ヨーロッパ形式)
+    {
+      pattern: /(\d{1,2})\/(\d{1,2})\/(\d{4})/g,
+      handler: (match: string) => {
+        const parts = match.split('/');
+        const day = parts[0].padStart(2, '0');
+        const month = parts[1].padStart(2, '0');
+        const year = parts[2];
+        return `${year}-${month}-${day}`;
+      }
+    },
+    // 5. YYYY.MM.DD
+    {
+      pattern: /(\d{4})\.(\d{1,2})\.(\d{1,2})/g,
+      handler: (match: string) => {
+        const parts = match.split('.');
+        const year = parts[0];
+        const month = parts[1].padStart(2, '0');
+        const day = parts[2].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    },
+    // 6. 英語の月名 (Jul 24, 2024, 24 July 2024)
+    {
+      pattern: /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2}),?\s+(\d{4})/gi,
+      handler: (match: string) => {
+        const monthNames = {
+          jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+          jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+        };
+        const parts = match.replace(',', '').split(/\s+/);
+        const month = monthNames[parts[0].toLowerCase()];
+        const day = parts[1].padStart(2, '0');
+        const year = parts[2];
+        return `${year}-${month}-${day}`;
+      }
+    },
+    // 7. 英語の月名（日が先）(24 July 2024)
+    {
+      pattern: /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/gi,
+      handler: (match: string) => {
+        const monthNames = {
+          jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+          jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+        };
+        const parts = match.split(/\s+/);
+        const day = parts[0].padStart(2, '0');
+        const month = monthNames[parts[1].toLowerCase()];
+        const year = parts[2];
+        return `${year}-${month}-${day}`;
+      }
+    },
+    // 8. 和暦（R6.07.24形式）- 無視せずに処理
+    {
+      pattern: /R(\d{1,2})\.(\d{1,2})\.(\d{1,2})/g,
+      handler: (match: string) => {
+        const parts = match.split('.');
+        const reiwaYear = parseInt(parts[0].substring(1));
+        const month = parts[1].padStart(2, '0');
+        const day = parts[2].padStart(2, '0');
+        const gregorianYear = 2018 + reiwaYear; // 令和元年は2019年
+        return `${gregorianYear}-${month}-${day}`;
+      }
+    }
   ];
 
-  for (const pattern of datePatterns) {
-    const matches = text.match(pattern);
+  // 各パターンを試行
+  for (const { pattern, handler } of datePatterns) {
+    const matches = normalizedText.match(pattern);
     if (matches && matches.length > 0) {
-      const match = matches[0];
-      console.log('日付マッチ:', match);
-      
-      // 日付形式を統一
-      if (match.includes('年')) {
-        // YYYY年MM月DD日 → YYYY-MM-DD
-        const year = match.match(/(\d{4})年/)?.[1];
-        const month = match.match(/(\d{1,2})月/)?.[1];
-        const day = match.match(/(\d{1,2})日/)?.[1];
-        if (year && month && day) {
-          const paddedMonth = month.length < 2 ? '0' + month : month;
-          const paddedDay = day.length < 2 ? '0' + day : day;
-          return `${year}-${paddedMonth}-${paddedDay}`;
-        }
-      } else if (match.includes('/')) {
-        // MM/DD/YYYY or DD/MM/YYYY → YYYY-MM-DD
-        const parts = match.split('/');
-        if (parts.length === 3) {
-          const [first, second, third] = parts;
-          // 4桁の数字が年と判断
-          if (third.length === 4) {
-            const paddedFirst = first.length < 2 ? '0' + first : first;
-            const paddedSecond = second.length < 2 ? '0' + second : second;
-            return `${third}-${paddedFirst}-${paddedSecond}`;
-          } else if (first.length === 4) {
-            const paddedSecond = second.length < 2 ? '0' + second : second;
-            const paddedThird = third.length < 2 ? '0' + third : third;
-            return `${first}-${paddedSecond}-${paddedThird}`;
+      for (const match of matches) {
+        try {
+          const result = handler(match);
+          if (result) {
+            // 日付の妥当性チェック
+            const date = new Date(result);
+            if (!isNaN(date.getTime()) && date.getFullYear() >= 2000 && date.getFullYear() <= 2030) {
+              console.log('日付マッチ:', match, '→', result);
+              return result;
+            }
           }
+        } catch (error) {
+          console.log('日付パースエラー:', error);
         }
-      } else if (match.includes('.')) {
-        // YYYY.MM.DD → YYYY-MM-DD
-        return match.replace(/\./g, '-');
-      } else {
-        // YYYY-MM-DD or YYYY/MM/DD
-        return match.replace(/\//g, '-');
+      }
+    }
+  }
+
+  // 曖昧な形式の処理（MM/DD/YYYY vs DD/MM/YYYY）
+  const ambiguousPattern = /(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
+  const ambiguousMatches = normalizedText.match(ambiguousPattern);
+  
+  if (ambiguousMatches && ambiguousMatches.length > 0) {
+    for (const match of ambiguousMatches) {
+      const parts = match.split('/');
+      const first = parseInt(parts[0]);
+      const second = parseInt(parts[1]);
+      const year = parts[2];
+      
+      // 月として妥当な値かチェック
+      if (first <= 12 && second <= 31) {
+        // MM/DD/YYYYとして試行
+        const mmddResult = `${year}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+        const mmddDate = new Date(mmddResult);
+        
+        if (!isNaN(mmddDate.getTime()) && mmddDate.getFullYear() >= 2000 && mmddDate.getFullYear() <= 2030) {
+          console.log('曖昧な日付（MM/DD/YYYYとして解釈）:', match, '→', mmddResult);
+          return mmddResult;
+        }
+      }
+      
+      if (second <= 12 && first <= 31) {
+        // DD/MM/YYYYとして試行
+        const ddmmResult = `${year}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        const ddmmDate = new Date(ddmmResult);
+        
+        if (!isNaN(ddmmDate.getTime()) && ddmmDate.getFullYear() >= 2000 && ddmmDate.getFullYear() <= 2030) {
+          console.log('曖昧な日付（DD/MM/YYYYとして解釈）:', match, '→', ddmmResult);
+          return ddmmResult;
+        }
       }
     }
   }
