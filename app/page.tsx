@@ -118,7 +118,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 particle-bg relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 particle-bg relative overflow-hidden">
       {/* パーティクルエフェクト */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-2 h-2 bg-primary-400 rounded-full animate-float opacity-60"></div>
@@ -136,10 +136,10 @@ export default function Home() {
                 <Receipt className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold gradient-text">
+                <h1 className="text-2xl font-bold text-white">
                   {t('header.title')}
                 </h1>
-                <p className="text-sm text-gray-500 flex items-center space-x-1">
+                <p className="text-sm text-gray-300 flex items-center space-x-1">
                   <Sparkles className="w-3 h-3" />
                   <span>{t('header.subtitle')}</span>
                 </p>
