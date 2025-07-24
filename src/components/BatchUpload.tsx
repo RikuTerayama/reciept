@@ -67,16 +67,18 @@ export default function BatchUpload() {
             if (detectionResult.success && detectionResult.croppedImage) {
               // 検出されたレシート領域を使用
               croppedImage = detectionResult.croppedImage;
-              // Base64からBlobに変換
+              // Base64からBlobに変換してFileオブジェクトを作成
               const response = await fetch(croppedImage);
-              processedFile = await response.blob() as File;
+              const blob = await response.blob();
+              processedFile = new File([blob], item.file.name, { type: item.file.type });
             } else {
               // 検出に失敗した場合は簡易版を使用
               const simpleResult = await simpleReceiptDetection(item.file);
               if (simpleResult.success && simpleResult.croppedImage) {
                 croppedImage = simpleResult.croppedImage;
                 const response = await fetch(croppedImage);
-                processedFile = await response.blob() as File;
+                const blob = await response.blob();
+                processedFile = new File([blob], item.file.name, { type: item.file.type });
               }
             }
           }
