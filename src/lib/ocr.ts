@@ -1,6 +1,55 @@
 import Tesseract from 'tesseract.js';
 import { OCRResult } from '@/types';
 
+// 画像前処理関数
+async function preprocessImage(file: File): Promise<HTMLCanvasElement> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    const img = new Image();
+    
+    img.onload = () => {
+      // キャンバスサイズを設定（最大2000pxに制限）
+      const maxSize = 2000;
+      let { width, height } = img;
+      
+      if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        width *= ratio;
+        height *= ratio;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // 画像を描画
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // グレースケール化
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        data[i] = gray;     // R
+        data[i + 1] = gray; // G
+        data[i + 2] = gray; // B
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+      
+      // コントラスト強化
+      ctx.filter = 'contrast(1.5) brightness(1.1)';
+      ctx.drawImage(canvas, 0, 0);
+      ctx.filter = 'none';
+      
+      resolve(canvas);
+    };
+    
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 // ImageUpload.tsxで使用するためのprocessImageWithOCR関数
 export async function processImageWithOCR(file: File): Promise<OCRResult> {
   return await extractTextFromImage(file);
@@ -8,8 +57,15 @@ export async function processImageWithOCR(file: File): Promise<OCRResult> {
 
 export async function extractTextFromImage(file: File): Promise<OCRResult> {
   try {
-    const result = await Tesseract.recognize(file, 'jpn+eng', {
-      logger: (m: any) => console.log(m)
+    // 画像前処理
+    const preprocessedCanvas = await preprocessImage(file);
+    
+    const result = await Tesseract.recognize(preprocessedCanvas, 'jpn+eng', {
+      logger: (m: any) => console.log(m),
+      preserve_interword_spaces: 1,
+      tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン年月日時分秒円¥￥,./\\-:：',
+      tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+      tessedit_ocr_engine_mode: Tesseract.OEM.LSTM_ONLY
     });
 
     const text = result.data.text;
