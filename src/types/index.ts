@@ -7,6 +7,9 @@ export interface ExpenseData {
   category: string;
   department: string;
   isQualified: string;
+  description?: string; // 説明
+  participantFromClient?: string; // クライアント側参加者
+  participantFromCompany?: string; // 会社側参加者
   imageUrl?: string;
   imageData?: string; // Base64画像データ
   receiptNumber?: string; // レシート番号
