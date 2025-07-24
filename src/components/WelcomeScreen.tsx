@@ -13,22 +13,25 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   const [textVisible, setTextVisible] = useState(false);
   const [iconVisible, setIconVisible] = useState(false);
   const [subtitleVisible, setSubtitleVisible] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
     // アニメーションの順序制御
     const timer1 = setTimeout(() => setTextVisible(true), 300);
     const timer2 = setTimeout(() => setIconVisible(true), 800);
     const timer3 = setTimeout(() => setSubtitleVisible(true), 1200);
-    const timer4 = setTimeout(() => {
+    const timer4 = setTimeout(() => setFooterVisible(true), 1600);
+    const timer5 = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onComplete, 500); // フェードアウト後にコールバック実行
-    }, 2500);
+    }, 3000);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
       clearTimeout(timer4);
+      clearTimeout(timer5);
     };
   }, [onComplete]);
 
@@ -37,7 +40,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
       {/* 背景のパーティクルエフェクト */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(20)].map((_, i) => (
@@ -56,7 +59,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="relative z-10 text-center space-y-8">
+      <div className="relative z-10 text-center space-y-8 flex-1 flex flex-col items-center justify-center">
         {/* Welcome テキスト */}
         <div
           className={`transition-all duration-1000 ease-out ${
@@ -121,6 +124,31 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
                 }}
               />
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* フッター */}
+      <div className="relative z-10 pb-8">
+        <div
+          className={`transition-all duration-1000 ease-out delay-700 ${
+            footerVisible
+              ? 'opacity-100 transform translate-y-0'
+              : 'opacity-0 transform translate-y-4'
+          }`}
+        >
+          <div className="flex items-center justify-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl shadow-lg neon-glow">
+              <Receipt className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">
+                Expenscan
+              </h2>
+              <p className="text-xs text-gray-400">
+                レシート経費管理システム
+              </p>
+            </div>
           </div>
         </div>
       </div>
