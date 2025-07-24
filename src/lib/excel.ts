@@ -15,6 +15,9 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     'カテゴリ': expense.category,
     '部署': expense.department,
     '適格区分': expense.isQualified,
+    '説明': expense.description || '',
+    'クライアント側参加者': expense.participantFromClient || '',
+    '会社側参加者': expense.participantFromCompany || '',
     'レシート番号': expense.receiptNumber || '',
     '作成日': expense.createdAt.toLocaleDateString('ja-JP'),
   }));
@@ -31,6 +34,9 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     { wch: 40 }, // カテゴリ
     { wch: 10 }, // 部署
     { wch: 30 }, // 適格区分
+    { wch: 50 }, // 説明
+    { wch: 25 }, // クライアント側参加者
+    { wch: 25 }, // 会社側参加者
     { wch: 20 }, // レシート番号
     { wch: 12 }, // 作成日
   ];
@@ -144,7 +150,9 @@ export function exportBudgetOptimizationToExcel(
       'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
       'Currency': expense.currency,
       'Category': expense.category,
-      'Description': expense.ocrText || '',
+      'Description': expense.description || expense.ocrText || '',
+      'Participant from Client': expense.participantFromClient || '',
+      'Participant from Company': expense.participantFromCompany || '',
       'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
       'Tax Rate (%)': expense.taxRate,
       'Company Nar': expense.department,
@@ -162,7 +170,9 @@ export function exportBudgetOptimizationToExcel(
       'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
       'Currency': expense.currency,
       'Category': expense.category,
-      'Description': expense.ocrText || '',
+      'Description': expense.description || expense.ocrText || '',
+      'Participant from Client': expense.participantFromClient || '',
+      'Participant from Company': expense.participantFromCompany || '',
       'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
       'Tax Rate (%)': expense.taxRate,
       'Company Nar': expense.department,
