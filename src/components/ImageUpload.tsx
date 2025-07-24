@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Camera, Image as ImageIcon, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { processImageWithOCR } from '@/lib/ocr';
+import { OCRResult } from '@/types';
 import { useExpenseStore } from '@/lib/store';
 import { detectReceipt } from '@/lib/receipt-detection';
 import { fileToBase64, compressImage, generateReceiptNumber } from '@/lib/image-utils';
@@ -60,12 +61,14 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
       setProcessingStatus('OCR処理中...');
       const ocrResult = await processImageWithOCR(file);
 
-      // OCR結果を保存
-      setOCRResult({
+      // OCR結果を保存（型安全な方法）
+      const enhancedOCRResult: OCRResult = {
         ...ocrResult,
         imageData: compressedImage, // 圧縮された画像データを保存
         receiptNumber: generateReceiptNumber(ocrResult.date || new Date().toISOString().split('T')[0], ocrResult.totalAmount || 0)
-      });
+      };
+
+      setOCRResult(enhancedOCRResult);
 
       setProcessingStatus('処理完了！');
       setIsProcessing(false);
