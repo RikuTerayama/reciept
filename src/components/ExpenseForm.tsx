@@ -54,7 +54,9 @@ export default function ExpenseForm() {
 
   // 金額フィールドの変更処理
   const handleAmountChange = (field: 'baseAmount' | 'totalAmount', value: string) => {
-    const numValue = parseFloat(value) || 0;
+    // 先頭のゼロを削除
+    const cleanValue = value.replace(/^0+/, '') || '0';
+    const numValue = parseFloat(cleanValue) || 0;
     const taxRate = formData.taxRate || 10;
     
     setIsCalculating(true);
@@ -166,13 +168,13 @@ export default function ExpenseForm() {
     <div className="max-w-4xl mx-auto space-y-8">
       {/* 成功メッセージ */}
       {success && (
-        <div className="card border-green-200 bg-green-50 animate-fade-in">
+        <div className="card border-green-500/30 bg-green-900/20 animate-fade-in">
           <div className="card-body">
             <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-500" />
+              <CheckCircle className="w-6 h-6 text-green-400" />
               <div>
-                <h3 className="font-semibold text-green-800">保存完了</h3>
-                <p className="text-green-700">{success}</p>
+                <h3 className="font-semibold text-green-300">保存完了</h3>
+                <p className="text-green-200">{success}</p>
               </div>
             </div>
           </div>
@@ -181,25 +183,25 @@ export default function ExpenseForm() {
 
       {/* OCR結果表示 */}
       {ocrResult && (
-        <div className="card border-blue-200 bg-blue-50">
+        <div className="card border-blue-500/30 bg-blue-900/20">
           <div className="card-header">
             <div className="flex items-center space-x-3">
-              <FileText className="w-6 h-6 text-blue-500" />
-              <h3 className="text-lg font-semibold text-blue-800">OCR抽出結果</h3>
+              <FileText className="w-6 h-6 text-blue-400" />
+              <h3 className="text-lg font-semibold text-blue-300">OCR抽出結果</h3>
             </div>
           </div>
           <div className="card-body">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium text-blue-700">抽出テキスト:</span>
-                <div className="mt-2 p-3 bg-white rounded-lg border text-gray-700 max-h-32 overflow-y-auto">
+                <span className="font-medium text-blue-300">抽出テキスト:</span>
+                <div className="mt-2 p-3 bg-gray-800/80 rounded-lg border border-gray-600/50 text-gray-200 max-h-32 overflow-y-auto">
                   {ocrResult.text}
                 </div>
               </div>
               <div className="space-y-2">
-                <div><span className="font-medium text-blue-700">抽出日付:</span> {ocrResult.date || '未検出'}</div>
-                <div><span className="font-medium text-blue-700">抽出金額:</span> ¥{ocrResult.totalAmount?.toLocaleString() || '未検出'}</div>
-                <div><span className="font-medium text-blue-700">適格判定:</span> {ocrResult.isQualified ? '適格' : '非適格'}</div>
+                <div><span className="font-medium text-blue-300">抽出日付:</span> {ocrResult.date || '未検出'}</div>
+                <div><span className="font-medium text-blue-300">抽出金額:</span> ¥{ocrResult.totalAmount?.toLocaleString() || '未検出'}</div>
+                <div><span className="font-medium text-blue-300">適格判定:</span> {ocrResult.isQualified ? '適格' : '非適格'}</div>
               </div>
             </div>
           </div>
@@ -213,7 +215,7 @@ export default function ExpenseForm() {
             <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
               <Save className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">経費データ入力</h2>
+            <h2 className="text-2xl font-bold text-white">経費データ入力</h2>
           </div>
         </div>
 
