@@ -105,11 +105,41 @@ export default function Home() {
   };
 
   const tabs = [
-    { id: 'upload' as TabType, label: t('navigation.singleUpload'), icon: Receipt, description: t('imageUpload.description') },
-    { id: 'batch' as TabType, label: t('navigation.batchUpload'), icon: Upload, description: t('batchUpload.description') },
-    { id: 'form' as TabType, label: t('navigation.dataInput'), icon: Plus, description: t('dataInput.description') },
-    { id: 'list' as TabType, label: t('navigation.expenseList'), icon: List, description: t('expenseList.description') },
-    { id: 'optimizer' as TabType, label: t('navigation.budgetOptimizer'), icon: Calculator, description: t('budgetOptimizer.description') },
+    { 
+      id: 'upload' as TabType, 
+      label: t('navigation.singleUpload'), 
+      icon: Receipt, 
+      description: t('imageUpload.description'),
+      color: 'from-blue-500 to-cyan-500'
+    },
+    { 
+      id: 'batch' as TabType, 
+      label: t('navigation.batchUpload'), 
+      icon: Upload, 
+      description: t('batchUpload.description'),
+      color: 'from-purple-500 to-pink-500'
+    },
+    { 
+      id: 'form' as TabType, 
+      label: t('navigation.dataInput'), 
+      icon: Plus, 
+      description: t('dataInput.description'),
+      color: 'from-green-500 to-emerald-500'
+    },
+    { 
+      id: 'list' as TabType, 
+      label: t('navigation.expenseList'), 
+      icon: List, 
+      description: t('expenseList.description'),
+      color: 'from-orange-500 to-red-500'
+    },
+    { 
+      id: 'optimizer' as TabType, 
+      label: t('navigation.budgetOptimizer'), 
+      icon: Calculator, 
+      description: t('budgetOptimizer.description'),
+      color: 'from-indigo-500 to-purple-500'
+    },
   ];
 
   const totalAmount = expenses.reduce((sum, exp) => sum + exp.totalAmount, 0);
@@ -186,26 +216,29 @@ export default function Home() {
                 <>
                   <button
                     onClick={handleExportAll}
-                    className="btn-success flex items-center space-x-2"
+                    className="btn-success flex items-center space-x-2 group relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg"
                   >
-                    <Download className="w-4 h-4" />
-                    <span>{t('header.exportAll')}</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <Download className="w-4 h-4 relative z-10 group-hover:animate-bounce" />
+                    <span className="relative z-10">{t('header.exportAll')}</span>
                   </button>
                   {selectedExpenses.length > 0 && (
                     <>
                       <button
                         onClick={handleExportSelected}
-                        className="btn-primary flex items-center space-x-2"
+                        className="btn-primary flex items-center space-x-2 group relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg"
                       >
-                        <Download className="w-4 h-4" />
-                        <span>{t('header.exportSelected')}</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <Download className="w-4 h-4 relative z-10 group-hover:animate-bounce" />
+                        <span className="relative z-10">{t('header.exportSelected')}</span>
                       </button>
                       <button
                         onClick={() => downloadSelectedReceiptImages(expenses, selectedExpenses)}
-                        className="btn-secondary flex items-center space-x-2"
+                        className="btn-secondary flex items-center space-x-2 group relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg"
                       >
-                        <ImageIcon className="w-4 h-4" />
-                        <span>{t('header.downloadImages')}</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-600 to-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <ImageIcon className="w-4 h-4 relative z-10 group-hover:animate-pulse" />
+                        <span className="relative z-10">{t('header.downloadImages')}</span>
                       </button>
                     </>
                   )}
@@ -239,18 +272,48 @@ export default function Home() {
           <div className="flex space-x-8 overflow-x-auto py-4">
             {tabs.map((tab) => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    nav-tab whitespace-nowrap px-6 py-4
-                    ${activeTab === tab.id ? 'active' : ''}
+                    nav-tab whitespace-nowrap px-6 py-4 relative group transition-all duration-300 ease-in-out
+                    ${isActive ? 'active' : 'hover:bg-gray-800/30 hover:scale-105'}
                   `}
                   title={tab.description}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="ml-2">{tab.label}</span>
+                  {/* アクティブ時の背景グラデーション */}
+                  {isActive && (
+                    <div className={`absolute inset-0 bg-gradient-to-r ${tab.color} rounded-lg opacity-20`}></div>
+                  )}
+                  
+                  {/* アイコンとテキスト */}
+                  <div className="relative z-10 flex items-center">
+                    <div className={`
+                      p-2 rounded-lg transition-all duration-300
+                      ${isActive 
+                        ? `bg-gradient-to-r ${tab.color} text-white shadow-lg` 
+                        : 'bg-gray-700/50 text-gray-300 group-hover:bg-gray-600/50 group-hover:text-white'
+                      }
+                    `}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className={`ml-3 font-medium transition-colors duration-300 ${
+                      isActive ? 'text-white' : 'text-gray-300 group-hover:text-white'
+                    }`}>
+                      {tab.label}
+                    </span>
+                  </div>
+                  
+                  {/* ホバー時のアンダーライン */}
+                  <div className={`
+                    absolute bottom-0 left-0 right-0 h-0.5 transition-all duration-300
+                    ${isActive 
+                      ? `bg-gradient-to-r ${tab.color}` 
+                      : 'bg-transparent group-hover:bg-gray-400/50'
+                    }
+                  `}></div>
                 </button>
               );
             })}
@@ -265,29 +328,59 @@ export default function Home() {
             className={`mobile-menu-content ${mobileMenuOpen ? 'open' : 'closed'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
-              <h2 className="text-lg font-semibold text-white">{t('navigation.menu')}</h2>
+            <div className="flex items-center justify-between p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/90 to-gray-900/90">
+              <div className="flex items-center space-x-3">
+                <ExpenscanLogo size="small" />
+                <h2 className="text-lg font-semibold text-white">{t('navigation.menu')}</h2>
+              </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/50 transition-colors"
+                className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all duration-300 hover:scale-110"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="py-4">
-              {tabs.map((tab) => {
+            <div className="py-4 space-y-2">
+              {tabs.map((tab, index) => {
                 const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => handleMobileTabChange(tab.id)}
                     className={`
-                      mobile-nav-tab w-full
-                      ${activeTab === tab.id ? 'active' : ''}
+                      mobile-nav-tab w-full relative group transition-all duration-300
+                      ${isActive ? 'active' : 'hover:bg-gray-800/30'}
                     `}
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span>{tab.label}</span>
+                    {/* アクティブ時の背景グラデーション */}
+                    {isActive && (
+                      <div className={`absolute inset-0 bg-gradient-to-r ${tab.color} opacity-10 rounded-lg`}></div>
+                    )}
+                    
+                    {/* アイコンとテキスト */}
+                    <div className="relative z-10 flex items-center space-x-3">
+                      <div className={`
+                        p-2 rounded-lg transition-all duration-300
+                        ${isActive 
+                          ? `bg-gradient-to-r ${tab.color} text-white shadow-lg` 
+                          : 'bg-gray-700/50 text-gray-300 group-hover:bg-gray-600/50 group-hover:text-white'
+                        }
+                      `}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className={`font-medium transition-colors duration-300 ${
+                        isActive ? 'text-white' : 'text-gray-300 group-hover:text-white'
+                      }`}>
+                        {tab.label}
+                      </span>
+                    </div>
+                    
+                    {/* アクティブ時の左ボーダー */}
+                    {isActive && (
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${tab.color} rounded-r`}></div>
+                    )}
                   </button>
                 );
               })}
@@ -307,7 +400,7 @@ export default function Home() {
             <div className="hidden lg:block card animate-fade-in">
               <div className="card-header">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
+                  <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl shadow-lg">
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
                   <h2 className="text-xl font-semibold text-white">{t('statistics.title')}</h2>
@@ -315,21 +408,33 @@ export default function Home() {
               </div>
               <div className="card-body">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="stat-card">
-                    <div className="stat-number">{expenses.length}</div>
-                    <div className="stat-label">{t('statistics.registeredExpenses')}</div>
+                  <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="stat-number relative z-10 group-hover:text-blue-300 transition-colors duration-300">{expenses.length}</div>
+                      <div className="stat-label relative z-10">{t('statistics.registeredExpenses')}</div>
+                    </div>
                   </div>
-                  <div className="stat-card">
-                    <div className="stat-number">¥{totalAmount.toLocaleString()}</div>
-                    <div className="stat-label">{t('statistics.totalAmount')}</div>
+                  <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="stat-number relative z-10 group-hover:text-green-300 transition-colors duration-300">¥{totalAmount.toLocaleString()}</div>
+                      <div className="stat-label relative z-10">{t('statistics.totalAmount')}</div>
+                    </div>
                   </div>
-                  <div className="stat-card">
-                    <div className="stat-number">{selectedExpenses.length}</div>
-                    <div className="stat-label">{t('statistics.selected')}</div>
+                  <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="stat-number relative z-10 group-hover:text-orange-300 transition-colors duration-300">{selectedExpenses.length}</div>
+                      <div className="stat-label relative z-10">{t('statistics.selected')}</div>
+                    </div>
                   </div>
-                  <div className="stat-card">
-                    <div className="stat-number">¥{selectedAmount.toLocaleString()}</div>
-                    <div className="stat-label">{t('statistics.selectedAmount')}</div>
+                  <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="stat-number relative z-10 group-hover:text-purple-300 transition-colors duration-300">¥{selectedAmount.toLocaleString()}</div>
+                      <div className="stat-label relative z-10">{t('statistics.selectedAmount')}</div>
+                    </div>
                   </div>
                 </div>
               </div>
