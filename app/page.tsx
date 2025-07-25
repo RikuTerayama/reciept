@@ -16,6 +16,7 @@ import ExpenscanLogo from '@/components/ExpenscanLogo';
 import { useExpenseStore } from '@/lib/store';
 import { exportExpensesToExcel } from '@/lib/excel';
 import { t, getCurrentLanguage, Language } from '@/lib/i18n';
+import { ExpenseData } from '@/types';
 
 type TabType = 'upload' | 'batch' | 'form' | 'list' | 'optimizer';
 
@@ -126,7 +127,7 @@ export default function Home() {
     return <UserSetup onComplete={handleUserSetupComplete} />;
   }
 
-  const downloadSelectedReceiptImages = (expenses: any[], selectedExpenseIds: string[]) => {
+  const downloadSelectedReceiptImages = (expenses: ExpenseData[], selectedExpenseIds: string[]) => {
     const selectedExpensesData = expenses.filter(expense => selectedExpenseIds.includes(expense.id));
     if (selectedExpensesData.length === 0) {
       alert(t('expenseList.noData'));
