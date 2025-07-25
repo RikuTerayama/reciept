@@ -5,35 +5,37 @@ import { downloadImagesAsZip, downloadMultipleImages } from './image-utils';
 export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string) => {
   const workbook = XLSX.utils.book_new();
   const data = expenses.map((expense, index) => ({
-    '日付': expense.date,
-    '金額': expense.totalAmount,
-    '税率': expense.taxRate,
-    '通貨': expense.currency,
-    'カテゴリ': expense.category,
-    '部署': expense.department,
-    '適格区分': expense.isQualified,
-    '説明': expense.description || '',
-    'クライアント側参加者': expense.participantFromClient || '',
-    '会社側参加者': expense.participantFromCompany || '',
-    'レシート番号': expense.receiptNumber || '',
-    'Receipt#': index + 1,
-    '作成日': expense.createdAt.toLocaleDateString('ja-JP'),
+    'Receipt #': index + 1,
+    'Receipt Date': expense.date,
+    'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
+    'Currency': expense.currency,
+    'Category': expense.category,
+    'Description': expense.description || '',
+    'Recharged to client?': '', // 新しいフィールド（現在は空）
+    'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
+    'Tax Rate (%)': expense.taxRate,
+    'Company Nar': expense.department,
+    '# Participant from client': expense.participantFromClient || '',
+    '# Participant from company': expense.participantFromCompany || '',
+    'Division': expense.department,
+    'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
   }));
   const worksheet = XLSX.utils.json_to_sheet(data);
   const columnWidths = [
-    { wch: 12 }, // 日付
-    { wch: 12 }, // 金額
-    { wch: 8 },  // 税率
-    { wch: 8 },  // 通貨
-    { wch: 40 }, // カテゴリ
-    { wch: 10 }, // 部署
-    { wch: 30 }, // 適格区分
-    { wch: 50 }, // 説明
-    { wch: 25 }, // クライアント側参加者
-    { wch: 25 }, // 会社側参加者
-    { wch: 20 }, // レシート番号
-    { wch: 10 }, // Receipt#
-    { wch: 12 }, // 作成日
+    { wch: 10 }, // Receipt #
+    { wch: 12 }, // Receipt Date
+    { wch: 25 }, // Total Amount (Inclusive GST/VAT)
+    { wch: 8 },  // Currency
+    { wch: 40 }, // Category
+    { wch: 50 }, // Description
+    { wch: 20 }, // Recharged to client?
+    { wch: 15 }, // GST/VAT applicable
+    { wch: 12 }, // Tax Rate (%)
+    { wch: 15 }, // Company Nar
+    { wch: 25 }, // # Participant from client
+    { wch: 25 }, // # Participant from company
+    { wch: 15 }, // Division
+    { wch: 15 }, // Tax Credit Q
   ];
   worksheet['!cols'] = columnWidths;
   XLSX.utils.book_append_sheet(workbook, worksheet, '経費データ');
@@ -142,11 +144,12 @@ export function exportBudgetOptimizationToExcel(
       'Currency': expense.currency,
       'Category': expense.category,
       'Description': expense.description || expense.ocrText || '',
-      'Participant from Client': expense.participantFromClient || '',
-      'Participant from Company': expense.participantFromCompany || '',
+      'Recharged to client?': '', // 新しいフィールド（現在は空）
       'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
       'Tax Rate (%)': expense.taxRate,
       'Company Nar': expense.department,
+      '# Participant from client': expense.participantFromClient || '',
+      '# Participant from company': expense.participantFromCompany || '',
       'Division': expense.department,
       'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
     }));
@@ -162,11 +165,12 @@ export function exportBudgetOptimizationToExcel(
       'Currency': expense.currency,
       'Category': expense.category,
       'Description': expense.description || expense.ocrText || '',
-      'Participant from Client': expense.participantFromClient || '',
-      'Participant from Company': expense.participantFromCompany || '',
+      'Recharged to client?': '', // 新しいフィールド（現在は空）
       'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
       'Tax Rate (%)': expense.taxRate,
       'Company Nar': expense.department,
+      '# Participant from client': expense.participantFromClient || '',
+      '# Participant from company': expense.participantFromCompany || '',
       'Division': expense.department,
       'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
     }));
