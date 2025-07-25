@@ -3,11 +3,8 @@ import { ExpenseData } from '@/types';
 import { downloadImagesAsZip, downloadMultipleImages } from './image-utils';
 
 export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string) => {
-  // ワークブックとワークシートを作成
   const workbook = XLSX.utils.book_new();
-  
-  // データを準備
-  const data = expenses.map(expense => ({
+  const data = expenses.map((expense, index) => ({
     '日付': expense.date,
     '金額': expense.totalAmount,
     '税率': expense.taxRate,
@@ -19,13 +16,10 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     'クライアント側参加者': expense.participantFromClient || '',
     '会社側参加者': expense.participantFromCompany || '',
     'レシート番号': expense.receiptNumber || '',
+    'Receipt#': index + 1,
     '作成日': expense.createdAt.toLocaleDateString('ja-JP'),
   }));
-
-  // ワークシートを作成
   const worksheet = XLSX.utils.json_to_sheet(data);
-
-  // 列幅を設定
   const columnWidths = [
     { wch: 12 }, // 日付
     { wch: 12 }, // 金額
@@ -38,14 +32,11 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     { wch: 25 }, // クライアント側参加者
     { wch: 25 }, // 会社側参加者
     { wch: 20 }, // レシート番号
+    { wch: 10 }, // Receipt#
     { wch: 12 }, // 作成日
   ];
   worksheet['!cols'] = columnWidths;
-
-  // ワークブックにワークシートを追加
   XLSX.utils.book_append_sheet(workbook, worksheet, '経費データ');
-
-  // Excelファイルをダウンロード
   XLSX.writeFile(workbook, filename);
 };
 
@@ -144,8 +135,8 @@ export function exportBudgetOptimizationToExcel(
     const workbook = XLSX.utils.book_new();
 
     // 元の経費データ（添付画像の順序に合わせて）
-    const originalData = originalExpenses.map(expense => ({
-      'Receipt #': expense.id,
+    const originalData = originalExpenses.map((expense, index) => ({
+      'Receipt #': index + 1,
       'Receipt Date': expense.date,
       'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
       'Currency': expense.currency,
@@ -164,8 +155,8 @@ export function exportBudgetOptimizationToExcel(
     XLSX.utils.book_append_sheet(workbook, originalWorksheet, '全経費データ');
 
     // 最適化された経費データ（添付画像の順序に合わせて）
-    const optimizedData = optimizedExpenses.map(expense => ({
-      'Receipt #': expense.id,
+    const optimizedData = optimizedExpenses.map((expense, index) => ({
+      'Receipt #': index + 1,
       'Receipt Date': expense.date,
       'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
       'Currency': expense.currency,
