@@ -41,10 +41,10 @@ export default function SearchBar({
   }, [onClear]);
 
   const handleInputChange = (field: keyof SearchFilters, value: string | number) => {
-    setFilters(prev => ({ ...prev, [field]: value }));
+    setFilters((prev: SearchFilters) => ({ ...prev, [field]: value }));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
@@ -145,7 +145,7 @@ export default function SearchBar({
                   className="form-select text-sm"
                 >
                   <option value="">すべてのカテゴリ</option>
-                  {categories.map(category => (
+                  {categories.map((category: string) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -162,7 +162,7 @@ export default function SearchBar({
                   className="form-select text-sm"
                 >
                   <option value="">すべての部署</option>
-                  {departments.map(department => (
+                  {departments.map((department: string) => (
                     <option key={department} value={department}>
                       {department}
                     </option>
