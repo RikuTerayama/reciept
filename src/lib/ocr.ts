@@ -62,11 +62,10 @@ export async function extractTextFromImage(file: File): Promise<OCRResult> {
     
     const result = await Tesseract.recognize(preprocessedCanvas, 'jpn+eng', {
       logger: (m: any) => console.log(m),
-      preserve_interword_spaces: 1,
       tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン年月日時分秒円¥￥,./\\-:：',
-      tessedit_pageseg_mode: Tesseract.PSM.AUTO,
-      tessedit_ocr_engine_mode: Tesseract.OEM.LSTM_ONLY
-    });
+      tessedit_pageseg_mode: (Tesseract as any).PSM.AUTO,
+      tessedit_ocr_engine_mode: (Tesseract as any).OEM.LSTM_ONLY
+    } as any);
 
     const text = result.data.text;
     console.log('OCR抽出テキスト:', text);
