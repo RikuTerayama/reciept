@@ -65,25 +65,25 @@ export default function ExpenseList() {
             {expenses.length}件の経費データ
           </span>
           {selectedExpenses.length > 0 && (
-            <span className="text-sm text-primary-400 font-medium">
+            <span className="text-sm text-primary-400 font-medium animate-pulse">
               {selectedExpenses.length}件選択中
             </span>
           )}
         </div>
         {selectedExpenses.length > 0 && (
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 animate-slide-up">
             <button
               onClick={handleExportSelected}
-              className="btn-primary flex items-center space-x-2"
+              className="btn-primary flex items-center space-x-2 group"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 group-hover:animate-bounce" />
               <span>選択した経費をエクスポート</span>
             </button>
             <button
               onClick={handleDownloadSelectedImages}
-              className="btn-secondary flex items-center space-x-2"
+              className="btn-secondary flex items-center space-x-2 group"
             >
-              <ImageIcon className="w-4 h-4" />
+              <ImageIcon className="w-4 h-4 group-hover:animate-pulse" />
               <span>画像一括ダウンロード</span>
             </button>
           </div>
