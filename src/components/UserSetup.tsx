@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Calendar, Building, DollarSign, Mail, Save } from 'lucide-react';
 import { DEPARTMENTS } from '@/types';
 import { t } from '@/lib/i18n';
+import ExpenscanLogo from './ExpenscanLogo';
 
 interface UserInfo {
   email: string;
@@ -80,9 +81,7 @@ export default function UserSetup({ onComplete }: UserSetupProps) {
         <div className="card animate-slide-in">
           <div className="card-header text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl">
-                <User className="w-8 h-8 text-white" />
-              </div>
+              <ExpenscanLogo size="medium" />
               <h1 className="text-2xl font-bold text-white">ユーザー設定</h1>
             </div>
             <p className="text-gray-300">経費管理を開始する前に、基本情報を設定してください</p>
