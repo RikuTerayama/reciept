@@ -118,6 +118,9 @@ export default function ExpenseList() {
                 <th>金額</th>
                 <th>カテゴリ</th>
                 <th>部署</th>
+                <th>説明</th>
+                <th>クライアント側参加者</th>
+                <th>会社側参加者</th>
                 <th>税率</th>
                 <th>適格区分</th>
                 <th>レシート番号</th>
@@ -127,7 +130,7 @@ export default function ExpenseList() {
             <tbody>
               {expenses.map((expense) => (
                 <tr key={expense.id} className="hover:bg-gray-50">
-                  <td>
+                  <td className="text-center">
                     <input
                       type="checkbox"
                       checked={selectedExpenses.includes(expense.id)}
@@ -135,14 +138,14 @@ export default function ExpenseList() {
                       className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                   </td>
-                  <td>
-                    <div className="flex items-center space-x-2">
+                  <td className="text-center">
+                    <div className="flex items-center justify-center space-x-2">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span>{expense.date}</span>
                     </div>
                   </td>
-                  <td>
-                    <div className="flex items-center space-x-2">
+                  <td className="text-center">
+                    <div className="flex items-center justify-center space-x-2">
                       <DollarSign className="w-4 h-4 text-green-500" />
                       <span className="font-medium">
                         ¥{expense.totalAmount.toLocaleString()}
@@ -150,36 +153,57 @@ export default function ExpenseList() {
                       <span className="text-xs text-gray-500">{expense.currency}</span>
                     </div>
                   </td>
-                  <td>
-                    <div className="flex items-center space-x-2">
+                  <td className="text-center">
+                    <div className="flex items-center justify-center space-x-2">
                       <Tag className="w-4 h-4 text-blue-500" />
                       <span className="text-sm">{expense.category}</span>
                     </div>
                   </td>
-                  <td>
-                    <div className="flex items-center space-x-2">
+                  <td className="text-center">
+                    <div className="flex items-center justify-center space-x-2">
                       <Building className="w-4 h-4 text-purple-500" />
                       <span className="text-sm">{expense.department}</span>
                     </div>
                   </td>
-                  <td>
+                  <td className="text-center">
+                    <div className="max-w-xs">
+                      <span className="text-sm text-gray-300">
+                        {expense.description || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="text-center">
+                    <div className="max-w-xs">
+                      <span className="text-sm text-gray-300">
+                        {expense.participantFromClient || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="text-center">
+                    <div className="max-w-xs">
+                      <span className="text-sm text-gray-300">
+                        {expense.participantFromCompany || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="text-center">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                       {expense.taxRate}%
                     </span>
                   </td>
-                  <td>
-                    <div className="flex items-center space-x-2">
+                  <td className="text-center">
+                    <div className="flex items-center justify-center space-x-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
                       <span className="text-sm">{expense.isQualified}</span>
                     </div>
                   </td>
-                  <td>
+                  <td className="text-center">
                     <span className="text-sm text-gray-600 font-mono">
                       {expense.receiptNumber || 'N/A'}
                     </span>
                   </td>
-                  <td>
-                    <div className="flex items-center space-x-2">
+                  <td className="text-center">
+                    <div className="flex items-center justify-center space-x-2">
                       <button
                         onClick={() => handleDelete(expense.id)}
                         className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
