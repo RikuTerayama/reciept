@@ -755,7 +755,7 @@ export const t = (key: string, language: Language = getCurrentLanguage()): strin
   
   for (const k of keys) {
     if (value && typeof value === 'object' && k in value) {
-      value = value[k];
+      value = (value as Record<string, any>)[k];
     } else {
       console.warn(`Translation key not found: ${key}`);
       return key;
