@@ -5,6 +5,15 @@ const STORAGE_PREFIX = 'receipt_expense_manager';
 const EXPENSES_KEY = `${STORAGE_PREFIX}_expenses`;
 const SETTINGS_KEY = `${STORAGE_PREFIX}_settings`;
 
+interface UserSettings {
+  email?: string;
+  targetMonth?: string;
+  department?: string;
+  budget?: number;
+  language?: string;
+  [key: string]: any;
+}
+
 // 月別データのキーを生成
 function getMonthlyKey(year: number, month: number): string {
   return `${STORAGE_PREFIX}_expenses_${year}_${month.toString().padStart(2, '0')}`;
@@ -37,7 +46,7 @@ export function loadMonthlyExpenses(year: number, month: number): ExpenseData[] 
     if (data) {
       const expenses = JSON.parse(data);
       // 日付文字列をDateオブジェクトに変換
-      return expenses.map((expense: any) => ({
+      return expenses.map((expense: ExpenseData) => ({
         ...expense,
         createdAt: new Date(expense.createdAt)
       }));
@@ -159,7 +168,7 @@ export function deleteExpenseFromStorage(expenseId: string, date: string): void 
 }
 
 // 設定の保存
-export function saveSettings(settings: any): void {
+export function saveSettings(settings: UserSettings): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   } catch (error) {
@@ -168,7 +177,7 @@ export function saveSettings(settings: any): void {
 }
 
 // 設定の読み込み
-export function loadSettings(): any {
+export function loadSettings(): UserSettings {
   try {
     const data = localStorage.getItem(SETTINGS_KEY);
     return data ? JSON.parse(data) : {};
