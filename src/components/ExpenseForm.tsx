@@ -376,7 +376,7 @@ export default function ExpenseForm() {
                   <div>
                     <span className="font-medium text-gray-300">消費税:</span>
                     <span className="ml-2 font-semibold text-white">
-                      {formData.currency} {(formData.totalAmount || 0) - baseAmount} ({formData.taxRate}%)
+                      {formData.currency} {((formData.totalAmount || 0) - baseAmount).toLocaleString()} ({formData.taxRate}%)
                     </span>
                   </div>
                 </div>
