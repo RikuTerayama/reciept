@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Receipt, Sparkles } from 'lucide-react';
 import { t } from '@/lib/i18n';
+import ExpenscanLogo from './ExpenscanLogo';
 
 interface WelcomeScreenProps {
   onComplete: () => void;
@@ -157,26 +158,7 @@ export default function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
         >
           <div className="flex items-center justify-center space-x-3">
             {/* Expenscanロゴ */}
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                {/* レシートアイコン */}
-                <div className="w-6 h-8 bg-gradient-to-b from-gray-100 to-gray-200 rounded-sm relative">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gray-300 to-gray-400 rounded-t-sm"></div>
-                  <div className="absolute top-2 left-1 right-1 h-0.5 bg-gray-400"></div>
-                  <div className="absolute top-3.5 left-1 right-1.5 h-0.5 bg-gray-400"></div>
-                  <div className="absolute top-5 left-1 right-2 h-0.5 bg-gray-400"></div>
-                </div>
-                {/* 虫眼鏡アイコン */}
-                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-cyan-400 rounded-full flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 border-2 border-white border-t-transparent rounded-full transform rotate-45"></div>
-                </div>
-              </div>
-              {/* ロゴテキスト */}
-              <div className="flex items-center">
-                <span className="text-lg font-bold text-gray-100">Expens</span>
-                <span className="text-lg font-bold text-cyan-400">can</span>
-              </div>
-            </div>
+            <ExpenscanLogo size="small" />
             <div>
               <p className="text-xs text-gray-400">
                 レシート経費管理システム
