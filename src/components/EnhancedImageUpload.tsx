@@ -69,7 +69,8 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
         }
 
         // 画像を圧縮
-        const compressedImage = await compressImage(processedImage, 0.8);
+        const base64Image = await fileToBase64(processedImage);
+        const compressedImage = await compressImage(base64Image, 0.8);
 
         // OCR処理
         const ocrResult = await processImageWithOCR(processedImage);
