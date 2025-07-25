@@ -13,6 +13,7 @@ import UserSetup from '@/components/UserSetup';
 import MobileStatistics from '@/components/MobileStatistics';
 import EnhancedImageUpload from '@/components/EnhancedImageUpload';
 import ExpenscanLogo from '@/components/ExpenscanLogo';
+import { ToastContainer, useToast } from '@/components/Toast';
 import { useExpenseStore } from '@/lib/store';
 import { exportExpensesToExcel } from '@/lib/excel';
 import { t, getCurrentLanguage, Language } from '@/lib/i18n';
@@ -35,6 +36,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<Language>(getCurrentLanguage());
   const { expenses, selectedExpenses, clearSelection } = useExpenseStore();
+  const { toasts, showSuccess, showError, showInfo, removeToast } = useToast();
 
   // 初回訪問チェックとユーザー情報チェック
   useEffect(() => {
@@ -71,21 +73,23 @@ export default function Home() {
 
   const handleExportAll = () => {
     if (expenses.length === 0) {
-      alert(t('expenseList.noData'));
+      showError('エクスポートするデータがありません', '経費データを追加してからエクスポートしてください');
       return;
     }
     exportExpensesToExcel(expenses, 'all_expenses.xlsx');
+    showSuccess('エクスポート完了', `${expenses.length}件の経費データをエクスポートしました`);
   };
 
   const handleExportSelected = () => {
     if (selectedExpenses.length === 0) {
-      alert(t('expenseList.noData'));
+      showError('エクスポートするデータがありません', 'エクスポートする経費を選択してください');
       return;
     }
     const selectedExpenseData = expenses.filter(expense => 
       selectedExpenses.includes(expense.id)
     );
     exportExpensesToExcel(selectedExpenseData, 'selected_expenses.xlsx');
+    showSuccess('エクスポート完了', `${selectedExpenses.length}件の経費データをエクスポートしました`);
   };
 
   // OCR完了後の自動遷移処理
@@ -160,7 +164,7 @@ export default function Home() {
   const downloadSelectedReceiptImages = (expenses: ExpenseData[], selectedExpenseIds: string[]) => {
     const selectedExpensesData = expenses.filter(expense => selectedExpenseIds.includes(expense.id));
     if (selectedExpensesData.length === 0) {
-      alert(t('expenseList.noData'));
+      showError('ダウンロードするデータがありません', 'ダウンロードする経費を選択してください');
       return;
     }
 
@@ -168,7 +172,7 @@ export default function Home() {
     const expensesWithImages = selectedExpensesData.filter(expense => expense.imageData);
     
     if (expensesWithImages.length === 0) {
-      alert('ダウンロード可能な画像がありません。');
+      showError('ダウンロード可能な画像がありません', '選択した経費に画像データが含まれていません');
       return;
     }
 
@@ -183,6 +187,8 @@ export default function Home() {
         document.body.removeChild(link);
       }
     });
+
+    showSuccess('画像ダウンロード完了', `${expensesWithImages.length}件の画像をダウンロードしました`);
   };
 
   return (
@@ -506,6 +512,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* トースト通知 */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 } 
