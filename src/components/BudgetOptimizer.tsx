@@ -195,61 +195,63 @@ export default function BudgetOptimizer() {
           <div className="card-body">
             <div className="space-y-4">
               {optimizationResults.map((result, index) => (
-                <div key={result.id} className="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center justify-center w-8 h-8 bg-primary-500 rounded-full">
-                        <span className="text-white font-bold">{index + 1}</span>
-                      </div>
-                      <div>
-                        <h4 className="text-white font-medium">
-                          組み合わせ {index + 1}
-                        </h4>
-                        <p className="text-sm text-gray-300">
-                          スコア: {(result.score * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-white">
-                        ¥{result.totalAmount.toLocaleString()}
-                      </div>
-                      <div className={`text-sm ${result.difference === 0 ? 'text-green-400' : 'text-yellow-400'}`}>
-                        差額: ¥{result.difference.toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* 経費リスト */}
-                  <div className="space-y-2 mb-4">
-                    {result.expenses.map(expense => (
-                      <div key={expense.id} className="flex items-center justify-between p-2 bg-gray-700/30 rounded">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-gray-600 rounded flex items-center justify-center">
-                            <FileText className="w-4 h-4 text-gray-300" />
-                          </div>
-                          <div>
-                            <p className="text-white text-sm">{expense.receiptNumber || expense.id}</p>
-                            <p className="text-gray-300 text-xs">{expense.date}</p>
-                          </div>
+                <div key={result.id} className="card">
+                  <div className="card-body">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center justify-center w-8 h-8 bg-primary-500 rounded-full">
+                          <span className="text-white font-bold">{index + 1}</span>
                         </div>
-                        <div className="text-right">
-                          <p className="text-white text-sm">¥{expense.totalAmount.toLocaleString()}</p>
-                          <p className="text-gray-300 text-xs">{expense.category}</p>
+                        <div>
+                          <h4 className="text-white font-medium">
+                            組み合わせ {index + 1}
+                          </h4>
+                          <p className="text-sm text-gray-300">
+                            スコア: {(result.score * 100).toFixed(1)}%
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  
-                  {/* アクションボタン */}
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => handleDownloadImages(result)}
-                      className="btn-secondary flex items-center space-x-1 text-xs"
-                    >
-                      <ImageIcon className="w-3 h-3" />
-                      <span>画像ダウンロード</span>
-                    </button>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-white">
+                          ¥{result.totalAmount.toLocaleString()}
+                        </div>
+                        <div className={`text-sm ${result.difference === 0 ? 'text-green-400' : 'text-yellow-400'}`}>
+                          差額: ¥{result.difference.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 経費リスト */}
+                    <div className="space-y-2 mb-4">
+                      {result.expenses.map(expense => (
+                        <div key={expense.id} className="flex items-center justify-between p-2 bg-gray-700/30 rounded">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gray-600 rounded flex items-center justify-center">
+                              <FileText className="w-4 h-4 text-gray-300" />
+                            </div>
+                            <div>
+                              <p className="text-white text-sm">{expense.receiptNumber || expense.id}</p>
+                              <p className="text-gray-300 text-xs">{expense.date}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white text-sm">¥{expense.totalAmount.toLocaleString()}</p>
+                            <p className="text-gray-300 text-xs">{expense.category}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* アクションボタン */}
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => handleDownloadImages(result)}
+                        className="btn-secondary flex items-center space-x-1 text-xs"
+                      >
+                        <ImageIcon className="w-3 h-3" />
+                        <span>画像ダウンロード</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
