@@ -7,13 +7,13 @@ import { useExpenseStore } from '@/lib/store';
 import { extractTextFromImage, validateOCRResult } from '@/lib/ocr';
 import { detectReceiptInImage, simpleReceiptDetection } from '@/lib/receipt-detection';
 import { addExpenseToStorage } from '@/lib/storage';
-import { ExpenseData } from '@/types';
+import { ExpenseData, OCRResult } from '@/types';
 
 interface BatchUploadItem {
   id: string;
   file: File;
   status: 'pending' | 'processing' | 'success' | 'error';
-  ocrResult?: any;
+  ocrResult?: OCRResult;
   error?: string;
   croppedImage?: string;
 }
