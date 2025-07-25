@@ -146,10 +146,10 @@ export default function Home() {
     },
   ];
 
-  const totalAmount = expenses.reduce((sum, exp) => sum + exp.totalAmount, 0);
+  const totalAmount = expenses.reduce((sum: number, exp: ExpenseData) => sum + exp.totalAmount, 0);
   const selectedAmount = expenses
-    .filter(exp => selectedExpenses.includes(exp.id))
-    .reduce((sum, exp) => sum + exp.totalAmount, 0);
+    .filter((exp: ExpenseData) => selectedExpenses.includes(exp.id))
+    .reduce((sum: number, exp: ExpenseData) => sum + exp.totalAmount, 0);
 
   // ウェルカムスクリーンが表示されている間はメインコンテンツを非表示
   if (showWelcome) {
@@ -162,14 +162,14 @@ export default function Home() {
   }
 
   const downloadSelectedReceiptImages = (expenses: ExpenseData[], selectedExpenseIds: string[]) => {
-    const selectedExpensesData = expenses.filter(expense => selectedExpenseIds.includes(expense.id));
+    const selectedExpensesData = expenses.filter((expense: ExpenseData) => selectedExpenseIds.includes(expense.id));
     if (selectedExpensesData.length === 0) {
       showError('ダウンロードするデータがありません', 'ダウンロードする経費を選択してください');
       return;
     }
 
     // 画像データがある経費のみをフィルタリング
-    const expensesWithImages = selectedExpensesData.filter(expense => expense.imageData);
+    const expensesWithImages = selectedExpensesData.filter((expense: ExpenseData) => expense.imageData);
     
     if (expensesWithImages.length === 0) {
       showError('ダウンロード可能な画像がありません', '選択した経費に画像データが含まれていません');
@@ -177,7 +177,7 @@ export default function Home() {
     }
 
     // 各画像を個別にダウンロード
-    expensesWithImages.forEach(expense => {
+    expensesWithImages.forEach((expense: ExpenseData) => {
       if (expense.imageData) {
         const link = document.createElement('a');
         link.href = expense.imageData;
