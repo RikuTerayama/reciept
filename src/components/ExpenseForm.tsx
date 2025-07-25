@@ -12,7 +12,11 @@ interface UserInfo {
   budget: number;
 }
 
-export default function ExpenseForm() {
+interface ExpenseFormProps {
+  onComplete?: () => void;
+}
+
+export default function ExpenseForm({ onComplete }: ExpenseFormProps) {
   const { ocrResult, addExpense, setOCRResult } = useExpenseStore();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   
@@ -193,6 +197,11 @@ export default function ExpenseForm() {
     
     // OCR結果をクリア
     setOCRResult(null);
+    
+    // onCompleteコールバックを呼び出し
+    if (onComplete) {
+      onComplete();
+    }
     
     // 成功メッセージを3秒後にクリア
     setTimeout(() => setSuccess(null), 3000);
