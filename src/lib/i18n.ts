@@ -751,7 +751,7 @@ export const setLanguage = (language: Language): void => {
 // 翻訳を取得
 export const t = (key: string, language: Language = getCurrentLanguage()): string => {
   const keys = key.split('.');
-  let value: any = translations[language];
+  let value: Translations | string | Record<string, any> = translations[language];
   
   for (const k of keys) {
     if (value && typeof value === 'object' && k in value) {
