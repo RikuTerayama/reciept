@@ -5,10 +5,10 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'レシート経費管理システム',
+  title: 'Expenscan - レシート経費管理システム',
   description: 'OCR技術を使用したレシート・領収書の経費管理システム',
-  keywords: '経費管理, OCR, レシート, 領収書, 予算最適化',
-  authors: [{ name: 'Receipt Expense Manager' }],
+  keywords: '経費管理, OCR, レシート, 領収書, 予算最適化, Expenscan',
+  authors: [{ name: 'Expenscan' }],
   viewport: 'width=device-width, initial-scale=1',
 };
 
@@ -29,4 +29,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
+} 
