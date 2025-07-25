@@ -109,7 +109,7 @@ export default function ExpenseForm({ onComplete }: ExpenseFormProps) {
       }));
     }
     
-    // 計算中の表示を少し遅延させる
+    // 計算完了のアニメーション
     setTimeout(() => setIsCalculating(false), 300);
   };
 
