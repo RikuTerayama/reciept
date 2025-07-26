@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Receipt, FileText, Calculator, Download, Plus, List, BarChart3, Settings, Sparkles, Upload, Menu, X, Image as ImageIcon } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import BatchUpload from '@/components/BatchUpload';
@@ -39,86 +39,21 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
   const { expenses, selectedExpenses, clearSelection } = useExpenseStore();
   const { toasts, showSuccess, showError, showInfo, removeToast } = useToast();
 
-  // デバッグ用：ローカルストレージリセット
-  const resetLocalStorage = () => {
-    localStorage.removeItem('receipt_expense_manager_visited');
-    localStorage.removeItem('user_info');
-    window.location.reload();
-  };
+  // メモ化された値
+  const totalAmount = useMemo(() => 
+    expenses.reduce((sum: number, exp: ExpenseData) => sum + exp.totalAmount, 0), 
+    [expenses]
+  );
+  
+  const selectedAmount = useMemo(() => 
+    expenses
+      .filter((exp: ExpenseData) => selectedExpenses.includes(exp.id))
+      .reduce((sum: number, exp: ExpenseData) => sum + exp.totalAmount, 0),
+    [expenses, selectedExpenses]
+  );
 
-  const handleExportAll = () => {
-    if (expenses.length === 0) {
-      showError('エクスポートするデータがありません', '経費データを追加してからエクスポートしてください');
-      return;
-    }
-    exportExpensesToExcel(expenses, 'all_expenses.xlsx');
-    showSuccess('エクスポート完了', `${expenses.length}件の経費データをエクスポートしました`);
-  };
-
-  const handleExportSelected = () => {
-    if (selectedExpenses.length === 0) {
-      showError('エクスポートするデータがありません', 'エクスポートする経費を選択してください');
-      return;
-    }
-    const selectedExpenseData = expenses.filter((expense: ExpenseData) => 
-      selectedExpenses.includes(expense.id)
-    );
-    exportExpensesToExcel(selectedExpenseData, 'selected_expenses.xlsx');
-    showSuccess('エクスポート完了', `${selectedExpenses.length}件の経費データをエクスポートしました`);
-  };
-
-  // OCR完了後の自動遷移処理
-  const handleOCRComplete = () => {
-    setActiveTab('form');
-  };
-
-  // モバイルメニューのタブ切り替え
-  const handleMobileTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-    setMobileMenuOpen(false);
-  };
-
-  // 言語切り替え
-  const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-  };
-
-  const downloadSelectedReceiptImages = (expenses: ExpenseData[], selectedExpenseIds: string[]) => {
-    const selectedExpensesData = expenses.filter((expense: ExpenseData) => selectedExpenseIds.includes(expense.id));
-    if (selectedExpensesData.length === 0) {
-      showError('ダウンロードするデータがありません', 'ダウンロードする経費を選択してください');
-      return;
-    }
-
-    // 画像データがある経費のみをフィルタリング
-    const expensesWithImages = selectedExpensesData.filter((expense: ExpenseData) => expense.imageData);
-    
-    if (expensesWithImages.length === 0) {
-      showError('ダウンロード可能な画像がありません', '選択した経費に画像データが含まれていません');
-      return;
-    }
-
-    // 各画像を個別にダウンロード
-    expensesWithImages.forEach((expense: ExpenseData) => {
-      if (expense.imageData) {
-        const link = document.createElement('a');
-        link.href = expense.imageData;
-        link.download = `${expense.receiptNumber || expense.id}_${expense.date}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    });
-
-    showSuccess('画像ダウンロード完了', `${expensesWithImages.length}件の画像をダウンロードしました`);
-  };
-
-  const totalAmount = expenses.reduce((sum: number, exp: ExpenseData) => sum + exp.totalAmount, 0);
-  const selectedAmount = expenses
-    .filter((exp: ExpenseData) => selectedExpenses.includes(exp.id))
-    .reduce((sum: number, exp: ExpenseData) => sum + exp.totalAmount, 0);
-
-  const tabs = [
+  // メモ化されたタブ設定
+  const tabs = useMemo(() => [
     {
       id: 'upload' as TabType,
       label: t('navigation.singleUpload'),
@@ -154,7 +89,81 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
       description: t('budgetOptimizer.description'),
       color: 'from-indigo-500 to-purple-500'
     }
-  ];
+  ], []);
+
+  // デバッグ用：ローカルストレージリセット
+  const resetLocalStorage = useCallback(() => {
+    localStorage.removeItem('receipt_expense_manager_visited');
+    localStorage.removeItem('user_info');
+    window.location.reload();
+  }, []);
+
+  const handleExportAll = useCallback(() => {
+    if (expenses.length === 0) {
+      showError('エクスポートするデータがありません', '経費データを追加してからエクスポートしてください');
+      return;
+    }
+    exportExpensesToExcel(expenses, 'all_expenses.xlsx');
+    showSuccess('エクスポート完了', `${expenses.length}件の経費データをエクスポートしました`);
+  }, [expenses, showError, showSuccess]);
+
+  const handleExportSelected = useCallback(() => {
+    if (selectedExpenses.length === 0) {
+      showError('エクスポートするデータがありません', 'エクスポートする経費を選択してください');
+      return;
+    }
+    const selectedExpenseData = expenses.filter((expense: ExpenseData) => 
+      selectedExpenses.includes(expense.id)
+    );
+    exportExpensesToExcel(selectedExpenseData, 'selected_expenses.xlsx');
+    showSuccess('エクスポート完了', `${selectedExpenses.length}件の経費データをエクスポートしました`);
+  }, [selectedExpenses, expenses, showError, showSuccess]);
+
+  // OCR完了後の自動遷移処理
+  const handleOCRComplete = useCallback(() => {
+    setActiveTab('form');
+  }, []);
+
+  // モバイルメニューのタブ切り替え
+  const handleMobileTabChange = useCallback((tab: TabType) => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false);
+  }, []);
+
+  // 言語切り替え
+  const handleLanguageChange = useCallback((language: Language) => {
+    setCurrentLanguage(language);
+  }, []);
+
+  const downloadSelectedReceiptImages = useCallback((expenses: ExpenseData[], selectedExpenseIds: string[]) => {
+    const selectedExpensesData = expenses.filter((expense: ExpenseData) => selectedExpenseIds.includes(expense.id));
+    if (selectedExpensesData.length === 0) {
+      showError('ダウンロードするデータがありません', 'ダウンロードする経費を選択してください');
+      return;
+    }
+
+    // 画像データがある経費のみをフィルタリング
+    const expensesWithImages = selectedExpensesData.filter((expense: ExpenseData) => expense.imageData);
+    
+    if (expensesWithImages.length === 0) {
+      showError('ダウンロード可能な画像がありません', '選択した経費に画像データが含まれていません');
+      return;
+    }
+
+    // 各画像を個別にダウンロード
+    expensesWithImages.forEach((expense: ExpenseData) => {
+      if (expense.imageData) {
+        const link = document.createElement('a');
+        link.href = expense.imageData;
+        link.download = `${expense.receiptNumber || expense.id}_${expense.date}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    });
+
+    showSuccess('画像ダウンロード完了', `${expensesWithImages.length}件の画像をダウンロードしました`);
+  }, [showError, showSuccess]);
 
   // ユーザー設定が完了していない場合は設定画面を表示
   if (!userInfo) {
