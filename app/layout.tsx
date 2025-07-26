@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
@@ -9,7 +9,11 @@ export const metadata: Metadata = {
   description: 'OCR技術を使用したレシート・領収書の経費管理システム',
   keywords: '経費管理, OCR, レシート, 領収書, 予算最適化, Expenscan',
   authors: [{ name: 'Expenscan' }],
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -21,7 +25,6 @@ export default function RootLayout({
     <html lang="ja">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={inter.className}>
