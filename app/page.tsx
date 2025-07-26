@@ -43,30 +43,38 @@ export default function Home() {
     const hasVisited = localStorage.getItem('receipt_expense_manager_visited');
     const savedUserInfo = localStorage.getItem('user_info');
     
+    console.log('Initial load - hasVisited:', hasVisited, 'savedUserInfo:', savedUserInfo);
+    
     if (hasVisited) {
+      console.log('User has visited before, skipping welcome screen');
       setShowWelcome(false);
       if (savedUserInfo) {
         try {
           const parsed = JSON.parse(savedUserInfo);
+          console.log('Parsed user info:', parsed);
           setUserInfo(parsed);
         } catch (error) {
           console.error('Failed to parse saved user info:', error);
           setShowUserSetup(true);
         }
       } else {
+        console.log('No saved user info, showing user setup');
         setShowUserSetup(true);
       }
     } else {
+      console.log('First visit, showing welcome screen');
       localStorage.setItem('receipt_expense_manager_visited', 'true');
     }
   }, []);
 
   const handleWelcomeComplete = () => {
+    console.log('Welcome screen completed, showing user setup');
     setShowWelcome(false);
     setShowUserSetup(true);
   };
 
   const handleUserSetupComplete = (userData: UserInfo) => {
+    console.log('User setup completed:', userData);
     setUserInfo(userData);
     setShowUserSetup(false);
   };
