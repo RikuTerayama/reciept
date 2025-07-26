@@ -67,6 +67,18 @@ export default function Home() {
     }
   }, []);
 
+  // WelcomeScreenのタイムアウト処理
+  useEffect(() => {
+    if (showWelcome) {
+      const timeout = setTimeout(() => {
+        console.log('WelcomeScreen timeout - forcing completion');
+        handleWelcomeComplete();
+      }, 10000); // 10秒後に強制スキップ
+
+      return () => clearTimeout(timeout);
+    }
+  }, [showWelcome]);
+
   const handleWelcomeComplete = () => {
     console.log('Welcome screen completed, showing user setup');
     setShowWelcome(false);
@@ -116,6 +128,13 @@ export default function Home() {
     setCurrentLanguage(language);
   };
 
+  // デバッグ用：ローカルストレージリセット
+  const resetLocalStorage = () => {
+    localStorage.removeItem('receipt_expense_manager_visited');
+    localStorage.removeItem('user_info');
+    window.location.reload();
+  };
+
   const tabs = [
     { 
       id: 'upload' as TabType, 
@@ -161,7 +180,18 @@ export default function Home() {
 
   // ウェルカムスクリーンが表示されている間はメインコンテンツを非表示
   if (showWelcome) {
-    return <WelcomeScreen onComplete={handleWelcomeComplete} />;
+    return (
+      <div className="relative">
+        <WelcomeScreen onComplete={handleWelcomeComplete} />
+        {/* デバッグ用リセットボタン */}
+        <button
+          onClick={resetLocalStorage}
+          className="fixed top-4 left-4 z-50 px-3 py-1 text-xs text-white bg-red-600 hover:bg-red-700 rounded"
+        >
+          リセット
+        </button>
+      </div>
+    );
   }
 
   // ユーザー設定が表示されている間はメインコンテンツを非表示
