@@ -1,5 +1,6 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
+/// <reference types="next" />
 
 declare namespace JSX {
   interface IntrinsicElements {
@@ -35,6 +36,40 @@ declare module '*.gif' {
 declare module '*.webp' {
   const content: string;
   export default content;
+}
+
+// Next.js types
+declare module 'next' {
+  export interface Metadata {
+    title?: string;
+    description?: string;
+    keywords?: string;
+    authors?: Array<{ name: string }>;
+  }
+
+  export interface Viewport {
+    width?: string;
+    initialScale?: number;
+  }
+}
+
+declare module 'next/link' {
+  import { ComponentType, ReactNode } from 'react';
+  
+  interface LinkProps {
+    href: string;
+    children: ReactNode;
+    className?: string;
+  }
+  
+  const Link: ComponentType<LinkProps>;
+  export default Link;
+}
+
+declare module 'next/font/google' {
+  import { NextFontWithVariable } from 'next/dist/compiled/@next/font';
+  
+  export function Inter(options: { subsets: string[] }): NextFontWithVariable;
 }
 
 // Tesseract.js types
