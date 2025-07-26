@@ -8,39 +8,37 @@ export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
 export default function Home() {
-  const [isClient, setIsClient] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
-
-  // クライアントサイドでのみ実行
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   // ユーザー情報チェック
   useEffect(() => {
-    if (!isClient) return;
-
-    const savedUserInfo = localStorage.getItem('user_info');
-    
-    if (savedUserInfo) {
-      try {
+    try {
+      const savedUserInfo = localStorage.getItem('user_info');
+      
+      if (savedUserInfo) {
         const parsed = JSON.parse(savedUserInfo);
         setUserInfo(parsed);
-      } catch (error) {
-        console.error('Failed to parse saved user info:', error);
       }
+    } catch (error) {
+      console.error('Failed to parse saved user info:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isClient]);
+  }, []);
 
   const handleUserSetupComplete = (userData: any) => {
     setUserInfo(userData);
   };
 
-  // クライアントサイドでない場合は何も表示しない
-  if (!isClient) {
+  // Loading中は何も表示しない（または最小限の表示）
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-center">
+          <div className="text-white text-xl mb-4">Expenscan</div>
+          <div className="text-gray-400">Loading...</div>
+        </div>
       </div>
     );
   }
@@ -192,7 +190,7 @@ export default function Home() {
 
         <div className="mt-8 text-center">
           <p className="text-gray-400">
-            WelcomeScreenを削除し、直接メインアプリケーションにアクセスできるようになりました。
+            アプリケーションが正常に動作しています！
           </p>
         </div>
       </div>
