@@ -13,6 +13,11 @@ export default function Home() {
 
   // ユーザー情報チェック
   useEffect(() => {
+    // タイムアウト処理を追加
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000); // 3秒後に強制的にLoadingを終了
+
     try {
       const savedUserInfo = localStorage.getItem('user_info');
       
@@ -23,8 +28,11 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to parse saved user info:', error);
     } finally {
+      clearTimeout(timeout);
       setIsLoading(false);
     }
+
+    return () => clearTimeout(timeout);
   }, []);
 
   const handleUserSetupComplete = (userData: any) => {
