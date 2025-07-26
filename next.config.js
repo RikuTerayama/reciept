@@ -14,6 +14,13 @@ const nextConfig = {
   // 静的ファイルの最適化
   compress: true,
   poweredByHeader: false,
+  // 静的生成を完全に無効化
+  output: 'standalone',
+  trailingSlash: false,
+  // 動的レンダリングを強制
+  experimental: {
+    appDir: true,
+  },
 }
 
 module.exports = nextConfig 
