@@ -377,7 +377,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
                 <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.singleUpload')}</h2>
                 <p className="text-gray-400 max-w-2xl mx-auto">{t('imageUpload.description')}</p>
               </div>
-              <EnhancedImageUpload onComplete={handleOCRComplete} />
+              <EnhancedImageUpload onOCRComplete={handleOCRComplete} />
             </div>
           )}
 
