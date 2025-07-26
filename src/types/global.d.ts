@@ -38,6 +38,11 @@ declare module '*.webp' {
   export default content;
 }
 
+// React types
+declare module 'react' {
+  export * from 'react';
+}
+
 // Next.js types
 declare module 'next' {
   export interface Metadata {
