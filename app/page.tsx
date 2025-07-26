@@ -46,6 +46,14 @@ export default function Home() {
         <div className="text-center">
           <div className="text-white text-xl mb-4">Expenscan</div>
           <div className="text-gray-400">Loading...</div>
+          <div className="mt-4">
+            <button 
+              onClick={() => setIsLoading(false)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              スキップ
+            </button>
+          </div>
         </div>
       </div>
     );
