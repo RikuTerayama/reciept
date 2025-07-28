@@ -9,17 +9,10 @@ export const fetchCache = 'force-no-store';
 
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [skipClicked, setSkipClicked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loadingを無効化
 
   // ユーザー情報チェック
   useEffect(() => {
-    // タイムアウト処理を追加
-    const timeout = setTimeout(() => {
-      console.log('Timeout reached, setting isLoading to false');
-      setIsLoading(false);
-    }, 3000); // 3秒後に強制的にLoadingを終了
-
     try {
       const savedUserInfo = localStorage.getItem('user_info');
       console.log('Saved user info:', savedUserInfo);
@@ -31,66 +24,12 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Failed to parse saved user info:', error);
-    } finally {
-      clearTimeout(timeout);
-      setIsLoading(false);
-      console.log('Finally block executed, isLoading set to false');
     }
-
-    return () => clearTimeout(timeout);
   }, []);
-
-  // スキップボタンがクリックされた場合の処理
-  useEffect(() => {
-    if (skipClicked) {
-      console.log('Skip clicked, forcing loading to false');
-      setIsLoading(false);
-      setSkipClicked(false);
-    }
-  }, [skipClicked]);
 
   const handleUserSetupComplete = (userData: any) => {
     setUserInfo(userData);
   };
-
-  const handleSkip = () => {
-    console.log('Skip button clicked');
-    setSkipClicked(true);
-  };
-
-  const handleForceReload = () => {
-    console.log('Force reload clicked');
-    window.location.reload();
-  };
-
-  // Loading中は何も表示しない（または最小限の表示）
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-white text-xl mb-4">Expenscan</div>
-          <div className="text-gray-400">Loading...</div>
-          <div className="mt-4">
-            <button 
-              onClick={handleSkip}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              スキップ
-            </button>
-            <button 
-              onClick={handleForceReload}
-              className="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              強制リロード
-            </button>
-          </div>
-          <div className="mt-2 text-xs text-gray-500">
-            Loading状態: {isLoading ? 'true' : 'false'} | スキップクリック: {skipClicked ? 'true' : 'false'}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ユーザー設定が完了していない場合は設定画面を表示
   if (!userInfo) {
