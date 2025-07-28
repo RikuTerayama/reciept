@@ -27,6 +27,11 @@ export default function Home() {
     }
   }, []);
 
+  // デバッグ用：userInfoの変化を監視
+  useEffect(() => {
+    console.log('userInfo changed:', userInfo);
+  }, [userInfo]);
+
   const handleUserSetupComplete = (userData: any) => {
     console.log('handleUserSetupComplete called with:', userData);
     setUserInfo(userData);
@@ -75,11 +80,15 @@ export default function Home() {
                 localStorage.setItem('user_info', JSON.stringify(userData));
                 console.log('Data saved to localStorage successfully');
                 
-                // 成功メッセージ
-                alert('設定が保存されました。メイン画面に遷移します。');
+                // React状態を直接更新
+                setUserInfo(userData);
+                console.log('UserInfo state updated:', userData);
                 
-                // 即座にページリロード
-                window.location.reload();
+                // 成功メッセージ（短時間で表示）
+                setTimeout(() => {
+                  alert('設定が保存されました。メイン画面に遷移します。');
+                }, 100);
+                
               } catch (error) {
                 console.error('Error saving data:', error);
                 alert('設定の保存中にエラーが発生しました。');
@@ -141,8 +150,15 @@ export default function Home() {
                 onClick={() => {
                   const savedUserInfo = localStorage.getItem('user_info');
                   if (savedUserInfo) {
-                    console.log('Manual transition with saved data:', savedUserInfo);
-                    window.location.reload();
+                    try {
+                      const parsed = JSON.parse(savedUserInfo);
+                      console.log('Manual transition with saved data:', parsed);
+                      setUserInfo(parsed);
+                      console.log('UserInfo state updated manually');
+                    } catch (error) {
+                      console.error('Error parsing saved data:', error);
+                      alert('保存されたデータの読み込みに失敗しました。');
+                    }
                   } else {
                     alert('設定が保存されていません。先に設定を保存してください。');
                   }
