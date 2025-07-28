@@ -10,33 +10,53 @@ export const fetchCache = 'force-no-store';
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   // ユーザー情報チェック
   useEffect(() => {
+    console.log('useEffect started');
+    setDebugInfo('useEffect started');
+    
     // タイムアウト処理を追加
     const timeout = setTimeout(() => {
+      console.log('Timeout triggered');
+      setDebugInfo('Timeout triggered');
       setIsLoading(false);
     }, 3000); // 3秒後に強制的にLoadingを終了
 
     try {
       const savedUserInfo = localStorage.getItem('user_info');
+      console.log('Saved user info:', savedUserInfo);
+      setDebugInfo(`Saved user info: ${savedUserInfo}`);
       
       if (savedUserInfo) {
         const parsed = JSON.parse(savedUserInfo);
         setUserInfo(parsed);
+        console.log('User info set:', parsed);
+        setDebugInfo(`User info set: ${JSON.stringify(parsed)}`);
       }
     } catch (error) {
       console.error('Failed to parse saved user info:', error);
+      setDebugInfo(`Error: ${error}`);
     } finally {
       clearTimeout(timeout);
       setIsLoading(false);
+      console.log('Loading set to false');
+      setDebugInfo('Loading set to false');
     }
 
     return () => clearTimeout(timeout);
   }, []);
 
   const handleUserSetupComplete = (userData: any) => {
+    console.log('User setup complete:', userData);
     setUserInfo(userData);
+  };
+
+  const handleSkip = () => {
+    console.log('Skip button clicked');
+    setDebugInfo('Skip button clicked');
+    setIsLoading(false);
   };
 
   // Loading中は何も表示しない（または最小限の表示）
@@ -48,11 +68,15 @@ export default function Home() {
           <div className="text-gray-400">Loading...</div>
           <div className="mt-4">
             <button 
-              onClick={() => setIsLoading(false)}
+              onClick={handleSkip}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               スキップ
             </button>
+          </div>
+          {/* デバッグ情報 */}
+          <div className="mt-4 text-xs text-gray-500">
+            Debug: {debugInfo}
           </div>
         </div>
       </div>
