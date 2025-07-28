@@ -21,6 +21,15 @@ const nextConfig = {
   experimental: {
     appDir: true,
   },
+  // Vercelデプロイ用の設定
+  serverRuntimeConfig: {
+    // サーバーサイドでのタイムアウト設定
+    maxDuration: 30,
+  },
+  publicRuntimeConfig: {
+    // クライアントサイドでの設定
+    staticFolder: '/static',
+  },
 }
 
 module.exports = nextConfig 
