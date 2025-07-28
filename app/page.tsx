@@ -28,7 +28,14 @@ export default function Home() {
   }, []);
 
   const handleUserSetupComplete = (userData: any) => {
+    console.log('handleUserSetupComplete called with:', userData);
     setUserInfo(userData);
+    console.log('setUserInfo called, userInfo should be updated');
+    // 強制的に再レンダリングを促す
+    setTimeout(() => {
+      console.log('Forcing re-render');
+      window.location.reload();
+    }, 100);
   };
 
   // ユーザー設定が完了していない場合は設定画面を表示
@@ -52,8 +59,19 @@ export default function Home() {
                 department: formData.get('department') as string,
                 budget: Number(formData.get('budget'))
               };
+              console.log('Saving user data:', userData);
               localStorage.setItem('user_info', JSON.stringify(userData));
-              handleUserSetupComplete(userData);
+              console.log('User data saved to localStorage');
+              
+              // 直接状態を更新
+              setUserInfo(userData);
+              console.log('UserInfo state updated directly');
+              
+              // 確実に遷移するためにページリロード
+              setTimeout(() => {
+                console.log('Reloading page to ensure transition');
+                window.location.reload();
+              }, 500);
             }}>
               <div className="space-y-4">
                 <div>
