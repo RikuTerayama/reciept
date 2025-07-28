@@ -10,53 +10,57 @@ export const fetchCache = 'force-no-store';
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [debugInfo, setDebugInfo] = useState<string>('');
+  const [skipClicked, setSkipClicked] = useState(false);
 
   // ユーザー情報チェック
   useEffect(() => {
-    console.log('useEffect started');
-    setDebugInfo('useEffect started');
-    
     // タイムアウト処理を追加
     const timeout = setTimeout(() => {
-      console.log('Timeout triggered');
-      setDebugInfo('Timeout triggered');
+      console.log('Timeout reached, setting isLoading to false');
       setIsLoading(false);
     }, 3000); // 3秒後に強制的にLoadingを終了
 
     try {
       const savedUserInfo = localStorage.getItem('user_info');
       console.log('Saved user info:', savedUserInfo);
-      setDebugInfo(`Saved user info: ${savedUserInfo}`);
       
       if (savedUserInfo) {
         const parsed = JSON.parse(savedUserInfo);
         setUserInfo(parsed);
         console.log('User info set:', parsed);
-        setDebugInfo(`User info set: ${JSON.stringify(parsed)}`);
       }
     } catch (error) {
       console.error('Failed to parse saved user info:', error);
-      setDebugInfo(`Error: ${error}`);
     } finally {
       clearTimeout(timeout);
       setIsLoading(false);
-      console.log('Loading set to false');
-      setDebugInfo('Loading set to false');
+      console.log('Finally block executed, isLoading set to false');
     }
 
     return () => clearTimeout(timeout);
   }, []);
 
+  // スキップボタンがクリックされた場合の処理
+  useEffect(() => {
+    if (skipClicked) {
+      console.log('Skip clicked, forcing loading to false');
+      setIsLoading(false);
+      setSkipClicked(false);
+    }
+  }, [skipClicked]);
+
   const handleUserSetupComplete = (userData: any) => {
-    console.log('User setup complete:', userData);
     setUserInfo(userData);
   };
 
   const handleSkip = () => {
     console.log('Skip button clicked');
-    setDebugInfo('Skip button clicked');
-    setIsLoading(false);
+    setSkipClicked(true);
+  };
+
+  const handleForceReload = () => {
+    console.log('Force reload clicked');
+    window.location.reload();
   };
 
   // Loading中は何も表示しない（または最小限の表示）
@@ -73,10 +77,15 @@ export default function Home() {
             >
               スキップ
             </button>
+            <button 
+              onClick={handleForceReload}
+              className="ml-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              強制リロード
+            </button>
           </div>
-          {/* デバッグ情報 */}
-          <div className="mt-4 text-xs text-gray-500">
-            Debug: {debugInfo}
+          <div className="mt-2 text-xs text-gray-500">
+            Loading状態: {isLoading ? 'true' : 'false'} | スキップクリック: {skipClicked ? 'true' : 'false'}
           </div>
         </div>
       </div>
