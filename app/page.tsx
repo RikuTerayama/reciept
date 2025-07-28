@@ -37,6 +37,12 @@ export default function Home() {
     localStorage.setItem('user_info', JSON.stringify(userData));
     setUserInfo(userData);
     setShowSettingsModal(false);
+    
+    // 設定変更後もURLパラメータをクリア
+    setTimeout(() => {
+      console.log('Settings modal: clearing URL parameters');
+      window.history.replaceState({}, '', window.location.pathname);
+    }, 100);
   };
 
   // ユーザー設定が完了していない場合は設定画面を表示
@@ -80,10 +86,14 @@ export default function Home() {
                 setUserInfo(userData);
                 console.log('UserInfo state updated:', userData);
                 
-                // 成功メッセージ（短時間で表示）
+                // 成功メッセージ
+                alert('設定が保存されました。メイン画面に遷移します。');
+                
+                // 強制的にページをリロード（URLパラメータをクリア）
                 setTimeout(() => {
-                  alert('設定が保存されました。メイン画面に遷移します。');
-                }, 100);
+                  console.log('Force reloading page');
+                  window.location.href = window.location.pathname;
+                }, 500);
                 
               } catch (error) {
                 console.error('Error saving data:', error);
@@ -151,6 +161,12 @@ export default function Home() {
                       console.log('Manual transition with saved data:', parsed);
                       setUserInfo(parsed);
                       console.log('UserInfo state updated manually');
+                      
+                      // URLパラメータをクリアしてページをリロード
+                      setTimeout(() => {
+                        console.log('Manual transition: clearing URL and reloading');
+                        window.location.href = window.location.pathname;
+                      }, 100);
                     } catch (error) {
                       console.error('Error parsing saved data:', error);
                       alert('保存されたデータの読み込みに失敗しました。');
