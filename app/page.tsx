@@ -10,9 +10,8 @@ export const fetchCache = 'force-no-store';
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [currentView, setCurrentView] = useState<'setup' | 'main'>('setup');
 
-  // クライアントサイドでのみ実行
+  // 初期化処理
   useEffect(() => {
     try {
       const savedUserInfo = localStorage.getItem('user_info');
@@ -21,35 +20,18 @@ export default function Home() {
       if (savedUserInfo) {
         const parsed = JSON.parse(savedUserInfo);
         setUserInfo(parsed);
-        setCurrentView('main');
         console.log('User info set:', parsed);
-      } else {
-        setCurrentView('setup');
       }
     } catch (error) {
       console.error('Failed to parse saved user info:', error);
-      setCurrentView('setup');
     }
   }, []);
-
-  // デバッグ用：userInfoの変化を監視
-  useEffect(() => {
-    console.log('userInfo changed:', userInfo);
-  }, [userInfo]);
 
   const handleSettingsSave = (userData: any) => {
     console.log('Settings saved:', userData);
     localStorage.setItem('user_info', JSON.stringify(userData));
     setUserInfo(userData);
-    setCurrentView('main');
     setShowSettingsModal(false);
-  };
-
-  const handleSetupComplete = (userData: any) => {
-    console.log('Setup completed:', userData);
-    localStorage.setItem('user_info', JSON.stringify(userData));
-    setUserInfo(userData);
-    setCurrentView('main');
   };
 
   // 1ページ完結型のアプリケーション
@@ -70,7 +52,7 @@ export default function Home() {
       {/* メインコンテンツ */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* 設定画面 */}
-        {currentView === 'setup' && (
+        {!userInfo && (
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold mb-4">初期設定</h2>
@@ -100,7 +82,8 @@ export default function Home() {
                 }
                 
                 try {
-                  handleSetupComplete(userData);
+                  localStorage.setItem('user_info', JSON.stringify(userData));
+                  setUserInfo(userData);
                   alert('設定が保存されました。メイン画面に移行します。');
                 } catch (error) {
                   console.error('Error saving data:', error);
@@ -160,7 +143,7 @@ export default function Home() {
         )}
 
         {/* メインアプリケーション */}
-        {currentView === 'main' && userInfo && (
+        {userInfo && (
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-gray-800 rounded-lg p-6">
@@ -216,7 +199,6 @@ export default function Home() {
                   onClick={() => {
                     localStorage.removeItem('user_info');
                     setUserInfo(null);
-                    setCurrentView('setup');
                   }}
                   className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
