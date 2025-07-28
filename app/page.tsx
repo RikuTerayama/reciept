@@ -9,7 +9,6 @@ export const fetchCache = 'force-no-store';
 
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false); // Loadingを無効化
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // ユーザー情報チェック
@@ -32,17 +31,6 @@ export default function Home() {
   useEffect(() => {
     console.log('userInfo changed:', userInfo);
   }, [userInfo]);
-
-  const handleUserSetupComplete = (userData: any) => {
-    console.log('handleUserSetupComplete called with:', userData);
-    setUserInfo(userData);
-    console.log('setUserInfo called, userInfo should be updated');
-    // 強制的に再レンダリングを促す
-    setTimeout(() => {
-      console.log('Forcing re-render');
-      window.location.reload();
-    }, 100);
-  };
 
   const handleSettingsSave = (userData: any) => {
     console.log('Settings saved:', userData);
