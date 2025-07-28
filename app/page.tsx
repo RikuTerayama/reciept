@@ -52,6 +52,8 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mb-4">初期設定</h2>
             <form onSubmit={(e) => {
               e.preventDefault();
+              console.log('Form submitted');
+              
               const formData = new FormData(e.currentTarget);
               const userData = {
                 email: formData.get('email') as string,
@@ -59,19 +61,29 @@ export default function Home() {
                 department: formData.get('department') as string,
                 budget: Number(formData.get('budget'))
               };
-              console.log('Saving user data:', userData);
-              localStorage.setItem('user_info', JSON.stringify(userData));
-              console.log('User data saved to localStorage');
               
-              // 直接状態を更新
-              setUserInfo(userData);
-              console.log('UserInfo state updated directly');
+              console.log('Form data:', userData);
               
-              // 確実に遷移するためにページリロード
-              setTimeout(() => {
-                console.log('Reloading page to ensure transition');
+              // バリデーション
+              if (!userData.email || !userData.targetMonth || !userData.department || userData.budget <= 0) {
+                alert('すべての項目を正しく入力してください。');
+                return;
+              }
+              
+              try {
+                // localStorageに保存
+                localStorage.setItem('user_info', JSON.stringify(userData));
+                console.log('Data saved to localStorage successfully');
+                
+                // 成功メッセージ
+                alert('設定が保存されました。メイン画面に遷移します。');
+                
+                // 即座にページリロード
                 window.location.reload();
-              }, 500);
+              } catch (error) {
+                console.error('Error saving data:', error);
+                alert('設定の保存中にエラーが発生しました。');
+              }
             }}>
               <div className="space-y-4">
                 <div>
@@ -121,6 +133,25 @@ export default function Home() {
                 </button>
               </div>
             </form>
+            
+            {/* デバッグ用の手動遷移ボタン */}
+            <div className="mt-4 text-center">
+              <p className="text-xs text-gray-400 mb-2">設定を保存した後、自動遷移しない場合は以下をクリックしてください</p>
+              <button
+                onClick={() => {
+                  const savedUserInfo = localStorage.getItem('user_info');
+                  if (savedUserInfo) {
+                    console.log('Manual transition with saved data:', savedUserInfo);
+                    window.location.reload();
+                  } else {
+                    alert('設定が保存されていません。先に設定を保存してください。');
+                  }
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+              >
+                手動でメイン画面に遷移
+              </button>
+            </div>
           </div>
         </div>
       </div>
