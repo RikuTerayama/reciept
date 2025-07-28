@@ -10,9 +10,12 @@ export const fetchCache = 'force-no-store';
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  // ユーザー情報チェック
+  // クライアントサイドでのみ実行
   useEffect(() => {
+    setIsClient(true);
+    
     try {
       const savedUserInfo = localStorage.getItem('user_info');
       console.log('Saved user info:', savedUserInfo);
@@ -32,32 +35,24 @@ export default function Home() {
     console.log('userInfo changed:', userInfo);
   }, [userInfo]);
 
-  // デバッグ用：localStorageの状態を監視
-  useEffect(() => {
-    const checkLocalStorage = () => {
-      const savedUserInfo = localStorage.getItem('user_info');
-      console.log('localStorage check:', savedUserInfo);
-    };
-    
-    checkLocalStorage();
-    // 1秒ごとにlocalStorageをチェック
-    const interval = setInterval(checkLocalStorage, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
   const handleSettingsSave = (userData: any) => {
     console.log('Settings saved:', userData);
     localStorage.setItem('user_info', JSON.stringify(userData));
     setUserInfo(userData);
     setShowSettingsModal(false);
-    
-    // 設定変更後もURLパラメータをクリア
-    setTimeout(() => {
-      console.log('Settings modal: clearing URL parameters');
-      window.history.replaceState({}, '', window.location.pathname);
-    }, 100);
   };
+
+  // クライアントサイドでない場合は何も表示しない
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white text-xl mb-4">Expenscan</div>
+          <div className="text-gray-400">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   // ユーザー設定が完了していない場合は設定画面を表示
   if (!userInfo) {
@@ -96,12 +91,12 @@ export default function Home() {
                 localStorage.setItem('user_info', JSON.stringify(userData));
                 console.log('Data saved to localStorage successfully');
                 
+                // React状態を直接更新（これが重要）
+                setUserInfo(userData);
+                console.log('UserInfo state updated:', userData);
+                
                 // 成功メッセージ
                 alert('設定が保存されました。メイン画面に遷移します。');
-                
-                // 即座にページをリロード（状態更新を待たない）
-                console.log('Immediately reloading page');
-                window.location.href = window.location.pathname;
                 
               } catch (error) {
                 console.error('Error saving data:', error);
@@ -167,10 +162,8 @@ export default function Home() {
                     try {
                       const parsed = JSON.parse(savedUserInfo);
                       console.log('Manual transition with saved data:', parsed);
-                      
-                      // 即座にページをリロード
-                      console.log('Manual transition: immediately reloading');
-                      window.location.href = window.location.pathname;
+                      setUserInfo(parsed);
+                      console.log('UserInfo state updated manually');
                     } catch (error) {
                       console.error('Error parsing saved data:', error);
                       alert('保存されたデータの読み込みに失敗しました。');
@@ -254,7 +247,7 @@ export default function Home() {
             <button 
               onClick={() => {
                 localStorage.removeItem('user_info');
-                window.location.reload();
+                setUserInfo(null);
               }}
               className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
