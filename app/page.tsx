@@ -85,7 +85,11 @@ export default function Home() {
       console.log('UserInfo state updated to:', userData);
       
       // 成功メッセージ
-      alert('設定が保存されました。メイン画面に移行します。');
+      alert('設定が保存されました。メインアプリを新しいタブで開きます。');
+      
+      // 別タブでメインアプリを開く
+      const mainAppUrl = window.location.origin + '/main';
+      window.open(mainAppUrl, '_blank');
       
       console.log('Settings saved successfully');
       
