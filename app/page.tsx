@@ -33,6 +33,12 @@ export default function Home() {
     }
   }, []);
 
+  // デバッグ用：userInfoの変化を監視
+  useEffect(() => {
+    console.log('userInfo changed:', userInfo);
+    console.log('Current userInfo state:', userInfo);
+  }, [userInfo]);
+
   const handleSettingsSave = (userData: any) => {
     console.log('Settings saved:', userData);
     localStorage.setItem('user_info', JSON.stringify(userData));
@@ -76,6 +82,8 @@ export default function Home() {
       // 状態を更新
       setUserInfo(userData);
       
+      console.log('UserInfo state updated to:', userData);
+      
       // 成功メッセージ
       alert('設定が保存されました。メイン画面に移行します。');
       
@@ -86,6 +94,10 @@ export default function Home() {
       alert('設定の保存中にエラーが発生しました。');
     }
   };
+
+  // デバッグ用：現在の状態を表示
+  console.log('Current render state - userInfo:', userInfo);
+  console.log('Current render state - formData:', formData);
 
   // 1ページ完結型のアプリケーション
   return (
@@ -104,6 +116,11 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* デバッグ情報 */}
+        <div className="mb-4 p-2 bg-red-900 text-white text-xs">
+          Debug: userInfo = {JSON.stringify(userInfo)}
+        </div>
+
         {/* 設定画面 */}
         {!userInfo && (
           <div className="max-w-4xl mx-auto">
