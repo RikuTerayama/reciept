@@ -14,10 +14,8 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     'Recharged to client?': '', // 新しいフィールド（現在は空）
     'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
     'Tax Rate (%)': expense.taxRate,
-    'Company Nar': expense.department,
     '# Participant from client': expense.participantFromClient || '',
     '# Participant from company': expense.participantFromCompany || '',
-    'Division': expense.department,
     'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
   }));
   const worksheet = XLSX.utils.json_to_sheet(data);
@@ -31,10 +29,8 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     { wch: 20 }, // Recharged to client?
     { wch: 15 }, // GST/VAT applicable
     { wch: 12 }, // Tax Rate (%)
-    { wch: 15 }, // Company Nar
     { wch: 25 }, // # Participant from client
     { wch: 25 }, // # Participant from company
-    { wch: 15 }, // Division
     { wch: 15 }, // Tax Credit Q
   ];
   worksheet['!cols'] = columnWidths;
@@ -147,10 +143,8 @@ export function exportBudgetOptimizationToExcel(
       'Recharged to client?': '', // 新しいフィールド（現在は空）
       'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
       'Tax Rate (%)': expense.taxRate,
-      'Company Nar': expense.department,
       '# Participant from client': expense.participantFromClient || '',
       '# Participant from company': expense.participantFromCompany || '',
-      'Division': expense.department,
       'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
     }));
 
@@ -168,10 +162,8 @@ export function exportBudgetOptimizationToExcel(
       'Recharged to client?': '', // 新しいフィールド（現在は空）
       'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
       'Tax Rate (%)': expense.taxRate,
-      'Company Nar': expense.department,
       '# Participant from client': expense.participantFromClient || '',
       '# Participant from company': expense.participantFromCompany || '',
-      'Division': expense.department,
       'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
     }));
 
