@@ -10,39 +10,6 @@ export const metadata: Metadata = {
   description: 'OCR技術を使用したレシート・領収書の経費管理システム。画像から自動で経費情報を抽出し、予算最適化とExcel出力機能を提供します。',
   keywords: '経費管理, OCR, レシート, 領収書, 予算最適化, Expenscan, 経費管理システム',
   authors: [{ name: 'Expenscan Team' }],
-  openGraph: {
-    title: 'Expenscan - レシート経費管理システム',
-    description: 'OCR技術を使用したレシート・領収書の経費管理システム',
-    url: 'https://expenscan-receipt-manager.vercel.app',
-    siteName: 'Expenscan',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Expenscan - レシート経費管理システム',
-      },
-    ],
-    locale: 'ja_JP',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Expenscan - レシート経費管理システム',
-    description: 'OCR技術を使用したレシート・領収書の経費管理システム',
-    images: ['/og-image.png'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
 };
 
 export const viewport: Viewport = {
