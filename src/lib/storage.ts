@@ -1,308 +1,109 @@
-import { ExpenseData } from '@/types';
+import { UserInfo, ExpenseData } from '@/types';
 
-// ストレージキーのプレフィックス
-const STORAGE_PREFIX = 'receipt_expense_manager';
-const EXPENSES_KEY = `${STORAGE_PREFIX}_expenses`;
-const SETTINGS_KEY = `${STORAGE_PREFIX}_settings`;
-
-interface UserSettings {
-  email?: string;
-  targetMonth?: string;
-  department?: string;
-  budget?: number;
-  language?: string;
-  [key: string]: any;
-}
-
-// 月別データのキーを生成
-function getMonthlyKey(year: number, month: number): string {
-  return `${STORAGE_PREFIX}_expenses_${year}_${month.toString().padStart(2, '0')}`;
-}
-
-// 現在の年月を取得
-export function getCurrentYearMonth(): { year: number; month: number } {
-  const now = new Date();
-  return {
-    year: now.getFullYear(),
-    month: now.getMonth() + 1
-  };
-}
-
-// 日付から年月を取得
-export function getYearMonthFromDate(dateString: string): { year: number; month: number } {
-  const date = new Date(dateString);
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1
-  };
-}
-
-// ローカルストレージから月別データを読み込み
-export function loadMonthlyExpenses(year: number, month: number): ExpenseData[] {
+// ユーザー情報の保存
+export const saveUserInfo = (userInfo: UserInfo): void => {
   try {
-    const key = getMonthlyKey(year, month);
-    const data = localStorage.getItem(key);
-    
-    if (data) {
-      const expenses = JSON.parse(data);
-      // 日付文字列をDateオブジェクトに変換
-      return expenses.map((expense: ExpenseData) => ({
-        ...expense,
-        createdAt: new Date(expense.createdAt)
-      }));
-    }
-    
-    return [];
+    localStorage.setItem('user_info', JSON.stringify(userInfo));
   } catch (error) {
-    console.error('月別データの読み込みエラー:', error);
+    console.error('Failed to save user info:', error);
+  }
+};
+
+// ユーザー情報の取得
+export const getUserInfo = (): UserInfo | null => {
+  try {
+    const saved = localStorage.getItem('user_info');
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error('Failed to get user info:', error);
+    return null;
+  }
+};
+
+// 経費データの保存
+export const saveExpenses = (expenses: ExpenseData[]): void => {
+  try {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  } catch (error) {
+    console.error('Failed to save expenses:', error);
+  }
+};
+
+// 経費データの取得
+export const getExpenses = (): ExpenseData[] => {
+  try {
+    const saved = localStorage.getItem('expenses');
+    return saved ? JSON.parse(saved) : [];
+  } catch (error) {
+    console.error('Failed to get expenses:', error);
     return [];
   }
-}
+};
 
-// ローカルストレージに月別データを保存
-export function saveMonthlyExpenses(year: number, month: number, expenses: ExpenseData[]): void {
+// 経費データの追加
+export const addExpense = (expense: ExpenseData): void => {
   try {
-    const key = getMonthlyKey(year, month);
-    localStorage.setItem(key, JSON.stringify(expenses));
-    
-    // 月別データのインデックスを更新
-    updateMonthlyIndex(year, month);
+    const expenses = getExpenses();
+    expenses.push(expense);
+    saveExpenses(expenses);
   } catch (error) {
-    console.error('月別データの保存エラー:', error);
+    console.error('Failed to add expense:', error);
   }
-}
+};
 
-// 月別データのインデックスを管理
-function updateMonthlyIndex(year: number, month: number): void {
+// 経費データの更新
+export const updateExpense = (id: string, updatedExpense: Partial<ExpenseData>): void => {
   try {
-    const indexKey = `${STORAGE_PREFIX}_monthly_index`;
-    const existingIndex = localStorage.getItem(indexKey);
-    const index = existingIndex ? JSON.parse(existingIndex) : [];
-    
-    const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
-    if (!index.includes(yearMonth)) {
-      index.push(yearMonth);
-      index.sort(); // 年月順にソート
-      localStorage.setItem(indexKey, JSON.stringify(index));
-    }
-  } catch (error) {
-    console.error('月別インデックスの更新エラー:', error);
-  }
-}
-
-// 利用可能な月別データの一覧を取得
-export function getAvailableMonths(): string[] {
-  try {
-    const indexKey = `${STORAGE_PREFIX}_monthly_index`;
-    const data = localStorage.getItem(indexKey);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error('月別データ一覧の取得エラー:', error);
-    return [];
-  }
-}
-
-// 全月のデータを統合して取得
-export function loadAllExpenses(): ExpenseData[] {
-  try {
-    const months = getAvailableMonths();
-    const allExpenses: ExpenseData[] = [];
-    
-    for (const monthKey of months) {
-      const [year, month] = monthKey.split('-').map(Number);
-      const monthlyExpenses = loadMonthlyExpenses(year, month);
-      allExpenses.push(...monthlyExpenses);
-    }
-    
-    // 作成日時でソート
-    return allExpenses.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  } catch (error) {
-    console.error('全データの読み込みエラー:', error);
-    return [];
-  }
-}
-
-// 経費データを追加（月別に自動分類）
-export function addExpenseToStorage(expense: ExpenseData): void {
-  try {
-    const { year, month } = getYearMonthFromDate(expense.date);
-    const existingExpenses = loadMonthlyExpenses(year, month);
-    
-    // 新しい経費を追加
-    existingExpenses.push(expense);
-    
-    // 月別データを保存
-    saveMonthlyExpenses(year, month, existingExpenses);
-  } catch (error) {
-    console.error('経費データの追加エラー:', error);
-  }
-}
-
-// 経費データを更新
-export function updateExpenseInStorage(updatedExpense: ExpenseData): void {
-  try {
-    const { year, month } = getYearMonthFromDate(updatedExpense.date);
-    const existingExpenses = loadMonthlyExpenses(year, month);
-    
-    const index = existingExpenses.findIndex(exp => exp.id === updatedExpense.id);
+    const expenses = getExpenses();
+    const index = expenses.findIndex(expense => expense.id === id);
     if (index !== -1) {
-      existingExpenses[index] = updatedExpense;
-      saveMonthlyExpenses(year, month, existingExpenses);
+      expenses[index] = { ...expenses[index], ...updatedExpense };
+      saveExpenses(expenses);
     }
   } catch (error) {
-    console.error('経費データの更新エラー:', error);
+    console.error('Failed to update expense:', error);
   }
-}
+};
 
-// 経費データを削除
-export function deleteExpenseFromStorage(expenseId: string, date: string): void {
+// 経費データの削除
+export const deleteExpense = (id: string): void => {
   try {
-    const { year, month } = getYearMonthFromDate(date);
-    const existingExpenses = loadMonthlyExpenses(year, month);
-    
-    const filteredExpenses = existingExpenses.filter(exp => exp.id !== expenseId);
-    saveMonthlyExpenses(year, month, filteredExpenses);
+    const expenses = getExpenses();
+    const filteredExpenses = expenses.filter(expense => expense.id !== id);
+    saveExpenses(filteredExpenses);
   } catch (error) {
-    console.error('経費データの削除エラー:', error);
+    console.error('Failed to delete expense:', error);
   }
-}
+};
 
-// 設定の保存
-export function saveSettings(settings: UserSettings): void {
+// 全データのクリア
+export const clearAllData = (): void => {
   try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    localStorage.removeItem('user_info');
+    localStorage.removeItem('expenses');
   } catch (error) {
-    console.error('設定の保存エラー:', error);
+    console.error('Failed to clear data:', error);
   }
-}
+};
 
-// 設定の読み込み
-export function loadSettings(): UserSettings {
-  try {
-    const data = localStorage.getItem(SETTINGS_KEY);
-    return data ? JSON.parse(data) : {};
-  } catch (error) {
-    console.error('設定の読み込みエラー:', error);
-    return {};
-  }
-}
-
-// データのエクスポート（月別）
-export function exportMonthlyData(year: number, month: number): string {
-  try {
-    const expenses = loadMonthlyExpenses(year, month);
-    const exportData = {
-      year,
-      month,
-      expenses,
-      exportedAt: new Date().toISOString()
-    };
-    
-    return JSON.stringify(exportData, null, 2);
-  } catch (error) {
-    console.error('データエクスポートエラー:', error);
-    return '';
-  }
-}
-
-// データのインポート（月別）
-export function importMonthlyData(jsonData: string): boolean {
-  try {
-    const data = JSON.parse(jsonData);
-    const { year, month, expenses } = data;
-    
-    if (year && month && Array.isArray(expenses)) {
-      saveMonthlyExpenses(year, month, expenses);
-      return true;
-    }
-    
-    return false;
-  } catch (error) {
-    console.error('データインポートエラー:', error);
-    return false;
-  }
-}
-
-// ストレージの使用量をチェック
-export function checkStorageUsage(): { used: number; available: number; percentage: number } {
-  try {
-    let used = 0;
-    const keys = Object.keys(localStorage);
-    
-    for (const key of keys) {
-      if (key.startsWith(STORAGE_PREFIX)) {
-        used += localStorage.getItem(key)?.length || 0;
-      }
-    }
-    
-    // ローカルストレージの制限（通常5MB）
-    const available = 5 * 1024 * 1024; // 5MB in bytes
-    const percentage = (used / available) * 100;
-    
-    return { used, available, percentage };
-  } catch (error) {
-    console.error('ストレージ使用量チェックエラー:', error);
-    return { used: 0, available: 0, percentage: 0 };
-  }
-}
-
-// 古いデータのクリーンアップ
-export function cleanupOldData(keepMonths: number = 12): void {
-  try {
-    const months = getAvailableMonths();
-    const currentDate = new Date();
-    const cutoffDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - keepMonths, 1);
-    
-    for (const monthKey of months) {
-      const [year, month] = monthKey.split('-').map(Number);
-      const monthDate = new Date(year, month - 1, 1);
-      
-      if (monthDate < cutoffDate) {
-        // 古い月のデータを削除
-        const key = getMonthlyKey(year, month);
-        localStorage.removeItem(key);
-        
-        // インデックスからも削除
-        const indexKey = `${STORAGE_PREFIX}_monthly_index`;
-        const existingIndex = localStorage.getItem(indexKey);
-        if (existingIndex) {
-          const index = JSON.parse(existingIndex);
-          const updatedIndex = index.filter((m: string) => m !== monthKey);
-          localStorage.setItem(indexKey, JSON.stringify(updatedIndex));
-        }
-      }
-    }
-  } catch (error) {
-    console.error('古いデータのクリーンアップエラー:', error);
-  }
-}
-
-// データの同期（将来的なクラウド同期のための準備）
-export interface SyncData {
-  expenses: ExpenseData[];
-  lastSync: string;
-  deviceId: string;
-}
-
-export function prepareSyncData(): SyncData {
-  const allExpenses = loadAllExpenses();
-  const deviceId = getDeviceId();
-  
+// データのエクスポート
+export const exportData = (): { userInfo: UserInfo | null; expenses: ExpenseData[] } => {
   return {
-    expenses: allExpenses,
-    lastSync: new Date().toISOString(),
-    deviceId
+    userInfo: getUserInfo(),
+    expenses: getExpenses()
   };
-}
+};
 
-// デバイスIDの生成
-function getDeviceId(): string {
-  let deviceId = localStorage.getItem(`${STORAGE_PREFIX}_device_id`);
-  
-  if (!deviceId) {
-    deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem(`${STORAGE_PREFIX}_device_id`, deviceId);
+// データのインポート
+export const importData = (data: { userInfo: UserInfo | null; expenses: ExpenseData[] }): void => {
+  try {
+    if (data.userInfo) {
+      saveUserInfo(data.userInfo);
+    }
+    if (data.expenses) {
+      saveExpenses(data.expenses);
+    }
+  } catch (error) {
+    console.error('Failed to import data:', error);
   }
-  
-  return deviceId;
-} 
+}; 
