@@ -2,6 +2,12 @@
 /// <reference types="react-dom" />
 /// <reference types="next" />
 
+// React型定義の追加
+declare module 'react' {
+  export = React;
+  export as namespace React;
+}
+
 declare namespace JSX {
   interface IntrinsicElements {
     [elemName: string]: any;
