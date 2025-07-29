@@ -99,21 +99,25 @@ export default function BatchUpload() {
             ));
 
             // 自動的に経費データを作成
-            const expense: ExpenseData = {
-              id: item.id,
+            const expenseData: ExpenseData = {
+              id: Date.now().toString(),
               date: ocrResult.date || new Date().toISOString().split('T')[0],
               totalAmount: ocrResult.totalAmount || 0,
-              taxRate: ocrResult.taxRate || 10,
               currency: 'JPY',
               category: '',
-              department: '',
+              description: ocrResult.text || '',
+              participantFromClient: '',
+              participantFromCompany: '',
+              taxRate: ocrResult.taxRate || 10,
               isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
+              imageData: ocrResult.imageData,
+              receiptNumber: ocrResult.receiptNumber,
               ocrText: ocrResult.text,
               createdAt: new Date()
             };
 
-            addExpense(expense);
-            addExpenseToStorage(expense);
+            addExpense(expenseData);
+            addExpenseToStorage(expenseData);
           } else {
             // エラー
             setUploadItems(prev => prev.map((it, index) => 
