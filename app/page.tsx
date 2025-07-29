@@ -27,12 +27,9 @@ export default function Home() {
   useEffect(() => {
     try {
       const savedUserInfo = localStorage.getItem('user_info');
-      console.log('Saved user info:', savedUserInfo);
-      
       if (savedUserInfo) {
         const parsed = JSON.parse(savedUserInfo);
         setUserInfo(parsed);
-        console.log('User info set:', parsed);
       }
     } catch (error) {
       console.error('Failed to parse saved user info:', error);
@@ -41,14 +38,7 @@ export default function Home() {
     }
   }, []);
 
-  // デバッグ用：userInfoの変化を監視
-  useEffect(() => {
-    console.log('userInfo changed:', userInfo);
-    console.log('Current userInfo state:', userInfo);
-  }, [userInfo]);
-
   const handleSettingsSave = (userData: any) => {
-    console.log('Settings saved:', userData);
     localStorage.setItem('user_info', JSON.stringify(userData));
     setUserInfo(userData);
     setShowSettingsModal(false);
@@ -65,9 +55,6 @@ export default function Home() {
 
   // 設定保存ボタンクリック
   const handleSaveSettings = () => {
-    console.log('Save settings clicked');
-    console.log('Form data:', formData);
-    
     // バリデーション
     if (!formData.email || !formData.targetMonth || !formData.department || !formData.budget || Number(formData.budget) <= 0) {
       alert('すべての項目を正しく入力してください。');
@@ -82,20 +69,14 @@ export default function Home() {
     };
     
     try {
-      console.log('Saving user data:', userData);
-      
       // localStorageに保存
       localStorage.setItem('user_info', JSON.stringify(userData));
       
       // 状態を更新
       setUserInfo(userData);
       
-      console.log('UserInfo state updated to:', userData);
-      
       // 成功メッセージ
       alert('設定が保存されました。メインアプリが表示されます。');
-      
-      console.log('Settings saved successfully');
       
     } catch (error) {
       console.error('Error saving data:', error);
@@ -105,27 +86,22 @@ export default function Home() {
 
   // ボタンクリックハンドラー
   const handleSingleUpload = () => {
-    console.log('Single upload clicked');
     setShowUploadModal(true);
   };
 
   const handleBatchUpload = () => {
-    console.log('Batch upload clicked');
     setShowBatchUploadModal(true);
   };
 
   const handleDataInput = () => {
-    console.log('Data input clicked');
     setShowDataInputModal(true);
   };
 
   const handleExpenseList = () => {
-    console.log('Expense list clicked');
     setShowExpenseListModal(true);
   };
 
   const handleOptimizer = () => {
-    console.log('Optimizer clicked');
     setShowOptimizerModal(true);
   };
 
@@ -143,10 +119,6 @@ export default function Home() {
       alert('データがリセットされました。');
     }
   };
-
-  // デバッグ用：現在の状態を表示
-  console.log('Current render state - userInfo:', userInfo);
-  console.log('Current render state - formData:', formData);
 
   // ローディング中は何も表示しない
   if (isLoading) {
@@ -170,11 +142,6 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* デバッグ情報 */}
-        <div className="mb-4 p-2 bg-red-900 text-white text-xs">
-          Debug: userInfo = {JSON.stringify(userInfo)}
-        </div>
-
         {/* メインアプリケーション */}
         {userInfo && (
           <div>
@@ -346,7 +313,10 @@ export default function Home() {
               />
               <div className="flex space-x-2">
                 <button
-                  onClick={() => setShowUploadModal(false)}
+                  onClick={() => {
+                    alert('アップロード機能は開発中です。');
+                    setShowUploadModal(false);
+                  }}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   アップロード
@@ -378,7 +348,10 @@ export default function Home() {
               />
               <div className="flex space-x-2">
                 <button
-                  onClick={() => setShowBatchUploadModal(false)}
+                  onClick={() => {
+                    alert('一括アップロード機能は開発中です。');
+                    setShowBatchUploadModal(false);
+                  }}
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
                   一括アップロード
@@ -430,7 +403,10 @@ export default function Home() {
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => setShowDataInputModal(false)}
+                  onClick={() => {
+                    alert('データ入力機能は開発中です。');
+                    setShowDataInputModal(false);
+                  }}
                   className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   保存
@@ -487,7 +463,10 @@ export default function Home() {
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => setShowOptimizerModal(false)}
+                  onClick={() => {
+                    alert('予算最適化機能は開発中です。');
+                    setShowOptimizerModal(false);
+                  }}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   最適化実行
