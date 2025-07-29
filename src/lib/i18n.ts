@@ -205,18 +205,8 @@ export interface Translations {
     houseAllowance: string;
   };
 
-  // 部署
-  departments: {
-    msd: string;
-    dxd: string;
-    isd: string;
-    ssd: string;
-    opd: string;
-    fin: string;
-    ia: string;
-    eo: string;
-    hdopd: string;
-  };
+  
+  
 
   // 適格区分
   qualifications: {
