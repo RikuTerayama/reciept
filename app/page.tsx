@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
 // 静的生成を完全に無効化
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
+
+// React hooks
+const { useState, useEffect } = require('react');
 
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
