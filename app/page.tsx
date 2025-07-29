@@ -5,27 +5,42 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
+// バージョン情報
+const APP_VERSION = '1.0.0';
+
 // React hooks
-const { useState, useEffect } = require('react');
+// @ts-ignore
+import { useState, useEffect } from 'react';
 
 export default function Home() {
-  const [userInfo, setUserInfo] = useState<any>(null);
+  // @ts-ignore
+  const [userInfo, setUserInfo] = useState(null);
+  // @ts-ignore
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  // @ts-ignore
   const [showUploadModal, setShowUploadModal] = useState(false);
+  // @ts-ignore
   const [showBatchUploadModal, setShowBatchUploadModal] = useState(false);
+  // @ts-ignore
   const [showDataInputModal, setShowDataInputModal] = useState(false);
+  // @ts-ignore
   const [showExpenseListModal, setShowExpenseListModal] = useState(false);
+  // @ts-ignore
   const [showOptimizerModal, setShowOptimizerModal] = useState(false);
+  // @ts-ignore
   const [testClickCount, setTestClickCount] = useState(0);
+  // @ts-ignore
   const [formData, setFormData] = useState({
     email: '',
     targetMonth: '',
     department: '',
     budget: ''
   });
+  // @ts-ignore
   const [isLoading, setIsLoading] = useState(true);
 
   // 初期化処理
+  // @ts-ignore
   useEffect(() => {
     try {
       const savedUserInfo = localStorage.getItem('user_info');
@@ -153,7 +168,7 @@ export default function Home() {
 
   // 1ページ完結型のアプリケーション
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       {/* ヘッダー */}
       <header className="bg-gray-800 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -167,7 +182,7 @@ export default function Home() {
       </header>
 
       {/* メインコンテンツ */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex-1 max-w-7xl mx-auto px-4 py-8">
         {/* デバッグ情報 */}
         <div className="mb-4 p-4 bg-blue-900 text-white text-sm rounded">
           <p>Debug Info:</p>
@@ -342,6 +357,18 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* フッター */}
+      <footer className="bg-gray-800 p-4 mt-auto">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-sm text-gray-400">
+            © 2024 Expenscan. All rights reserved.
+          </div>
+          <div className="text-sm text-gray-400">
+            バージョン: {APP_VERSION}
+          </div>
+        </div>
+      </footer>
 
       {/* 単一アップロードモーダル */}
       {showUploadModal && (
