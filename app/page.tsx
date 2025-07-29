@@ -10,6 +10,12 @@ export const fetchCache = 'force-no-store';
 export default function Home() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    targetMonth: '',
+    department: '',
+    budget: ''
+  });
 
   // 初期化処理
   useEffect(() => {
@@ -34,10 +40,50 @@ export default function Home() {
     setShowSettingsModal(false);
   };
 
-  // URLパラメータをクリアする関数
-  const clearUrlParameters = () => {
-    if (typeof window !== 'undefined') {
-      window.history.replaceState({}, document.title, window.location.pathname);
+  // フォームデータの更新
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // 設定保存ボタンクリック
+  const handleSaveSettings = () => {
+    console.log('Save settings clicked');
+    console.log('Form data:', formData);
+    
+    // バリデーション
+    if (!formData.email || !formData.targetMonth || !formData.department || !formData.budget || Number(formData.budget) <= 0) {
+      alert('すべての項目を正しく入力してください。');
+      return;
+    }
+    
+    const userData = {
+      email: formData.email,
+      targetMonth: formData.targetMonth,
+      department: formData.department,
+      budget: Number(formData.budget)
+    };
+    
+    try {
+      console.log('Saving user data:', userData);
+      
+      // localStorageに保存
+      localStorage.setItem('user_info', JSON.stringify(userData));
+      
+      // 状態を更新
+      setUserInfo(userData);
+      
+      // 成功メッセージ
+      alert('設定が保存されました。メイン画面に移行します。');
+      
+      console.log('Settings saved successfully');
+      
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('設定の保存中にエラーが発生しました。');
     }
   };
 
@@ -68,97 +114,63 @@ export default function Home() {
             
             <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-2xl font-semibold mb-4">初期設定</h3>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                console.log('Form submitted');
-                
-                const formData = new FormData(e.currentTarget);
-                const userData = {
-                  email: formData.get('email') as string,
-                  targetMonth: formData.get('targetMonth') as string,
-                  department: formData.get('department') as string,
-                  budget: Number(formData.get('budget'))
-                };
-                
-                console.log('Form data:', userData);
-                
-                // バリデーション
-                if (!userData.email || !userData.targetMonth || !userData.department || userData.budget <= 0) {
-                  alert('すべての項目を正しく入力してください。');
-                  return;
-                }
-                
-                try {
-                  // localStorageに保存
-                  localStorage.setItem('user_info', JSON.stringify(userData));
-                  
-                  // 状態を更新
-                  setUserInfo(userData);
-                  
-                  // URLパラメータをクリア
-                  clearUrlParameters();
-                  
-                  // 成功メッセージ
-                  alert('設定が保存されました。メイン画面に移行します。');
-                  
-                  // 強制的に再レンダリング
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 100);
-                  
-                } catch (error) {
-                  console.error('Error saving data:', error);
-                  alert('設定の保存中にエラーが発生しました。');
-                }
-              }}>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">メールアドレス</label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                      placeholder="example@company.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">対象月</label>
-                    <input
-                      type="month"
-                      name="targetMonth"
-                      required
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">部署</label>
-                    <input
-                      type="text"
-                      name="department"
-                      required
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                      placeholder="営業部"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">予算</label>
-                    <input
-                      type="number"
-                      name="budget"
-                      required
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                      placeholder="100000"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    設定を保存
-                  </button>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">メールアドレス</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                    placeholder="example@company.com"
+                  />
                 </div>
-              </form>
+                <div>
+                  <label className="block text-sm font-medium mb-2">対象月</label>
+                  <input
+                    type="month"
+                    name="targetMonth"
+                    value={formData.targetMonth}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">部署</label>
+                  <input
+                    type="text"
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                    placeholder="営業部"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">予算</label>
+                  <input
+                    type="number"
+                    name="budget"
+                    value={formData.budget}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                    placeholder="100000"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  設定を保存
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -220,7 +232,12 @@ export default function Home() {
                   onClick={() => {
                     localStorage.removeItem('user_info');
                     setUserInfo(null);
-                    clearUrlParameters();
+                    setFormData({
+                      email: '',
+                      targetMonth: '',
+                      department: '',
+                      budget: ''
+                    });
                   }}
                   className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
