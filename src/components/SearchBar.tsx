@@ -4,21 +4,25 @@ import React, { useState, useCallback } from 'react';
 import { Search, X, Filter } from 'lucide-react';
 
 export interface SearchFilters {
-  query: string;
-  dateFrom?: string;
-  dateTo?: string;
-  amountMin?: number;
-  amountMax?: number;
+  searchTerm: string;
   category?: string;
-  department?: string;
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  amountRange?: {
+    min: number;
+    max: number;
+  };
+  isQualified?: string;
 }
 
 interface SearchBarProps {
-  onSearch: (filters: SearchFilters) => void;
-  onClear: () => void;
+  filters: SearchFilters;
+  onFiltersChange: (filters: SearchFilters) => void;
   categories: string[];
-  departments: string[];
-  className?: string;
+  onSearch: () => void;
+  onReset: () => void;
 }
 
 export default function SearchBar({ 
