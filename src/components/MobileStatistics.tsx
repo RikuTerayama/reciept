@@ -7,13 +7,12 @@ import { ExpenseData } from '@/types';
 interface UserInfo {
   email: string;
   targetMonth: string;
-  department: string;
   budget: number;
 }
 
 interface MobileStatisticsProps {
-  expenses: ExpenseData[];
   userInfo: UserInfo;
+  expenses: any[];
 }
 
 export default function MobileStatistics({ expenses, userInfo }: MobileStatisticsProps) {
