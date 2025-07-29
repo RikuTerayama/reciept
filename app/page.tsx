@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 // 静的生成を完全に無効化
 export const dynamic = 'force-dynamic';
@@ -49,7 +49,7 @@ export default function Home() {
   };
 
   // フォームデータの更新
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
