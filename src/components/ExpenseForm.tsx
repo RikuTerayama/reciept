@@ -1,153 +1,76 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, ArrowLeft, Calculator, AlertCircle, CheckCircle, DollarSign, Calendar, Percent, Building, FileText, User, Users } from 'lucide-react';
-import { useExpenseStore } from '@/lib/store';
-import { CURRENCIES, EXPENSE_CATEGORIES, TAX_RATES, DEPARTMENTS, QUALIFICATION_TYPES, ExpenseData } from '@/types';
+import { Calendar, DollarSign, Tag, FileText, Save, X } from 'lucide-react';
+import { CURRENCIES, EXPENSE_CATEGORIES, TAX_RATES, QUALIFICATION_TYPES, ExpenseData } from '@/types';
 
-interface UserInfo {
-  email: string;
-  targetMonth: string;
-  department: string;
-  budget: number;
+interface ExpenseFormData {
+  date: string;
+  totalAmount: number;
+  currency: string;
+  category: string;
+  description: string;
+  participantFromClient: string;
+  participantFromCompany: string;
+  taxRate: number;
+  isQualified: string;
 }
 
 interface ExpenseFormProps {
-  onComplete?: () => void;
+  expense?: ExpenseData;
+  onSave: (expense: ExpenseData) => void;
+  onCancel: () => void;
 }
 
-export default function ExpenseForm({ onComplete }: ExpenseFormProps) {
-  const { ocrResult, addExpense, setOCRResult } = useExpenseStore();
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  
-  const [formData, setFormData] = useState<Partial<ExpenseData>>({
+export default function ExpenseForm({ expense, onSave, onCancel }: ExpenseFormProps) {
+  const [formData, setFormData] = useState<ExpenseFormData>({
     date: '',
     totalAmount: 0,
-    taxRate: 10,
     currency: 'JPY',
     category: '',
-    department: '',
-    isQualified: 'Not Qualified',
-    ocrText: '',
     description: '',
     participantFromClient: '',
-    participantFromCompany: ''
+    participantFromCompany: '',
+    taxRate: 10,
+    isQualified: 'Qualified invoice/receipt'
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
+  const [errors, setErrors] = useState<Partial<ExpenseFormData>>({});
 
-  // ユーザー情報を読み込み
   useEffect(() => {
-    const savedUserInfo = localStorage.getItem('user_info');
-    if (savedUserInfo) {
-      try {
-        const parsed = JSON.parse(savedUserInfo);
-        setUserInfo(parsed);
-        // ユーザー設定から通貨と組織を設定
-        setFormData(prev => ({
-          ...prev,
-          currency: 'JPY', // デフォルトはJPY
-          department: parsed.department
-        }));
-      } catch (error) {
-        console.error('Failed to parse saved user info:', error);
-      }
+    if (expense) {
+      const parsed = JSON.parse(JSON.stringify(expense));
+      setFormData({
+        date: parsed.date,
+        totalAmount: parsed.totalAmount,
+        currency: parsed.currency,
+        category: parsed.category,
+        description: parsed.description || '',
+        participantFromClient: parsed.participantFromClient || '',
+        participantFromCompany: parsed.participantFromCompany || '',
+        taxRate: parsed.taxRate,
+        isQualified: parsed.isQualified
+      });
     }
-  }, []);
+  }, [expense]);
 
-  // OCR結果がある場合、フォームに自動入力
-  useEffect(() => {
-    if (ocrResult) {
-      setFormData(prev => ({
-        ...prev,
-        date: ocrResult.date || '',
-        totalAmount: ocrResult.totalAmount || 0,
-        taxRate: ocrResult.taxRate || 10,
-        isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
-        ocrText: ocrResult.text
-      }));
-    }
-  }, [ocrResult]);
-
-  // 金額の自動計算
-  const calculateTotal = (baseAmount: number, taxRate: number): number => {
-    return Math.round(baseAmount * (1 + taxRate / 100));
-  };
-
-  // 税抜き金額から税込み金額を計算
-  const calculateTotalFromBase = (baseAmount: number, taxRate: number): number => {
-    return calculateTotal(baseAmount, taxRate);
-  };
-
-  // 税込み金額から税抜き金額を計算
-  const calculateBaseFromTotal = (totalAmount: number, taxRate: number): number => {
-    return Math.round(totalAmount / (1 + taxRate / 100));
-  };
-
-  // 金額フィールドの変更処理
-  const handleAmountChange = (field: 'baseAmount' | 'totalAmount', value: string) => {
-    // 先頭のゼロを削除
-    const cleanValue = value.replace(/^0+/, '') || '0';
-    const numValue = parseFloat(cleanValue) || 0;
-    const taxRate = formData.taxRate || 10;
-    
-    setIsCalculating(true);
-    
-    if (field === 'baseAmount') {
-      const total = calculateTotalFromBase(numValue, taxRate);
-      setFormData(prev => ({
-        ...prev,
-        totalAmount: total
-      }));
-    } else {
-      const base = calculateBaseFromTotal(numValue, taxRate);
-      setFormData(prev => ({
-        ...prev,
-        totalAmount: numValue
-      }));
-    }
-    
-    // 計算完了のアニメーション
-    setTimeout(() => setIsCalculating(false), 300);
-  };
-
-  // 税率変更時の自動再計算
-  const handleTaxRateChange = (taxRate: number) => {
-    const currentTotal = formData.totalAmount || 0;
-    const baseAmount = calculateBaseFromTotal(currentTotal, formData.taxRate || 10);
-    const newTotal = calculateTotalFromBase(baseAmount, taxRate);
-    
-    setFormData(prev => ({
-      ...prev,
-      taxRate,
-      totalAmount: newTotal
-    }));
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+  const validateForm = () => {
+    const newErrors: Partial<ExpenseFormData> = {};
 
     if (!formData.date) {
       newErrors.date = '日付は必須です';
-    } else {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateRegex.test(formData.date)) {
-        newErrors.date = '日付はYYYY-MM-DD形式で入力してください';
-      }
     }
 
     if (!formData.totalAmount || formData.totalAmount <= 0) {
-      newErrors.totalAmount = '合計金額は0より大きい値を入力してください';
+      newErrors.totalAmount = '金額は0より大きい値を入力してください';
     }
 
     if (!formData.category) {
-      newErrors.category = '経費カテゴリは必須です';
+      newErrors.category = 'カテゴリは必須です';
     }
 
-    if (!formData.department) {
-      newErrors.department = '所属組織は必須です';
+    if (!formData.currency) {
+      newErrors.currency = '通貨は必須です';
     }
 
     setErrors(newErrors);
@@ -156,380 +79,228 @@ export default function ExpenseForm({ onComplete }: ExpenseFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
+    if (validateForm()) {
+      const expenseData: ExpenseData = {
+        id: expense?.id || Date.now().toString(),
+        date: formData.date,
+        totalAmount: formData.totalAmount,
+        currency: formData.currency,
+        category: formData.category,
+        description: formData.description,
+        participantFromClient: formData.participantFromClient,
+        participantFromCompany: formData.participantFromCompany,
+        taxRate: formData.taxRate,
+        isQualified: formData.isQualified,
+        createdAt: expense?.createdAt || new Date()
+      };
+      onSave(expenseData);
     }
-
-    const newExpense: ExpenseData = {
-      id: Date.now().toString(),
-      date: formData.date!,
-      totalAmount: formData.totalAmount!,
-      taxRate: formData.taxRate!,
-      currency: formData.currency!,
-      category: formData.category!,
-      department: formData.department!,
-      isQualified: formData.isQualified!,
-      ocrText: formData.ocrText,
-      description: formData.description || '',
-      participantFromClient: formData.participantFromClient || '',
-      participantFromCompany: formData.participantFromCompany || '',
-      createdAt: new Date()
-    };
-
-    addExpense(newExpense);
-    setSuccess('経費データが正常に保存されました！');
-    
-    // フォームをリセット
-    setFormData({
-      date: '',
-      totalAmount: 0,
-      taxRate: 10,
-      currency: 'JPY',
-        category: '',
-        department: '',
-        isQualified: 'Not Qualified',
-        ocrText: '',
-        description: '',
-        participantFromClient: '',
-        participantFromCompany: ''
-    });
-    
-    // OCR結果をクリア
-    setOCRResult(null);
-    
-    // onCompleteコールバックを呼び出し
-    if (onComplete) {
-      onComplete();
-    }
-    
-    // 成功メッセージを3秒後にクリア
-    setTimeout(() => setSuccess(null), 3000);
   };
 
-  const baseAmount = calculateBaseFromTotal(formData.totalAmount || 0, formData.taxRate || 10);
+  const handleInputChange = (field: keyof ExpenseFormData, value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // エラーをクリア
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: undefined
+      }));
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* 成功メッセージ */}
-      {success && (
-        <div className="card border-green-500/30 bg-green-900/20 animate-fade-in">
-          <div className="card-body">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-400" />
-              <div>
-                <h3 className="font-semibold text-green-300">保存完了</h3>
-                <p className="text-green-200">{success}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* OCR結果表示 */}
-      {ocrResult && (
-        <div className="card border-blue-500/30 bg-blue-900/20">
-          <div className="card-header">
-            <div className="flex items-center space-x-3">
-              <FileText className="w-6 h-6 text-blue-400" />
-              <h3 className="text-lg font-semibold text-blue-300">OCR抽出結果</h3>
-            </div>
-          </div>
-          <div className="card-body">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-blue-300">抽出テキスト:</span>
-                <div className="mt-2 p-3 bg-gray-800/80 rounded-lg border border-gray-600/50 text-gray-200 max-h-32 overflow-y-auto">
-                  {ocrResult.text}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div><span className="font-medium text-blue-300">抽出日付:</span> {ocrResult.date || '未検出'}</div>
-                <div><span className="font-medium text-blue-300">抽出金額:</span> ¥{ocrResult.totalAmount?.toLocaleString() || '未検出'}</div>
-                <div><span className="font-medium text-blue-300">適格判定:</span> {ocrResult.isQualified ? '適格' : '非適格'}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* メインフォーム */}
-      <form onSubmit={handleSubmit} className="card animate-slide-in">
-        <div className="card-header">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-              <Save className="w-6 h-6 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-white">経費データ入力</h2>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {expense ? '経費を編集' : '新しい経費を追加'}
+          </h2>
+          <button
+            onClick={onCancel}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <div className="card-body space-y-8">
-          {/* 基本情報 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* 日付 */}
-            <div className="form-group">
-              <label className="form-label">
-                <Calendar className="w-4 h-4" />
-                日付 <span className="text-red-400">*</span>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="inline w-4 h-4 mr-1" />
+                日付 <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                className={`form-input ${errors.date ? 'error' : ''}`}
-                required
+                onChange={(e) => handleInputChange('date', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.date ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
-              {errors.date && <p className="form-error">{errors.date}</p>}
+              {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
             </div>
 
-            {/* 通貨（固定表示） */}
-            <div className="form-group">
-              <label className="form-label">
-                <DollarSign className="w-4 h-4" />
-                通貨
+            {/* 金額 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <DollarSign className="inline w-4 h-4 mr-1" />
+                金額 <span className="text-red-500">*</span>
               </label>
-              <div className="form-input bg-gray-700/50 text-gray-300 cursor-not-allowed">
-                {formData.currency}
-              </div>
-              <p className="text-xs text-gray-400 mt-1">ユーザー設定から自動設定されます</p>
+              <input
+                type="number"
+                value={formData.totalAmount}
+                onChange={(e) => handleInputChange('totalAmount', Number(e.target.value))}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.totalAmount ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="1000"
+                min="0"
+                step="1"
+              />
+              {errors.totalAmount && <p className="text-red-500 text-sm mt-1">{errors.totalAmount}</p>}
             </div>
-          </div>
 
-          {/* 金額計算セクション */}
-          <div className="card border-primary-500/30 bg-primary-900/20">
-            <div className="card-header">
-              <div className="flex items-center space-x-3">
-                <Calculator className="w-6 h-6 text-primary-400" />
-                <h3 className="text-lg font-semibold text-primary-300">金額計算</h3>
-                {isCalculating && (
-                  <div className="flex items-center space-x-2 text-primary-400">
-                    <div className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-sm">計算中...</span>
-                  </div>
-                )}
-              </div>
+            {/* 通貨 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                通貨 <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.currency}
+                onChange={(e) => handleInputChange('currency', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.currency ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                {CURRENCIES.map(currency => (
+                  <option key={currency} value={currency}>{currency}</option>
+                ))}
+              </select>
+              {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
             </div>
-            <div className="card-body">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* 税抜き金額 */}
-                <div className="form-group">
-                  <label className="form-label">税抜き金額</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={baseAmount}
-                      onChange={(e) => handleAmountChange('baseAmount', e.target.value)}
-                      className="form-input pr-12"
-                      min="0"
-                      step="1"
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      {formData.currency}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">税抜き金額を入力すると自動計算されます</p>
-                </div>
 
-                {/* 税率 */}
-                <div className="form-group">
-                  <label className="form-label">
-                    <Percent className="w-4 h-4" />
-                    税率
-                  </label>
-                  <select
-                    value={formData.taxRate}
-                    onChange={(e) => handleTaxRateChange(Number(e.target.value))}
-                    className="form-select"
-                  >
-                    {TAX_RATES.map(rate => (
-                      <option key={rate} value={rate}>{rate}%</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 合計金額（税込み） */}
-                <div className="form-group">
-                  <label className="form-label">
-                    <DollarSign className="w-4 h-4" />
-                    合計金額（税込み）<span className="text-red-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={formData.totalAmount}
-                      onChange={(e) => handleAmountChange('totalAmount', e.target.value)}
-                      className={`form-input pr-12 ${errors.totalAmount ? 'error' : ''}`}
-                      min="0"
-                      step="1"
-                      required
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                      {formData.currency}
-                    </span>
-                  </div>
-                  {errors.totalAmount && <p className="form-error">{errors.totalAmount}</p>}
-                  <p className="text-xs text-gray-400 mt-1">税込み金額を直接入力することも可能です</p>
-                </div>
-              </div>
-
-              {/* 計算結果表示 */}
-              <div className="mt-4 p-4 bg-gray-800/80 rounded-lg border border-gray-600/50">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-300">税抜き金額:</span>
-                    <span className="ml-2 font-semibold text-white">
-                      {formData.currency} {baseAmount.toLocaleString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-300">消費税:</span>
-                    <span className="ml-2 font-semibold text-white">
-                      {formData.currency} {((formData.totalAmount || 0) - baseAmount).toLocaleString()} ({formData.taxRate}%)
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 分類情報 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 経費カテゴリ */}
-            <div className="form-group">
-              <label className="form-label">
-                <FileText className="w-4 h-4" />
-                経費カテゴリ <span className="text-red-400">*</span>
+            {/* カテゴリ */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Tag className="inline w-4 h-4 mr-1" />
+                カテゴリ <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                className={`form-select ${errors.category ? 'error' : ''}`}
-                required
+                onChange={(e) => handleInputChange('category', e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.category ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
-                <option value="">カテゴリを選択してください</option>
+                <option value="">カテゴリを選択</option>
                 {EXPENSE_CATEGORIES.map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
               </select>
-              {errors.category && <p className="form-error">{errors.category}</p>}
+              {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
             </div>
 
-            {/* 所属組織（固定表示） */}
-            <div className="form-group">
-              <label className="form-label">
-                <Building className="w-4 h-4" />
-                所属組織
+            {/* 税率 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                税率 (%)
               </label>
-              <div className="form-input bg-gray-700/50 text-gray-300 cursor-not-allowed">
-                {formData.department || '未設定'}
-              </div>
-              <p className="text-xs text-gray-400 mt-1">ユーザー設定から自動設定されます</p>
+              <select
+                value={formData.taxRate}
+                onChange={(e) => handleInputChange('taxRate', Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {TAX_RATES.map(rate => (
+                  <option key={rate} value={rate}>{rate}%</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 適格性 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                適格性
+              </label>
+              <select
+                value={formData.isQualified}
+                onChange={(e) => handleInputChange('isQualified', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {QUALIFICATION_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* 適格性 */}
-          <div className="form-group">
-            <label className="form-label">
-              <AlertCircle className="w-4 h-4" />
-              適格／非適格区分
+          {/* 説明 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <FileText className="inline w-4 h-4 mr-1" />
+              説明
             </label>
-            <select
-              value={formData.isQualified}
-              onChange={(e) => setFormData(prev => ({ ...prev, isQualified: e.target.value }))}
-              className="form-select"
-            >
-              {QUALIFICATION_TYPES.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-1">
-              登録番号またはT+13桁数字がある場合は適格請求書として判定されます
-            </p>
+            <textarea
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+              placeholder="経費の詳細説明を入力してください"
+            />
           </div>
 
-          {/* 追加情報 */}
-          <div className="space-y-6">
-            {/* Description */}
-            <div className="form-group">
-              <label className="form-label">
-                <FileText className="w-4 h-4" />
-                説明 (Description)
+          {/* 参加者情報 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                クライアント側参加者
               </label>
-              <textarea
-                value={formData.description || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="form-input min-h-[100px] resize-y"
-                placeholder="経費の詳細な説明を入力してください..."
-                rows={4}
+              <input
+                type="text"
+                value={formData.participantFromClient}
+                onChange={(e) => handleInputChange('participantFromClient', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="参加者名を入力"
               />
-              <p className="text-xs text-gray-400 mt-1">
-                Excelエクスポート時に含まれる説明文です
-              </p>
             </div>
 
-            {/* 参加者情報 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Participant from Client */}
-              <div className="form-group">
-                <label className="form-label">
-                  <User className="w-4 h-4" />
-                  # Participant from Client
-                </label>
-                <input
-                  type="text"
-                  value={formData.participantFromClient || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, participantFromClient: e.target.value }))}
-                  className="form-input"
-                  placeholder="クライアント側の参加者名を入力..."
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  クライアント側の参加者情報
-                </p>
-              </div>
-
-              {/* Participant from Company */}
-              <div className="form-group">
-                <label className="form-label">
-                  <Users className="w-4 h-4" />
-                  # Participant from Company
-                </label>
-                <input
-                  type="text"
-                  value={formData.participantFromCompany || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, participantFromCompany: e.target.value }))}
-                  className="form-input"
-                  placeholder="会社側の参加者名を入力..."
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  会社側の参加者情報
-                </p>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                会社側参加者
+              </label>
+              <input
+                type="text"
+                value={formData.participantFromCompany}
+                onChange={(e) => handleInputChange('participantFromCompany', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="参加者名を入力"
+              />
             </div>
           </div>
-        </div>
 
-        {/* フォームアクション */}
-        <div className="card-footer">
-          <div className="flex justify-between items-center">
+          {/* ボタン */}
+          <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
-              onClick={() => window.history.back()}
-              className="btn-secondary flex items-center space-x-2"
+              onClick={onCancel}
+              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>戻る</span>
+              キャンセル
             </button>
             <button
               type="submit"
-              className="btn-primary flex items-center space-x-2"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
             >
-              <Save className="w-4 h-4" />
-              <span>保存</span>
+              <Save className="w-4 h-4 mr-2" />
+              {expense ? '更新' : '保存'}
             </button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 } 
