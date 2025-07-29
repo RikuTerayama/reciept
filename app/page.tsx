@@ -15,6 +15,7 @@ export default function Home() {
   const [showDataInputModal, setShowDataInputModal] = useState(false);
   const [showExpenseListModal, setShowExpenseListModal] = useState(false);
   const [showOptimizerModal, setShowOptimizerModal] = useState(false);
+  const [testClickCount, setTestClickCount] = useState(0);
   const [formData, setFormData] = useState({
     email: '',
     targetMonth: '',
@@ -27,9 +28,11 @@ export default function Home() {
   useEffect(() => {
     try {
       const savedUserInfo = localStorage.getItem('user_info');
+      console.log('Loading user info:', savedUserInfo);
       if (savedUserInfo) {
         const parsed = JSON.parse(savedUserInfo);
         setUserInfo(parsed);
+        console.log('User info loaded:', parsed);
       }
     } catch (error) {
       console.error('Failed to parse saved user info:', error);
@@ -39,6 +42,7 @@ export default function Home() {
   }, []);
 
   const handleSettingsSave = (userData: any) => {
+    console.log('Saving settings:', userData);
     localStorage.setItem('user_info', JSON.stringify(userData));
     setUserInfo(userData);
     setShowSettingsModal(false);
@@ -55,6 +59,7 @@ export default function Home() {
 
   // 設定保存ボタンクリック
   const handleSaveSettings = () => {
+    console.log('Save settings clicked');
     // バリデーション
     if (!formData.email || !formData.targetMonth || !formData.department || !formData.budget || Number(formData.budget) <= 0) {
       alert('すべての項目を正しく入力してください。');
@@ -86,26 +91,32 @@ export default function Home() {
 
   // ボタンクリックハンドラー
   const handleSingleUpload = () => {
+    console.log('Single upload clicked');
     setShowUploadModal(true);
   };
 
   const handleBatchUpload = () => {
+    console.log('Batch upload clicked');
     setShowBatchUploadModal(true);
   };
 
   const handleDataInput = () => {
+    console.log('Data input clicked');
     setShowDataInputModal(true);
   };
 
   const handleExpenseList = () => {
+    console.log('Expense list clicked');
     setShowExpenseListModal(true);
   };
 
   const handleOptimizer = () => {
+    console.log('Optimizer clicked');
     setShowOptimizerModal(true);
   };
 
   const handleReset = () => {
+    console.log('Reset clicked');
     if (confirm('すべてのデータをリセットしますか？この操作は元に戻せません。')) {
       localStorage.removeItem('user_info');
       localStorage.removeItem('expenses');
@@ -120,9 +131,23 @@ export default function Home() {
     }
   };
 
+  // テストボタンクリックハンドラー
+  const handleTestClick = () => {
+    console.log('Test button clicked');
+    setTestClickCount(prev => prev + 1);
+    alert(`テストボタンがクリックされました！回数: ${testClickCount + 1}`);
+  };
+
   // ローディング中は何も表示しない
   if (isLoading) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
+          <p>読み込み中...</p>
+        </div>
+      </div>
+    );
   }
 
   // 1ページ完結型のアプリケーション
@@ -142,6 +167,24 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* デバッグ情報 */}
+        <div className="mb-4 p-4 bg-blue-900 text-white text-sm rounded">
+          <p>Debug Info:</p>
+          <p>userInfo: {JSON.stringify(userInfo)}</p>
+          <p>Test clicks: {testClickCount}</p>
+          <p>Modals: Upload={showUploadModal}, Batch={showBatchUploadModal}, Data={showDataInputModal}, List={showExpenseListModal}, Optimizer={showOptimizerModal}</p>
+        </div>
+
+        {/* テストボタン */}
+        <div className="mb-4 p-4 bg-green-900 text-white rounded">
+          <button 
+            onClick={handleTestClick}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            テストボタン (クリック回数: {testClickCount})
+          </button>
+        </div>
+
         {/* メインアプリケーション */}
         {userInfo && (
           <div>
