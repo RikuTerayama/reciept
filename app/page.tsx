@@ -33,7 +33,6 @@ export default function Home() {
   const [formData, setFormData] = useState({
     email: '',
     targetMonth: '',
-    department: '',
     budget: ''
   });
   // @ts-ignore
@@ -77,7 +76,7 @@ export default function Home() {
   const handleSaveSettings = () => {
     console.log('Save settings clicked');
     // バリデーション
-    if (!formData.email || !formData.targetMonth || !formData.department || !formData.budget || Number(formData.budget) <= 0) {
+    if (!formData.email || !formData.targetMonth || !formData.budget || Number(formData.budget) <= 0) {
       alert('すべての項目を正しく入力してください。');
       return;
     }
@@ -85,7 +84,6 @@ export default function Home() {
     const userData = {
       email: formData.email,
       targetMonth: formData.targetMonth,
-      department: formData.department,
       budget: Number(formData.budget)
     };
     
@@ -140,7 +138,6 @@ export default function Home() {
       setFormData({
         email: '',
         targetMonth: '',
-        department: '',
         budget: ''
       });
       alert('データがリセットされました。');
@@ -175,7 +172,7 @@ export default function Home() {
           <h1 className="text-2xl font-bold">Expenscan</h1>
           {userInfo && (
             <div className="text-sm text-gray-300">
-              ユーザー: {userInfo.email} | 部署: {userInfo.department} | 予算: ¥{userInfo.budget.toLocaleString()}
+              ユーザー: {userInfo.email} | 予算: ¥{userInfo.budget.toLocaleString()}
             </div>
           )}
         </div>
@@ -319,18 +316,6 @@ export default function Home() {
                     onChange={handleInputChange}
                     required
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">部署</label>
-                  <input
-                    type="text"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                    placeholder="営業部"
                   />
                 </div>
                 <div>
@@ -565,11 +550,10 @@ export default function Home() {
               const userData = {
                 email: formData.get('email') as string,
                 targetMonth: formData.get('targetMonth') as string,
-                department: formData.get('department') as string,
                 budget: Number(formData.get('budget'))
               };
               
-              if (!userData.email || !userData.targetMonth || !userData.department || userData.budget <= 0) {
+              if (!userData.email || !userData.targetMonth || userData.budget <= 0) {
                 alert('すべての項目を正しく入力してください。');
                 return;
               }
@@ -596,17 +580,6 @@ export default function Home() {
                     defaultValue={userInfo.targetMonth}
                     required
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">部署</label>
-                  <input
-                    type="text"
-                    name="department"
-                    defaultValue={userInfo.department}
-                    required
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                    placeholder="営業部"
                   />
                 </div>
                 <div>
