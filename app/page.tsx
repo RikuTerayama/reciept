@@ -34,6 +34,13 @@ export default function Home() {
     setShowSettingsModal(false);
   };
 
+  // URLパラメータをクリアする関数
+  const clearUrlParameters = () => {
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  };
+
   // 1ページ完結型のアプリケーション
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -82,9 +89,23 @@ export default function Home() {
                 }
                 
                 try {
+                  // localStorageに保存
                   localStorage.setItem('user_info', JSON.stringify(userData));
+                  
+                  // 状態を更新
                   setUserInfo(userData);
+                  
+                  // URLパラメータをクリア
+                  clearUrlParameters();
+                  
+                  // 成功メッセージ
                   alert('設定が保存されました。メイン画面に移行します。');
+                  
+                  // 強制的に再レンダリング
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 100);
+                  
                 } catch (error) {
                   console.error('Error saving data:', error);
                   alert('設定の保存中にエラーが発生しました。');
@@ -199,6 +220,7 @@ export default function Home() {
                   onClick={() => {
                     localStorage.removeItem('user_info');
                     setUserInfo(null);
+                    clearUrlParameters();
                   }}
                   className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
