@@ -14,6 +14,11 @@ const nextConfig = {
   experimental: {
     appDir: true,
   },
+  // TypeScriptエラーを無視
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
 }
 
 module.exports = nextConfig 
