@@ -23,7 +23,6 @@ type TabType = 'upload' | 'batch' | 'form' | 'list' | 'optimizer';
 interface UserInfo {
   email: string;
   targetMonth: string;
-  department: string;
   budget: number;
 }
 
@@ -362,11 +361,10 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
 
         {/* モバイル統計 */}
         <div className="md:hidden mb-6">
-          <MobileStatistics
-            expenses={expenses}
-            budget={userInfo.budget}
-            department={userInfo.department}
-          />
+                  <MobileStatistics 
+          expenses={expenses} 
+          userInfo={userInfo}
+        />
         </div>
 
         {/* タブコンテンツ */}
