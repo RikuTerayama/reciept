@@ -145,12 +145,20 @@ export default function ExpenseList() {
                     </div>
                   </td>
                   <td className="text-center">
-                    <div className="flex items-center justify-center space-x-2">
-                      <DollarSign className="w-4 h-4 text-green-500" />
-                      <span className="font-medium">
-                        ¥{expense.totalAmount.toLocaleString()}
-                      </span>
-                      <span className="text-xs text-gray-500">{expense.currency}</span>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-lg">{expense.category}</h3>
+                        <p className="text-gray-600 text-sm">{expense.date}</p>
+                        {expense.description && (
+                          <p className="text-gray-700 mt-1">{expense.description}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-bold text-green-600">
+                          ¥{expense.totalAmount.toLocaleString()}
+                        </span>
+                        <p className="text-sm text-gray-500">{expense.currency}</p>
+                      </div>
                     </div>
                   </td>
                   <td className="text-center">
@@ -159,12 +167,7 @@ export default function ExpenseList() {
                       <span className="text-sm">{expense.category}</span>
                     </div>
                   </td>
-                  <td className="text-center">
-                    <div className="flex items-center justify-center space-x-2">
-                      <Building className="w-4 h-4 text-purple-500" />
-                      <span className="text-sm">{expense.department}</span>
-                    </div>
-                  </td>
+
                   <td className="text-center">
                     <div className="max-w-xs">
                       <span className="text-sm text-gray-300">
