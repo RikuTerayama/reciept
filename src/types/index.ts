@@ -5,13 +5,16 @@ export interface ExpenseData {
   taxRate: number;
   currency: string;
   category: string;
+  description?: string;
+  rechargedToClient?: boolean;
+  gstVatApplicable?: boolean;
+  companyName?: string;
+  participantFromClient?: number;
+  participantFromCompany?: number;
   isQualified: string;
-  description?: string; // 説明
-  participantFromClient?: string; // クライアント側参加者
-  participantFromCompany?: string; // 会社側参加者
+  receiptNumber?: string;
   imageUrl?: string;
-  imageData?: string; // Base64画像データ
-  receiptNumber?: string; // レシート番号
+  imageData?: string;
   ocrText?: string;
   createdAt: Date;
 }
