@@ -11,6 +11,10 @@ const APP_VERSION = '1.0.0';
 // React hooks
 // @ts-ignore
 import { useState, useEffect } from 'react';
+// @ts-ignore
+import { getCurrentLanguage, t } from '@/lib/i18n';
+// @ts-ignore
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Home() {
   // @ts-ignore
@@ -28,8 +32,6 @@ export default function Home() {
   // @ts-ignore
   const [showOptimizerModal, setShowOptimizerModal] = useState(false);
   // @ts-ignore
-  const [testClickCount, setTestClickCount] = useState(0);
-  // @ts-ignore
   const [formData, setFormData] = useState({
     email: '',
     targetMonth: '',
@@ -37,6 +39,8 @@ export default function Home() {
   });
   // @ts-ignore
   const [isLoading, setIsLoading] = useState(true);
+  // @ts-ignore
+  const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
 
   // 初期化処理
   // @ts-ignore
@@ -77,7 +81,7 @@ export default function Home() {
     console.log('Save settings clicked');
     // バリデーション
     if (!formData.email || !formData.targetMonth || !formData.budget || Number(formData.budget) <= 0) {
-      alert('すべての項目を正しく入力してください。');
+      alert(t('dataInput.validation.required', currentLanguage));
       return;
     }
     
@@ -95,11 +99,11 @@ export default function Home() {
       setUserInfo(userData);
       
       // 成功メッセージ
-      alert('設定が保存されました。メインアプリが表示されます。');
+      alert(t('common.success', currentLanguage));
       
     } catch (error) {
       console.error('Error saving data:', error);
-      alert('設定の保存中にエラーが発生しました。');
+      alert(t('common.error', currentLanguage));
     }
   };
 
@@ -131,7 +135,7 @@ export default function Home() {
 
   const handleReset = () => {
     console.log('Reset clicked');
-    if (confirm('すべてのデータをリセットしますか？この操作は元に戻せません。')) {
+    if (confirm(t('common.confirm', currentLanguage))) {
       localStorage.removeItem('user_info');
       localStorage.removeItem('expenses');
       setUserInfo(null);
@@ -140,15 +144,8 @@ export default function Home() {
         targetMonth: '',
         budget: ''
       });
-      alert('データがリセットされました。');
+      alert(t('common.success', currentLanguage));
     }
-  };
-
-  // テストボタンクリックハンドラー
-  const handleTestClick = () => {
-    console.log('Test button clicked');
-    setTestClickCount(prev => prev + 1);
-    alert(`テストボタンがクリックされました！回数: ${testClickCount + 1}`);
   };
 
   // ローディング中は何も表示しない
@@ -157,7 +154,7 @@ export default function Home() {
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
-          <p>読み込み中...</p>
+          <p>{t('common.loading', currentLanguage)}</p>
         </div>
       </div>
     );
@@ -179,117 +176,98 @@ export default function Home() {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            <h1 className="text-2xl font-bold">Expenscan</h1>
+            <h1 className="text-2xl font-bold">{t('header.title', currentLanguage)}</h1>
           </div>
-          {userInfo && (
-            <div className="text-sm text-gray-300">
-              ユーザー: {userInfo.email} | 予算: ¥{userInfo.budget.toLocaleString()}
-            </div>
-          )}
+          <div className="flex items-center space-x-4">
+            <LanguageSwitcher 
+              onLanguageChange={(language) => setCurrentLanguage(language)}
+            />
+            {userInfo && (
+              <div className="text-sm text-gray-300">
+                {t('common.user', currentLanguage)}: {userInfo.email} | {t('common.budget', currentLanguage)}: ¥{userInfo.budget.toLocaleString()}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       {/* メインコンテンツ */}
       <div className="flex-1 max-w-7xl mx-auto px-4 py-8">
-        {/* デバッグ情報 */}
-        <div className="mb-4 p-4 bg-blue-900 text-white text-sm rounded">
-          <p>Debug Info:</p>
-          <p>userInfo: {JSON.stringify(userInfo)}</p>
-          <p>Test clicks: {testClickCount}</p>
-          <p>Modals: Upload={showUploadModal}, Batch={showBatchUploadModal}, Data={showDataInputModal}, List={showExpenseListModal}, Optimizer={showOptimizerModal}</p>
-        </div>
-
-        {/* テストボタン */}
-        <div className="mb-4 p-4 bg-green-900 text-white rounded">
-          <button 
-            onClick={handleTestClick}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            テストボタン (クリック回数: {testClickCount})
-          </button>
-        </div>
-
         {/* メインアプリケーション */}
         {userInfo && (
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">単一アップロード</h2>
-                <p className="text-gray-400 mb-4">レシート画像を1枚ずつアップロードしてOCR処理を行います。</p>
+                <h2 className="text-xl font-semibold mb-4">{t('navigation.singleUpload', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4">{t('imageUpload.description', currentLanguage)}</p>
                 <button 
                   onClick={handleSingleUpload}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  アップロード
+                  {t('common.upload', currentLanguage)}
                 </button>
               </div>
 
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">一括アップロード</h2>
-                <p className="text-gray-400 mb-4">複数のレシート画像を一度にアップロードして処理します。</p>
+                <h2 className="text-xl font-semibold mb-4">{t('navigation.batchUpload', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4">{t('batchUpload.description', currentLanguage)}</p>
                 <button 
                   onClick={handleBatchUpload}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  一括アップロード
+                  {t('batchUpload.title', currentLanguage)}
                 </button>
               </div>
 
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">データ入力</h2>
-                <p className="text-gray-400 mb-4">経費データを手動で入力・編集します。</p>
+                <h2 className="text-xl font-semibold mb-4">{t('navigation.dataInput', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4">{t('dataInput.description', currentLanguage)}</p>
                 <button 
                   onClick={handleDataInput}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  データ入力
+                  {t('dataInput.title', currentLanguage)}
                 </button>
               </div>
 
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">経費一覧</h2>
-                <p className="text-gray-400 mb-4">登録された経費データを一覧表示します。</p>
+                <h2 className="text-xl font-semibold mb-4">{t('navigation.expenseList', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4">{t('expenseList.description', currentLanguage)}</p>
                 <button 
                   onClick={handleExpenseList}
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                 >
-                  一覧表示
+                  {t('expenseList.title', currentLanguage)}
                 </button>
               </div>
 
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">予算最適化</h2>
-                <p className="text-gray-400 mb-4">予算内で最適な経費の組み合わせを提案します。</p>
+                <h2 className="text-xl font-semibold mb-4">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4">{t('budgetOptimizer.description', currentLanguage)}</p>
                 <button 
                   onClick={handleOptimizer}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
-                  最適化
+                  {t('budgetOptimizer.optimize', currentLanguage)}
                 </button>
               </div>
 
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">設定</h2>
-                <p className="text-gray-400 mb-4">アプリケーションの設定を変更します。</p>
+                <h2 className="text-xl font-semibold mb-4">{t('common.settings', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4">{t('common.settings', currentLanguage)}</p>
                 <button 
                   onClick={() => setShowSettingsModal(true)}
                   className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
                 >
-                  設定変更
+                  {t('common.edit', currentLanguage)}
                 </button>
                 <button 
                   onClick={handleReset}
                   className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  リセット
+                  {t('common.delete', currentLanguage)}
                 </button>
               </div>
-            </div>
-
-            <div className="mt-8 text-center">
-              <p className="text-gray-400">
-                アプリケーションが正常に動作しています！
-              </p>
             </div>
           </div>
         )}
@@ -298,16 +276,16 @@ export default function Home() {
         {!userInfo && (
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4">初期設定</h2>
-              <p className="text-xl text-gray-400">レシート経費管理システム</p>
+              <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
+              <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
             </div>
             
             <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">初期設定</h3>
+              <h3 className="text-2xl font-semibold mb-4">{t('common.settings', currentLanguage)}</h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">メールアドレス</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage)}</label>
                   <input
                     type="email"
                     name="email"
@@ -319,7 +297,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">対象月</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage)}</label>
                   <input
                     type="month"
                     name="targetMonth"
@@ -330,7 +308,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">予算</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage)}</label>
                   <input
                     type="number"
                     name="budget"
@@ -346,7 +324,7 @@ export default function Home() {
                   onClick={handleSaveSettings}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  設定を保存
+                  {t('common.save', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -368,11 +346,11 @@ export default function Home() {
               }}
             />
             <div className="text-sm text-gray-400">
-              © 2024 Expenscan. All rights reserved.
+              {t('footer.copyright', currentLanguage)}
             </div>
           </div>
           <div className="text-sm text-gray-400">
-            バージョン: {APP_VERSION}
+            {t('common.version', currentLanguage)}: {APP_VERSION}
           </div>
         </div>
       </footer>
@@ -381,8 +359,8 @@ export default function Home() {
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">単一アップロード</h2>
-            <p className="text-gray-300 mb-4">レシート画像をアップロードしてOCR処理を行います。</p>
+            <h2 className="text-2xl font-semibold mb-4">{t('singleUpload.title', currentLanguage)}</h2>
+            <p className="text-gray-300 mb-4">{t('singleUpload.description', currentLanguage)}</p>
             <div className="space-y-4">
               <input
                 type="file"
@@ -392,18 +370,18 @@ export default function Home() {
               <div className="flex space-x-2">
                 <button
                   onClick={() => {
-                    alert('アップロード機能は開発中です。');
+                    alert(t('singleUpload.upload.placeholder', currentLanguage));
                     setShowUploadModal(false);
                   }}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  アップロード
+                  {t('common.upload', currentLanguage)}
                 </button>
                 <button
                   onClick={() => setShowUploadModal(false)}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  キャンセル
+                  {t('common.cancel', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -415,8 +393,8 @@ export default function Home() {
       {showBatchUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">一括アップロード</h2>
-            <p className="text-gray-300 mb-4">複数のレシート画像を一度にアップロードします。</p>
+            <h2 className="text-2xl font-semibold mb-4">{t('batchUpload.title', currentLanguage)}</h2>
+            <p className="text-gray-300 mb-4">{t('batchUpload.description', currentLanguage)}</p>
             <div className="space-y-4">
               <input
                 type="file"
@@ -427,18 +405,18 @@ export default function Home() {
               <div className="flex space-x-2">
                 <button
                   onClick={() => {
-                    alert('一括アップロード機能は開発中です。');
+                    alert(t('batchUpload.upload.placeholder', currentLanguage));
                     setShowBatchUploadModal(false);
                   }}
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  一括アップロード
+                  {t('batchUpload.title', currentLanguage)}
                 </button>
                 <button
                   onClick={() => setShowBatchUploadModal(false)}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  キャンセル
+                  {t('common.cancel', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -450,18 +428,18 @@ export default function Home() {
       {showDataInputModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">データ入力</h2>
-            <p className="text-gray-300 mb-4">経費データを手動で入力します。</p>
+            <h2 className="text-2xl font-semibold mb-4">{t('dataInput.title', currentLanguage)}</h2>
+            <p className="text-gray-300 mb-4">{t('dataInput.description', currentLanguage)}</p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">日付</label>
+                <label className="block text-sm font-medium mb-2">{t('dataInput.date', currentLanguage)}</label>
                 <input
                   type="date"
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">金額</label>
+                <label className="block text-sm font-medium mb-2">{t('dataInput.amount', currentLanguage)}</label>
                 <input
                   type="number"
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
@@ -469,31 +447,31 @@ export default function Home() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">カテゴリ</label>
+                <label className="block text-sm font-medium mb-2">{t('dataInput.category', currentLanguage)}</label>
                 <select className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                  <option>交通費</option>
-                  <option>通信費</option>
-                  <option>会議費</option>
-                  <option>接待費</option>
-                  <option>研修費</option>
-                  <option>消耗品費</option>
+                  <option>{t('category.transportation', currentLanguage)}</option>
+                  <option>{t('category.communication', currentLanguage)}</option>
+                  <option>{t('category.meeting', currentLanguage)}</option>
+                  <option>{t('category.entertainment', currentLanguage)}</option>
+                  <option>{t('category.training', currentLanguage)}</option>
+                  <option>{t('category.supplies', currentLanguage)}</option>
                 </select>
               </div>
               <div className="flex space-x-2">
                 <button
                   onClick={() => {
-                    alert('データ入力機能は開発中です。');
+                    alert(t('dataInput.save.placeholder', currentLanguage));
                     setShowDataInputModal(false);
                   }}
                   className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  保存
+                  {t('common.save', currentLanguage)}
                 </button>
                 <button
                   onClick={() => setShowDataInputModal(false)}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  キャンセル
+                  {t('common.cancel', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -505,18 +483,18 @@ export default function Home() {
       {showExpenseListModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-2xl font-semibold mb-4">経費一覧</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('expenseList.title', currentLanguage)}</h2>
             <div className="space-y-4">
               <div className="bg-gray-700 rounded-lg p-4">
-                <p className="text-gray-300">現在、経費データはありません。</p>
-                <p className="text-gray-400 text-sm mt-2">レシートをアップロードするか、データ入力で経費を追加してください。</p>
+                <p className="text-gray-300">{t('expenseList.noData', currentLanguage)}</p>
+                <p className="text-gray-400 text-sm mt-2">{t('expenseList.addData', currentLanguage)}</p>
               </div>
               <div className="flex justify-end">
                 <button
                   onClick={() => setShowExpenseListModal(false)}
                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  閉じる
+                  {t('common.close', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -528,32 +506,32 @@ export default function Home() {
       {showOptimizerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">予算最適化</h2>
-            <p className="text-gray-300 mb-4">予算内で最適な経費の組み合わせを提案します。</p>
+            <h2 className="text-2xl font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage)}</h2>
+            <p className="text-gray-300 mb-4">{t('budgetOptimizer.description', currentLanguage)}</p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">目標予算</label>
+                <label className="block text-sm font-medium mb-2">{t('budgetOptimizer.targetBudget', currentLanguage)}</label>
                 <select className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                  <option value="100000">10万円</option>
-                  <option value="150000">15万円</option>
-                  <option value="200000">20万円</option>
+                  <option value="100000">{t('budgetOptimizer.option1', currentLanguage)}</option>
+                  <option value="150000">{t('budgetOptimizer.option2', currentLanguage)}</option>
+                  <option value="200000">{t('budgetOptimizer.option3', currentLanguage)}</option>
                 </select>
               </div>
               <div className="flex space-x-2">
                 <button
                   onClick={() => {
-                    alert('予算最適化機能は開発中です。');
+                    alert(t('budgetOptimizer.optimize.placeholder', currentLanguage));
                     setShowOptimizerModal(false);
                   }}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
-                  最適化実行
+                  {t('budgetOptimizer.optimize', currentLanguage)}
                 </button>
                 <button
                   onClick={() => setShowOptimizerModal(false)}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  キャンセル
+                  {t('common.cancel', currentLanguage)}
                 </button>
               </div>
             </div>
@@ -565,7 +543,7 @@ export default function Home() {
       {showSettingsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">設定変更</h2>
+            <h2 className="text-2xl font-semibold mb-4">{t('common.edit', currentLanguage)}</h2>
             <form onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
@@ -576,7 +554,7 @@ export default function Home() {
               };
               
               if (!userData.email || !userData.targetMonth || userData.budget <= 0) {
-                alert('すべての項目を正しく入力してください。');
+                alert(t('dataInput.validation.required', currentLanguage));
                 return;
               }
               
@@ -584,7 +562,7 @@ export default function Home() {
             }}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">メールアドレス</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage)}</label>
                   <input
                     type="email"
                     name="email"
@@ -595,7 +573,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">対象月</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage)}</label>
                   <input
                     type="month"
                     name="targetMonth"
@@ -605,7 +583,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">予算</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage)}</label>
                   <input
                     type="number"
                     name="budget"
@@ -620,14 +598,14 @@ export default function Home() {
                     type="submit"
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    保存
+                    {t('common.save', currentLanguage)}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowSettingsModal(false)}
                     className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                   >
-                    キャンセル
+                    {t('common.cancel', currentLanguage)}
                   </button>
                 </div>
               </div>
