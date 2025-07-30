@@ -108,11 +108,11 @@ export default function Home() {
       // 状態を更新
       setUserInfo(userData);
       
-      // 成功メッセージ
-      alert(t('common.success', currentLanguage));
+      // サイレント保存 - ポップアップを表示しない
       
     } catch (error) {
       console.error('Error saving data:', error);
+      // エラーの場合のみサイレントにしない
       alert(t('common.error', currentLanguage));
     }
   };
@@ -154,7 +154,7 @@ export default function Home() {
         targetMonth: '',
         budget: ''
       });
-      alert(t('common.success', currentLanguage));
+      // サイレントリセット - ポップアップを表示しない
     }
   };
 
@@ -262,21 +262,25 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">{t('common.settings', currentLanguage)}</h2>
-                <p className="text-gray-400 mb-4">{t('common.settings', currentLanguage)}</p>
-                <button 
-                  onClick={() => setShowSettingsModal(true)}
-                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-                >
-                  {t('common.edit', currentLanguage)}
-                </button>
-                <button 
-                  onClick={handleReset}
-                  className="mt-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  {t('common.delete', currentLanguage)}
-                </button>
+              <div className="bg-gray-800 rounded-lg p-6 flex flex-col h-full">
+                <div className="flex-1">
+                  <h2 className="text-xl font-semibold mb-4">{t('common.settings', currentLanguage)}</h2>
+                  <p className="text-gray-400 mb-4">{t('common.settings', currentLanguage)}</p>
+                  <button 
+                    onClick={() => setShowSettingsModal(true)}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                  >
+                    {t('common.edit', currentLanguage)}
+                  </button>
+                </div>
+                <div className="mt-auto pt-4 border-t border-gray-700">
+                  <button 
+                    onClick={handleReset}
+                    className="w-full px-4 py-2 bg-gray-800/50 text-gray-300 rounded-lg hover:bg-gray-700/50 transition-colors text-sm"
+                  >
+                    設定をリセット
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -355,9 +359,9 @@ export default function Home() {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            <div className="text-sm text-gray-400">
-              {t('footer.copyright', currentLanguage)}
-            </div>
+                          <div className="text-sm text-gray-400">
+                © 2025 Expenscan. All rights reserved.
+              </div>
           </div>
           <div className="text-sm text-gray-400">
             {t('common.version', currentLanguage)}: {APP_VERSION}
