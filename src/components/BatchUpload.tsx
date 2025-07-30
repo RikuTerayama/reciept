@@ -269,10 +269,10 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
         <div className="flex flex-col items-center space-y-4">
           <Upload className="w-12 h-12 text-gray-400" />
           <div>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-lg font-semibold text-white">
               {isDragActive ? 'ここにドロップしてください' : 'レシート画像をアップロード'}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-200">
               複数の画像を選択するか、ここにドラッグ&ドロップしてください
             </p>
           </div>
