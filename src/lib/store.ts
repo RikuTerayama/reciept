@@ -149,8 +149,12 @@ export const useExpenseStore = create<ExpenseStore>()(
   )
 );
 
-// 初期化時にデータを読み込み
+// 初期化時にデータを読み込み（クライアントサイドのみ）
 if (typeof window !== 'undefined') {
-  const store = useExpenseStore.getState();
-  store.loadExpenses();
+  try {
+    const store = useExpenseStore.getState();
+    store.loadExpenses();
+  } catch (error) {
+    console.error('ストア初期化エラー:', error);
+  }
 } 
