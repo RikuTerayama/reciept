@@ -176,3 +176,40 @@ export function calculateEfficiencyMetrics(
     costEffectiveness
   };
 } 
+
+// メインの最適化関数
+export async function optimizeBudget(
+  expenses: ExpenseData[],
+  targetBudget: number,
+  algorithm: 'dynamic' | 'greedy' = 'dynamic'
+): Promise<{
+  selectedExpenses: ExpenseData[];
+  totalAmount: number;
+  difference: number;
+  efficiency: {
+    budgetUtilization: number;
+    averageValue: number;
+    selectionEfficiency: number;
+    costEffectiveness: number;
+  };
+}> {
+  // 非同期処理をシミュレート
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  let result: OptimizedExpense;
+
+  if (algorithm === 'dynamic') {
+    result = findOptimalExpenseCombination(expenses, targetBudget);
+  } else {
+    result = findGreedyExpenseCombination(expenses, targetBudget);
+  }
+
+  const efficiency = calculateEfficiencyMetrics(expenses, result, targetBudget);
+
+  return {
+    selectedExpenses: result.expenses,
+    totalAmount: result.totalAmount,
+    difference: result.difference,
+    efficiency
+  };
+} 
