@@ -117,13 +117,11 @@ export default function ExpenseList() {
                 <th>日付</th>
                 <th>金額</th>
                 <th>カテゴリ</th>
-                <th>部署</th>
                 <th>説明</th>
                 <th>クライアント側参加者</th>
                 <th>会社側参加者</th>
                 <th>税率</th>
                 <th>適格区分</th>
-                <th>レシート番号</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -145,20 +143,12 @@ export default function ExpenseList() {
                     </div>
                   </td>
                   <td className="text-center">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{expense.category}</h3>
-                        <p className="text-gray-600 text-sm">{expense.date}</p>
-                        {expense.description && (
-                          <p className="text-gray-700 mt-1">{expense.description}</p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <span className="text-lg font-bold text-green-600">
-                          ¥{expense.totalAmount.toLocaleString()}
-                        </span>
-                        <p className="text-sm text-gray-500">{expense.currency}</p>
-                      </div>
+                    <div className="flex items-center justify-center space-x-2">
+                      <DollarSign className="w-4 h-4 text-green-500" />
+                      <span className="font-semibold">
+                        ¥{expense.totalAmount.toLocaleString()}
+                      </span>
+                      <span className="text-sm text-gray-400">{expense.currency}</span>
                     </div>
                   </td>
                   <td className="text-center">
