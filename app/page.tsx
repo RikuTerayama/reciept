@@ -193,7 +193,7 @@ export default function Home() {
               onLanguageChange={(language) => setCurrentLanguage(language)}
             />
             {userInfo && (
-              <div className="text-sm text-gray-300">
+              <div className="hidden lg:block text-sm text-gray-300">
                 {t('common.user', currentLanguage)}: {userInfo.email} | {t('common.budget', currentLanguage)}: ¥{userInfo.budget.toLocaleString()}
               </div>
             )}
@@ -202,76 +202,88 @@ export default function Home() {
       </header>
 
       {/* メインコンテンツ */}
-      <div className="flex-1 max-w-7xl mx-auto px-4 py-8">
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* メインアプリケーション */}
         {userInfo && (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">{t('navigation.singleUpload', currentLanguage)}</h2>
-                <p className="text-gray-400 mb-4">{t('imageUpload.description', currentLanguage)}</p>
-                <button 
-                  onClick={handleSingleUpload}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {t('common.upload', currentLanguage)}
-                </button>
-              </div>
-
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">{t('navigation.batchUpload', currentLanguage)}</h2>
-                <p className="text-gray-400 mb-4">{t('batchUpload.description', currentLanguage)}</p>
-                <button 
-                  onClick={handleBatchUpload}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  {t('batchUpload.title', currentLanguage)}
-                </button>
-              </div>
-
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">{t('navigation.dataInput', currentLanguage)}</h2>
-                <p className="text-gray-400 mb-4">{t('dataInput.description', currentLanguage)}</p>
-                <button 
-                  onClick={handleDataInput}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  {t('dataInput.title', currentLanguage)}
-                </button>
-              </div>
-
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">{t('navigation.expenseList', currentLanguage)}</h2>
-                <p className="text-gray-400 mb-4">{t('expenseList.description', currentLanguage)}</p>
-                <button 
-                  onClick={handleExpenseList}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                >
-                  {t('expenseList.title', currentLanguage)}
-                </button>
-              </div>
-
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
-                <p className="text-gray-400 mb-4">{t('budgetOptimizer.description', currentLanguage)}</p>
-                <button 
-                  onClick={handleOptimizer}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                  {t('budgetOptimizer.optimize', currentLanguage)}
-                </button>
-              </div>
-
-              <div className="bg-gray-800 rounded-lg p-6 flex flex-col h-full">
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold mb-4">{t('common.settings', currentLanguage)}</h2>
-                  <p className="text-gray-400 mb-4">{t('common.settings', currentLanguage)}</p>
+          <div className="max-w-full overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('navigation.singleUpload', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('imageUpload.description', currentLanguage)}</p>
+                <div className="flex justify-center sm:justify-start">
                   <button 
-                    onClick={() => setShowSettingsModal(true)}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                    onClick={handleSingleUpload}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                   >
-                    {t('common.edit', currentLanguage)}
+                    {t('common.upload', currentLanguage)}
                   </button>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('navigation.batchUpload', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('batchUpload.description', currentLanguage)}</p>
+                <div className="flex justify-center sm:justify-start">
+                  <button 
+                    onClick={handleBatchUpload}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
+                  >
+                    {t('batchUpload.title', currentLanguage)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('navigation.dataInput', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('dataInput.description', currentLanguage)}</p>
+                <div className="flex justify-center sm:justify-start">
+                  <button 
+                    onClick={handleDataInput}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base"
+                  >
+                    {t('dataInput.title', currentLanguage)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('navigation.expenseList', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('expenseList.description', currentLanguage)}</p>
+                <div className="flex justify-center sm:justify-start">
+                  <button 
+                    onClick={handleExpenseList}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm sm:text-base"
+                  >
+                    {t('expenseList.title', currentLanguage)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
+                <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('budgetOptimizer.description', currentLanguage)}</p>
+                <div className="flex justify-center sm:justify-start">
+                  <button 
+                    onClick={handleOptimizer}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base"
+                  >
+                    {t('budgetOptimizer.optimize', currentLanguage)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-lg p-4 sm:p-6 flex flex-col h-full">
+                <div className="flex-1">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('common.settings', currentLanguage)}</h2>
+                  <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('common.settings', currentLanguage)}</p>
+                  <div className="flex justify-center sm:justify-start">
+                    <button 
+                      onClick={() => setShowSettingsModal(true)}
+                      className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm sm:text-base"
+                    >
+                      {t('common.edit', currentLanguage)}
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-auto pt-4 border-t border-gray-700">
                   <button 
@@ -288,18 +300,18 @@ export default function Home() {
 
         {/* 設定画面 */}
         {!userInfo && (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto max-w-full overflow-hidden">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
-              <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
+              <p className="text-lg sm:text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
             </div>
             
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">{t('common.settings', currentLanguage)}</h3>
+            <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+              <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center">{t('common.settings', currentLanguage)}</h3>
               
-              <div className="space-y-4">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage)}</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage)} *</label>
                   <input
                     type="email"
                     name="email"
@@ -311,7 +323,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage)}</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage)} *</label>
                   <input
                     type="month"
                     name="targetMonth"
@@ -322,7 +334,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage)}</label>
+                  <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage)} *</label>
                   <input
                     type="number"
                     name="budget"
@@ -331,53 +343,65 @@ export default function Home() {
                     required
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                     placeholder="100000"
+                    min="0"
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={handleSaveSettings}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {t('common.save', currentLanguage)}
-                </button>
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleSaveSettings}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                  >
+                    {t('common.save', currentLanguage)}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* フッター */}
+            {/* フッター */}
       <footer className="bg-gray-800 p-4 mt-auto">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <img 
-              src="/Expenscan_logo_side.png" 
-              alt="Expenscan Logo" 
-              className="h-6 w-auto"
-              onError={(e) => {
-                // ロゴ画像が存在しない場合のフォールバック
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-                          <div className="text-sm text-gray-400">
+        <div className="max-w-7xl mx-auto">
+          {/* デスクトップ表示 */}
+          <div className="hidden md:flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/Expenscan_logo_side.png" 
+                alt="Expenscan Logo" 
+                className="h-6 w-auto"
+                onError={(e) => {
+                  // ロゴ画像が存在しない場合のフォールバック
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <div className="text-sm text-gray-400">
                 © 2025 Expenscan. All rights reserved.
               </div>
+            </div>
+            <div className="text-sm text-gray-400">
+              {t('common.version', currentLanguage)}: {APP_VERSION}
+            </div>
           </div>
-          <div className="text-sm text-gray-400">
-            {t('common.version', currentLanguage)}: {APP_VERSION}
+          
+          {/* モバイル表示 */}
+          <div className="md:hidden text-center text-sm text-gray-400 space-y-1 py-2">
+            <div>v{APP_VERSION}</div>
+            <div>© 2025 Expenscan. All rights reserved.</div>
           </div>
         </div>
       </footer>
 
       {/* モーダル */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">{t('navigation.singleUpload', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.singleUpload', currentLanguage)}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white p-2"
               >
                 ✕
               </button>
@@ -397,13 +421,13 @@ export default function Home() {
       )}
 
       {showBatchUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">{t('navigation.batchUpload', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.batchUpload', currentLanguage)}</h2>
               <button
                 onClick={() => setShowBatchUploadModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white p-2"
               >
                 ✕
               </button>
@@ -419,13 +443,13 @@ export default function Home() {
       )}
 
       {showDataInputModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">{t('navigation.dataInput', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.dataInput', currentLanguage)}</h2>
               <button
                 onClick={() => setShowDataInputModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white p-2"
               >
                 ✕
               </button>
@@ -442,13 +466,13 @@ export default function Home() {
       )}
 
       {showExpenseListModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">{t('navigation.expenseList', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.expenseList', currentLanguage)}</h2>
               <button
                 onClick={() => setShowExpenseListModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white p-2"
               >
                 ✕
               </button>
@@ -459,13 +483,13 @@ export default function Home() {
       )}
 
       {showOptimizerModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
               <button
                 onClick={() => setShowOptimizerModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white p-2"
               >
                 ✕
               </button>
