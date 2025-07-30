@@ -18,7 +18,11 @@ interface BatchUploadItem {
   croppedImage?: string;
 }
 
-export default function BatchUpload() {
+interface BatchUploadProps {
+  onComplete?: () => void;
+}
+
+export default function BatchUpload({ onComplete }: BatchUploadProps) {
   const [uploadItems, setUploadItems] = useState<BatchUploadItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -143,6 +147,11 @@ export default function BatchUpload() {
     }
     
     setIsProcessing(false);
+    
+    // 処理完了後にコールバックを呼び出す
+    if (onComplete && successCount > 0) {
+      setTimeout(onComplete, 1000);
+    }
   };
 
   const removeItem = (id: string) => {
