@@ -67,6 +67,7 @@ export default function UserSetup({ onSave }: UserSetupProps) {
     e.preventDefault();
     if (validateForm()) {
       onSave(formData);
+      // サイレント保存 - ポップアップを表示しない
     }
   };
 
