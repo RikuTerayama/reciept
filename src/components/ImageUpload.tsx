@@ -94,7 +94,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp']
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp', '.pdf']
     },
     multiple: false
   });
@@ -102,7 +102,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
   const handleCameraCapture = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/*,.png,.jpg,.jpeg,.pdf';
     input.capture = 'environment';
     
     input.onchange = (e) => {
