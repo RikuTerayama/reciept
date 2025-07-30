@@ -35,6 +35,9 @@ export interface Translations {
     items: string;
     of: string;
     settings: string;
+    email: string;
+    targetMonth: string;
+    budget: string;
   };
 
   // ヘッダー
@@ -299,6 +302,9 @@ const translations: Record<Language, Translations> = {
       items: '件',
       of: 'の',
       settings: '設定',
+      email: 'メールアドレス',
+      targetMonth: '対象月',
+      budget: '予算金額',
     },
     header: {
       title: 'Expenscan',
@@ -533,6 +539,9 @@ const translations: Record<Language, Translations> = {
       items: 'items',
       of: 'of',
       settings: 'Settings',
+      email: 'Email Address',
+      targetMonth: 'Target Month',
+      budget: 'Budget Amount',
     },
     header: {
       title: 'Expenscan',
