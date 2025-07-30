@@ -15,6 +15,16 @@ import { useState, useEffect } from 'react';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 // @ts-ignore
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+// @ts-ignore
+import ImageUpload from '@/components/ImageUpload';
+// @ts-ignore
+import BatchUpload from '@/components/BatchUpload';
+// @ts-ignore
+import ExpenseForm from '@/components/ExpenseForm';
+// @ts-ignore
+import ExpenseList from '@/components/ExpenseList';
+// @ts-ignore
+import BudgetOptimizer from '@/components/BudgetOptimizer';
 
 export default function Home() {
   // @ts-ignore
@@ -355,186 +365,108 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* 単一アップロードモーダル */}
+      {/* モーダル */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">{t('singleUpload.title', currentLanguage)}</h2>
-            <p className="text-gray-300 mb-4">{t('singleUpload.description', currentLanguage)}</p>
-            <div className="space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-              />
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => {
-                    alert(t('singleUpload.upload.placeholder', currentLanguage));
-                    setShowUploadModal(false);
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {t('common.upload', currentLanguage)}
-                </button>
-                <button
-                  onClick={() => setShowUploadModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  {t('common.cancel', currentLanguage)}
-                </button>
-              </div>
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">{t('navigation.singleUpload', currentLanguage)}</h2>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
             </div>
+            <ImageUpload 
+              onOCRComplete={() => {
+                setShowUploadModal(false);
+                setShowDataInputModal(true);
+              }}
+              onComplete={() => {
+                setShowUploadModal(false);
+                setShowDataInputModal(true);
+              }}
+            />
           </div>
         </div>
       )}
 
-      {/* 一括アップロードモーダル */}
       {showBatchUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">{t('batchUpload.title', currentLanguage)}</h2>
-            <p className="text-gray-300 mb-4">{t('batchUpload.description', currentLanguage)}</p>
-            <div className="space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-              />
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => {
-                    alert(t('batchUpload.upload.placeholder', currentLanguage));
-                    setShowBatchUploadModal(false);
-                  }}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  {t('batchUpload.title', currentLanguage)}
-                </button>
-                <button
-                  onClick={() => setShowBatchUploadModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  {t('common.cancel', currentLanguage)}
-                </button>
-              </div>
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">{t('navigation.batchUpload', currentLanguage)}</h2>
+              <button
+                onClick={() => setShowBatchUploadModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
             </div>
+            <BatchUpload 
+              onComplete={() => {
+                setShowBatchUploadModal(false);
+                setShowDataInputModal(true);
+              }}
+            />
           </div>
         </div>
       )}
 
-      {/* データ入力モーダル */}
       {showDataInputModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">{t('dataInput.title', currentLanguage)}</h2>
-            <p className="text-gray-300 mb-4">{t('dataInput.description', currentLanguage)}</p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('dataInput.date', currentLanguage)}</label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('dataInput.amount', currentLanguage)}</label>
-                <input
-                  type="number"
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                  placeholder="1000"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('dataInput.category', currentLanguage)}</label>
-                <select className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                  <option>{t('category.transportation', currentLanguage)}</option>
-                  <option>{t('category.communication', currentLanguage)}</option>
-                  <option>{t('category.meeting', currentLanguage)}</option>
-                  <option>{t('category.entertainment', currentLanguage)}</option>
-                  <option>{t('category.training', currentLanguage)}</option>
-                  <option>{t('category.supplies', currentLanguage)}</option>
-                </select>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => {
-                    alert(t('dataInput.save.placeholder', currentLanguage));
-                    setShowDataInputModal(false);
-                  }}
-                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  {t('common.save', currentLanguage)}
-                </button>
-                <button
-                  onClick={() => setShowDataInputModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  {t('common.cancel', currentLanguage)}
-                </button>
-              </div>
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">{t('navigation.dataInput', currentLanguage)}</h2>
+              <button
+                onClick={() => setShowDataInputModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
             </div>
+            <ExpenseForm 
+              onSave={(expenseData) => {
+                console.log('Expense saved:', expenseData);
+                setShowDataInputModal(false);
+              }}
+              onCancel={() => setShowDataInputModal(false)}
+            />
           </div>
         </div>
       )}
 
-      {/* 経費一覧モーダル */}
       {showExpenseListModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-2xl font-semibold mb-4">{t('expenseList.title', currentLanguage)}</h2>
-            <div className="space-y-4">
-              <div className="bg-gray-700 rounded-lg p-4">
-                <p className="text-gray-300">{t('expenseList.noData', currentLanguage)}</p>
-                <p className="text-gray-400 text-sm mt-2">{t('expenseList.addData', currentLanguage)}</p>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowExpenseListModal(false)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  {t('common.close', currentLanguage)}
-                </button>
-              </div>
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">{t('navigation.expenseList', currentLanguage)}</h2>
+              <button
+                onClick={() => setShowExpenseListModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
             </div>
+            <ExpenseList />
           </div>
         </div>
       )}
 
-      {/* 予算最適化モーダル */}
       {showOptimizerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage)}</h2>
-            <p className="text-gray-300 mb-4">{t('budgetOptimizer.description', currentLanguage)}</p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('budgetOptimizer.targetBudget', currentLanguage)}</label>
-                <select className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                  <option value="100000">{t('budgetOptimizer.option1', currentLanguage)}</option>
-                  <option value="150000">{t('budgetOptimizer.option2', currentLanguage)}</option>
-                  <option value="200000">{t('budgetOptimizer.option3', currentLanguage)}</option>
-                </select>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => {
-                    alert(t('budgetOptimizer.optimize.placeholder', currentLanguage));
-                    setShowOptimizerModal(false);
-                  }}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                  {t('budgetOptimizer.optimize', currentLanguage)}
-                </button>
-                <button
-                  onClick={() => setShowOptimizerModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  {t('common.cancel', currentLanguage)}
-                </button>
-              </div>
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
+              <button
+                onClick={() => setShowOptimizerModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
             </div>
+            <BudgetOptimizer />
           </div>
         </div>
       )}
