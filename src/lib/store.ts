@@ -7,7 +7,8 @@ import {
   updateExpenseInStorage, 
   deleteExpenseFromStorage,
   getCurrentYearMonth,
-  getYearMonthFromDate
+  getYearMonthFromDate,
+  loadMonthlyExpenses
 } from '@/lib/storage';
 
 interface ExpenseStore {
@@ -130,7 +131,6 @@ export const useExpenseStore = create<ExpenseStore>()(
 
       // 月別データの読み込み
       loadMonthlyExpenses: (year: number, month: number) => {
-        const { loadMonthlyExpenses } = require('@/lib/storage');
         const monthlyExpenses = loadMonthlyExpenses(year, month);
         set({ 
           expenses: monthlyExpenses,
