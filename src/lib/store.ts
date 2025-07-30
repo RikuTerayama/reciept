@@ -6,9 +6,10 @@ import {
   addExpenseToStorage, 
   updateExpenseInStorage, 
   deleteExpenseFromStorage,
-  loadMonthlyExpenses
+  loadMonthlyExpenses,
+  getCurrentYearMonth,
+  getYearMonthFromDate
 } from '@/lib/storage';
-import { getCurrentYearMonth, getYearMonthFromDate } from '@/lib/dateUtils';
 
 interface ExpenseStore {
   // 状態
