@@ -1,29 +1,8 @@
 // 日付関連のユーティリティ関数
 
-/**
- * 現在の年月を取得
- * @returns { year: number; month: number }
- */
-export const getCurrentYearMonth = (): { year: number; month: number } => {
-  const now = new Date();
-  return {
-    year: now.getFullYear(),
-    month: now.getMonth() + 1
-  };
-};
 
-/**
- * 日付文字列から年月を取得
- * @param dateString - 日付文字列 (YYYY-MM-DD形式)
- * @returns { year: number; month: number }
- */
-export const getYearMonthFromDate = (dateString: string): { year: number; month: number } => {
-  const date = new Date(dateString);
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1
-  };
-};
+
+
 
 /**
  * 現在の年月を文字列で取得 (YYYY-MM形式)
