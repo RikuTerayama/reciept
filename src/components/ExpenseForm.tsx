@@ -18,14 +18,11 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
     currency: 'JPY',
     category: '',
     description: '',
-    rechargedToClient: false,
-    gstVatApplicable: false,
     taxRate: 10,
     companyName: '',
     participantFromClient: 0,
     participantFromCompany: 0,
     isQualified: 'Not Qualified',
-    receiptNumber: '',
     ...initialData
   });
 
@@ -90,14 +87,11 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
       currency: formData.currency!,
       category: formData.category!,
       description: formData.description || '',
-      rechargedToClient: formData.rechargedToClient || false,
-      gstVatApplicable: formData.gstVatApplicable || false,
       taxRate: formData.taxRate || 0,
       companyName: formData.companyName || '',
       participantFromClient: formData.participantFromClient || 0,
       participantFromCompany: formData.participantFromCompany || 0,
       isQualified: formData.isQualified!,
-      receiptNumber: formData.receiptNumber || '',
       createdAt: new Date()
     };
 
@@ -115,14 +109,11 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
       currency: 'JPY',
       category: '',
       description: '',
-      rechargedToClient: false,
-      gstVatApplicable: false,
       taxRate: 10,
       companyName: '',
       participantFromClient: 0,
       participantFromCompany: 0,
-      isQualified: 'Not Qualified',
-      receiptNumber: ''
+      isQualified: 'Not Qualified'
     });
     setErrors({});
   };
@@ -234,8 +225,6 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               placeholder={t('dataInput.descriptionPlaceholder', currentLanguage)}
             />
           </div>
-        </div>
-
         </div>
 
         {/* 詳細情報 */}
