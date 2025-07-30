@@ -1,9 +1,24 @@
 import { ExpenseData } from '@/types';
 
-// 簡易版のストレージ関数
+// サーバーサイドレンダリング対応のストレージ関数
 // すべての必要な関数を確実にエクスポート
 
+// localStorageが利用可能かチェック
+const isLocalStorageAvailable = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const test = '__localStorage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const addExpenseToStorage = (expense: ExpenseData): void => {
+  if (!isLocalStorageAvailable()) return;
+  
   try {
     const current = JSON.parse(localStorage.getItem('expenses') || '[]');
     current.push(expense);
@@ -14,6 +29,8 @@ export const addExpenseToStorage = (expense: ExpenseData): void => {
 };
 
 export const updateExpenseInStorage = (expense: ExpenseData): void => {
+  if (!isLocalStorageAvailable()) return;
+  
   try {
     const current = JSON.parse(localStorage.getItem('expenses') || '[]');
     const updated = current.map((e: ExpenseData) => e.id === expense.id ? expense : e);
@@ -24,6 +41,8 @@ export const updateExpenseInStorage = (expense: ExpenseData): void => {
 };
 
 export const deleteExpenseFromStorage = (id: string, date?: string): void => {
+  if (!isLocalStorageAvailable()) return;
+  
   try {
     const current = JSON.parse(localStorage.getItem('expenses') || '[]');
     const filtered = current.filter((e: ExpenseData) => e.id !== id);
@@ -34,6 +53,8 @@ export const deleteExpenseFromStorage = (id: string, date?: string): void => {
 };
 
 export const loadAllExpenses = (): ExpenseData[] => {
+  if (!isLocalStorageAvailable()) return [];
+  
   try {
     const data = localStorage.getItem('expenses');
     if (data) {
@@ -51,6 +72,8 @@ export const loadAllExpenses = (): ExpenseData[] => {
 };
 
 export const loadMonthlyExpenses = (year: number, month: number): ExpenseData[] => {
+  if (!isLocalStorageAvailable()) return [];
+  
   try {
     const allExpenses = loadAllExpenses();
     const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
@@ -81,6 +104,8 @@ export const getYearMonthFromDate = (dateString: string): { year: number; month:
 
 // 追加のユーティリティ関数
 export const saveSettings = (settings: any): void => {
+  if (!isLocalStorageAvailable()) return;
+  
   try {
     localStorage.setItem('user_settings', JSON.stringify(settings));
   } catch (error) {
@@ -89,6 +114,8 @@ export const saveSettings = (settings: any): void => {
 };
 
 export const loadSettings = (): any => {
+  if (!isLocalStorageAvailable()) return {};
+  
   try {
     const data = localStorage.getItem('user_settings');
     return data ? JSON.parse(data) : {};
