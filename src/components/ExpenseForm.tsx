@@ -132,7 +132,7 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 基本情報 */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">{t('dataInput.basicInfo', currentLanguage)}</h3>
+          <h3 className="text-lg font-semibold">{t('dataInput.title', currentLanguage)}</h3>
           
           <div>
             <label className="block text-sm font-medium mb-2">{t('dataInput.date', currentLanguage)} *</label>
@@ -236,8 +236,12 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
           </div>
         </div>
 
+        </div>
 
-
+        {/* 詳細情報 */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">{t('dataInput.title', currentLanguage)}</h3>
+          
           <div>
             <label className="block text-sm font-medium mb-2">{t('dataInput.taxRate', currentLanguage)} (%)</label>
             <input
@@ -304,8 +308,6 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               <option value="Not Qualified">{t('qualifications.notQualified', currentLanguage)}</option>
             </select>
           </div>
-
-
         </div>
       </div>
 
