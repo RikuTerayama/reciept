@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User, Calendar, DollarSign } from 'lucide-react';
+import { getCurrentLanguage, t } from '@/lib/i18n';
 
 interface UserInfo {
   email: string;
   targetMonth: string;
   budget: number;
+  currency: string;
 }
 
 interface UserSetupProps {
@@ -14,29 +15,48 @@ interface UserSetupProps {
 }
 
 export default function UserSetup({ onSave }: UserSetupProps) {
-  const [userInfo, setUserInfo] = useState<UserInfo>({
+  const [formData, setFormData] = useState<UserInfo>({
     email: '',
     targetMonth: '',
-    budget: 0
+    budget: 0,
+    currency: 'JPY'
   });
 
-  const [errors, setErrors] = useState<Partial<UserInfo>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const currentLanguage = getCurrentLanguage();
 
-  const validateForm = () => {
-    const newErrors: Partial<UserInfo> = {};
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'budget' ? Number(value) : value
+    }));
 
-    if (!userInfo.email) {
-      newErrors.email = 'メールアドレスは必須です';
-    } else if (!/\S+@\S+\.\S+/.test(userInfo.email)) {
-      newErrors.email = '有効なメールアドレスを入力してください';
+    // エラーをクリア
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.email) {
+      newErrors.email = t('dataInput.validation.required', currentLanguage);
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = t('dataInput.validation.invalidEmail', currentLanguage);
     }
 
-    if (!userInfo.targetMonth) {
-      newErrors.targetMonth = '対象月は必須です';
+    if (!formData.targetMonth) {
+      newErrors.targetMonth = t('dataInput.validation.required', currentLanguage);
     }
 
-    if (!userInfo.budget || userInfo.budget <= 0) {
-      newErrors.budget = '予算は0より大きい値を入力してください';
+    if (!formData.budget || formData.budget <= 0) {
+      newErrors.budget = t('dataInput.validation.invalidAmount', currentLanguage);
+    }
+
+    if (!formData.currency) {
+      newErrors.currency = t('dataInput.validation.required', currentLanguage);
     }
 
     setErrors(newErrors);
@@ -46,68 +66,102 @@ export default function UserSetup({ onSave }: UserSetupProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(userInfo);
+      onSave(formData);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        初期設定
-      </h2>
+    <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
+        <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
+      </div>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <User className="inline w-4 h-4 mr-1" />
-            メールアドレス
-          </label>
-          <input
-            type="email"
-            value={userInfo.email}
-            onChange={(e) => setUserInfo(prev => ({ ...prev, email: e.target.value }))}
-            className={`form-input ${errors.email ? 'error' : ''}`}
-            placeholder="example@company.com"
-          />
-          {errors.email && <p className="form-error">{errors.email}</p>}
-        </div>
+      <div className="bg-gray-800 rounded-lg p-6">
+        <h3 className="text-2xl font-semibold mb-6">{t('common.settings', currentLanguage)}</h3>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage)} *</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+                errors.email ? 'border-red-500' : 'border-gray-600'
+              }`}
+              placeholder="example@company.com"
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <Calendar className="inline w-4 h-4 mr-1" />
-            対象月
-          </label>
-          <input
-            type="month"
-            value={userInfo.targetMonth}
-            onChange={(e) => setUserInfo(prev => ({ ...prev, targetMonth: e.target.value }))}
-            className={`form-input ${errors.targetMonth ? 'error' : ''}`}
-          />
-          {errors.targetMonth && <p className="form-error">{errors.targetMonth}</p>}
-        </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage)} *</label>
+            <input
+              type="month"
+              name="targetMonth"
+              value={formData.targetMonth}
+              onChange={handleInputChange}
+              required
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+                errors.targetMonth ? 'border-red-500' : 'border-gray-600'
+              }`}
+            />
+            {errors.targetMonth && <p className="text-red-500 text-sm mt-1">{errors.targetMonth}</p>}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            <DollarSign className="inline w-4 h-4 mr-1" />
-            予算
-          </label>
-          <input
-            type="number"
-            value={userInfo.budget}
-            onChange={(e) => setUserInfo(prev => ({ ...prev, budget: Number(e.target.value) }))}
-            className={`form-input ${errors.budget ? 'error' : ''}`}
-            placeholder="100000"
-          />
-          {errors.budget && <p className="form-error">{errors.budget}</p>}
-        </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage)} *</label>
+            <input
+              type="number"
+              name="budget"
+              value={formData.budget}
+              onChange={handleInputChange}
+              required
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+                errors.budget ? 'border-red-500' : 'border-gray-600'
+              }`}
+              placeholder="100000"
+              min="0"
+            />
+            {errors.budget && <p className="text-red-500 text-sm mt-1">{errors.budget}</p>}
+          </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          設定を保存
-        </button>
-      </form>
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('dataInput.currency', currentLanguage)} *</label>
+            <select
+              name="currency"
+              value={formData.currency}
+              onChange={handleInputChange}
+              required
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+                errors.currency ? 'border-red-500' : 'border-gray-600'
+              }`}
+            >
+              <option value="JPY">JPY - {t('currencies.jpy', currentLanguage)}</option>
+              <option value="USD">USD - {t('currencies.usd', currentLanguage)}</option>
+              <option value="EUR">EUR - {t('currencies.eur', currentLanguage)}</option>
+              <option value="GBP">GBP - {t('currencies.gbp', currentLanguage)}</option>
+              <option value="CNY">CNY - {t('currencies.cny', currentLanguage)}</option>
+              <option value="KRW">KRW - {t('currencies.krw', currentLanguage)}</option>
+              <option value="SGD">SGD - {t('currencies.sgd', currentLanguage)}</option>
+              <option value="AUD">AUD - {t('currencies.aud', currentLanguage)}</option>
+              <option value="CAD">CAD - {t('currencies.cad', currentLanguage)}</option>
+              <option value="CHF">CHF - {t('currencies.chf', currentLanguage)}</option>
+            </select>
+            {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            {t('common.save', currentLanguage)}
+          </button>
+        </form>
+      </div>
     </div>
   );
 } 
