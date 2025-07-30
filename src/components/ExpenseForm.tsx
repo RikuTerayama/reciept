@@ -162,10 +162,42 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               onChange={handleInputChange}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
             >
-              <option value="JPY">JPY</option>
-              <option value="USD">USD</option>
+              <option value="PHP">PHP</option>
+              <option value="THB">THB</option>
+              <option value="HKD">HKD</option>
+              <option value="IDR">IDR</option>
+              <option value="TRY">TRY</option>
+              <option value="CNY">CNY</option>
+              <option value="AUD">AUD</option>
+              <option value="NOK">NOK</option>
+              <option value="INR">INR</option>
+              <option value="HUF">HUF</option>
+              <option value="CHF">CHF</option>
+              <option value="MXN">MXN</option>
+              <option value="RUB">RUB</option>
+              <option value="CAD">CAD</option>
+              <option value="KRW">KRW</option>
+              <option value="TWD">TWD</option>
+              <option value="KWD">KWD</option>
               <option value="EUR">EUR</option>
+              <option value="ZAR">ZAR</option>
+              <option value="NZD">NZD</option>
+              <option value="SAR">SAR</option>
+              <option value="PLN">PLN</option>
+              <option value="PGK">PGK</option>
+              <option value="MYR">MYR</option>
+              <option value="BHD">BHD</option>
+              <option value="SGD">SGD</option>
+              <option value="SEK">SEK</option>
+              <option value="JPY">JPY</option>
               <option value="GBP">GBP</option>
+              <option value="CZK">CZK</option>
+              <option value="AED">AED</option>
+              <option value="DKK">DKK</option>
+              <option value="USD">USD</option>
+              <option value="VND">VND</option>
+              <option value="MMK">MMK</option>
+              <option value="LBP">LBP</option>
             </select>
           </div>
 
@@ -180,36 +212,36 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               }`}
             >
               <option value="">{t('common.select', currentLanguage)}</option>
-              <option value="salariesExpense">{t('categories.salariesExpense', currentLanguage)}</option>
-              <option value="intervieweeFee">{t('categories.intervieweeFee', currentLanguage)}</option>
-              <option value="telephoneAllowance">{t('categories.telephoneAllowance', currentLanguage)}</option>
-              <option value="staffWelfare">{t('categories.staffWelfare', currentLanguage)}</option>
-              <option value="staffTraining">{t('categories.staffTraining', currentLanguage)}</option>
-              <option value="recruitmentExpenses">{t('categories.recruitmentExpenses', currentLanguage)}</option>
-              <option value="employmentResidency">{t('categories.employmentResidency', currentLanguage)}</option>
-              <option value="travelPerDiem">{t('categories.travelPerDiem', currentLanguage)}</option>
-              <option value="travelMeal">{t('categories.travelMeal', currentLanguage)}</option>
-              <option value="travelTransportation">{t('categories.travelTransportation', currentLanguage)}</option>
-              <option value="travelOthers">{t('categories.travelOthers', currentLanguage)}</option>
-              <option value="travelAccommodation">{t('categories.travelAccommodation', currentLanguage)}</option>
-              <option value="entertainmentGifts">{t('categories.entertainmentGifts', currentLanguage)}</option>
-              <option value="meetingsConferences">{t('categories.meetingsConferences', currentLanguage)}</option>
-              <option value="marketingAdvertising">{t('categories.marketingAdvertising', currentLanguage)}</option>
-              <option value="marketResearch">{t('categories.marketResearch', currentLanguage)}</option>
-              <option value="rentalOthers">{t('categories.rentalOthers', currentLanguage)}</option>
-              <option value="officeCleaning">{t('categories.officeCleaning', currentLanguage)}</option>
-              <option value="repairMaintenance">{t('categories.repairMaintenance', currentLanguage)}</option>
-              <option value="insuranceCorporate">{t('categories.insuranceCorporate', currentLanguage)}</option>
-              <option value="subscriptions">{t('categories.subscriptions', currentLanguage)}</option>
-              <option value="administrativeCourier">{t('categories.administrativeCourier', currentLanguage)}</option>
-              <option value="printingStationery">{t('categories.printingStationery', currentLanguage)}</option>
-              <option value="officeSupplies">{t('categories.officeSupplies', currentLanguage)}</option>
-              <option value="sundryAdministrative">{t('categories.sundryAdministrative', currentLanguage)}</option>
-              <option value="businessRegistration">{t('categories.businessRegistration', currentLanguage)}</option>
-              <option value="finesPenalties">{t('categories.finesPenalties', currentLanguage)}</option>
-              <option value="bankCharges">{t('categories.bankCharges', currentLanguage)}</option>
-              <option value="others">{t('categories.others', currentLanguage)}</option>
-              <option value="houseAllowance">{t('categories.houseAllowance', currentLanguage)}</option>
+              <option value="Salaries Expense - Temporary/Part-Time">Salaries Expense - Temporary/Part-Time</option>
+              <option value="Interviewee Fee">Interviewee Fee</option>
+              <option value="Telephone Allowance">Telephone Allowance</option>
+              <option value="Staff Welfare Expenses">Staff Welfare Expenses</option>
+              <option value="Staff Training">Staff Training</option>
+              <option value="Recruitment Expenses">Recruitment Expenses</option>
+              <option value="Employment Residency/Visa">Employment Residency/Visa</option>
+              <option value="Travel & Expenses - Per Diem">Travel & Expenses - Per Diem</option>
+              <option value="Travel & Expenses - Meal">Travel & Expenses - Meal</option>
+              <option value="Travel & Expenses - Transportation">Travel & Expenses - Transportation</option>
+              <option value="Travel & Expenses - Others">Travel & Expenses - Others</option>
+              <option value="Travel & Expenses - Accommodation">Travel & Expenses - Accommodation</option>
+              <option value="Entertainment & Gifts">Entertainment & Gifts</option>
+              <option value="Meetings & Conferences">Meetings & Conferences</option>
+              <option value="Marketing & Advertising">Marketing & Advertising</option>
+              <option value="Market Research">Market Research</option>
+              <option value="Rental - Others">Rental - Others</option>
+              <option value="Office Cleaning">Office Cleaning</option>
+              <option value="Repair & Maintenance">Repair & Maintenance</option>
+              <option value="Insurance Expense - Corporate">Insurance Expense - Corporate</option>
+              <option value="Subscriptions">Subscriptions</option>
+              <option value="Administrative Courier">Administrative Courier</option>
+              <option value="Printing & Stationery">Printing & Stationery</option>
+              <option value="Office Supplies">Office Supplies</option>
+              <option value="Sundry Administrative Expenses">Sundry Administrative Expenses</option>
+              <option value="Business Registration & License Renewal">Business Registration & License Renewal</option>
+              <option value="Fines & Penalties - Other">Fines & Penalties - Other</option>
+              <option value="Bank Charges">Bank Charges</option>
+              <option value="Others">Others</option>
+              <option value="House Allowance">House Allowance</option>
             </select>
             {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
           </div>
@@ -248,19 +280,19 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t('dataInput.companyName', currentLanguage)}</label>
+            <label className="block text-sm font-medium mb-2">クライアント名</label>
             <input
               type="text"
               name="companyName"
               value={formData.companyName}
               onChange={handleInputChange}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-              placeholder={t('dataInput.companyNamePlaceholder', currentLanguage)}
+              placeholder="クライアント名を入力"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t('dataInput.participantFromClient', currentLanguage)}</label>
+            <label className="block text-sm font-medium mb-2">クライアント参加人数</label>
             <input
               type="number"
               name="participantFromClient"
@@ -272,7 +304,7 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t('dataInput.participantFromCompany', currentLanguage)}</label>
+            <label className="block text-sm font-medium mb-2">社内参加人数</label>
             <input
               type="number"
               name="participantFromCompany"
