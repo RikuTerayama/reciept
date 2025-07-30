@@ -169,7 +169,18 @@ export default function Home() {
       {/* ヘッダー */}
       <header className="bg-gray-800 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Expenscan</h1>
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/Expenscan_logo.png" 
+              alt="Expenscan Logo" 
+              className="h-8 w-auto"
+              onError={(e) => {
+                // ロゴ画像が存在しない場合のフォールバック
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <h1 className="text-2xl font-bold">Expenscan</h1>
+          </div>
           {userInfo && (
             <div className="text-sm text-gray-300">
               ユーザー: {userInfo.email} | 予算: ¥{userInfo.budget.toLocaleString()}
@@ -346,8 +357,19 @@ export default function Home() {
       {/* フッター */}
       <footer className="bg-gray-800 p-4 mt-auto">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="text-sm text-gray-400">
-            © 2024 Expenscan. All rights reserved.
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/Expenscan_logo_side.png" 
+              alt="Expenscan Logo" 
+              className="h-6 w-auto"
+              onError={(e) => {
+                // ロゴ画像が存在しない場合のフォールバック
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <div className="text-sm text-gray-400">
+              © 2024 Expenscan. All rights reserved.
+            </div>
           </div>
           <div className="text-sm text-gray-400">
             バージョン: {APP_VERSION}
