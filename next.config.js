@@ -11,9 +11,9 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   // 動的レンダリングを強制
-  experimental: {
-    appDir: true,
-  },
+  // experimental: {
+  //   appDir: true,
+  // },
   // TypeScriptエラーを無視
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
