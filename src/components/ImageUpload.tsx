@@ -11,9 +11,10 @@ import { fileToBase64, compressImage, generateReceiptNumber } from '@/lib/image-
 
 interface ImageUploadProps {
   onOCRComplete?: () => void;
+  onComplete?: () => void;
 }
 
-export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
+export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
   const [showReceiptDetection, setShowReceiptDetection] = useState(true);
@@ -76,6 +77,11 @@ export default function ImageUpload({ onOCRComplete }: ImageUploadProps) {
       // OCR完了後のコールバック
       if (onOCRComplete) {
         setTimeout(onOCRComplete, 1000);
+      }
+
+      // アップロード完了後のコールバック
+      if (onComplete) {
+        setTimeout(onComplete, 1500);
       }
 
     } catch (error) {
