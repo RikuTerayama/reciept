@@ -34,6 +34,7 @@ export interface Translations {
     selected: string;
     items: string;
     of: string;
+    settings: string;
   };
 
   // ヘッダー
@@ -205,8 +206,18 @@ export interface Translations {
     houseAllowance: string;
   };
 
-  
-  
+  // 部署
+  departments: {
+    msd: string;
+    dxd: string;
+    isd: string;
+    ssd: string;
+    opd: string;
+    fin: string;
+    ia: string;
+    eo: string;
+    hdopd: string;
+  };
 
   // 適格区分
   qualifications: {
@@ -287,6 +298,7 @@ const translations: Record<Language, Translations> = {
       selected: '選択済み',
       items: '件',
       of: 'の',
+      settings: '設定',
     },
     header: {
       title: 'Expenscan',
@@ -520,6 +532,7 @@ const translations: Record<Language, Translations> = {
       selected: 'Selected',
       items: 'items',
       of: 'of',
+      settings: 'Settings',
     },
     header: {
       title: 'Expenscan',
