@@ -37,9 +37,16 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     
+    let processedValue = value;
+    
+    // 数値フィールドの先頭ゼロ削除
+    if (type === 'number' && value) {
+      processedValue = value.replace(/^0+/, '') || '0';
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : processedValue
     }));
 
     // エラーをクリア
@@ -229,31 +236,7 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
           </div>
         </div>
 
-        {/* 詳細情報 */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">{t('dataInput.details', currentLanguage)}</h3>
-          
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              name="rechargedToClient"
-              checked={formData.rechargedToClient}
-              onChange={handleInputChange}
-              className="rounded border-gray-600 text-blue-600 focus:ring-blue-500 bg-gray-800"
-            />
-            <label className="text-sm font-medium">{t('dataInput.rechargedToClient', currentLanguage)}</label>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              name="gstVatApplicable"
-              checked={formData.gstVatApplicable}
-              onChange={handleInputChange}
-              className="rounded border-gray-600 text-blue-600 focus:ring-blue-500 bg-gray-800"
-            />
-            <label className="text-sm font-medium">{t('dataInput.gstVatApplicable', currentLanguage)}</label>
-          </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">{t('dataInput.taxRate', currentLanguage)} (%)</label>
@@ -322,17 +305,7 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">{t('dataInput.receiptNumber', currentLanguage)}</label>
-            <input
-              type="text"
-              name="receiptNumber"
-              value={formData.receiptNumber}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-              placeholder={t('dataInput.receiptNumberPlaceholder', currentLanguage)}
-            />
-          </div>
+
         </div>
       </div>
 
