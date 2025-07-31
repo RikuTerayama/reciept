@@ -11,42 +11,21 @@ export interface Translations {
     error: string;
     success: string;
     cancel: string;
-    confirm: string;
-    delete: string;
-    edit: string;
     save: string;
-    close: string;
-    back: string;
-    next: string;
-    previous: string;
-    search: string;
-    filter: string;
-    sort: string;
     export: string;
-    import: string;
-    download: string;
-    upload: string;
     select: string;
-    selectAll: string;
-    clearSelection: string;
-    noData: string;
-    total: string;
-    selected: string;
     items: string;
-    of: string;
-    settings: string;
     email: string;
     targetMonth: string;
     budget: string;
+    user: string;
+    version: string;
+    settings: string;
   };
 
   // ヘッダー
   header: {
     title: string;
-    subtitle: string;
-    exportAll: string;
-    exportSelected: string;
-    downloadImages: string;
   };
 
   // ナビゲーション
@@ -105,23 +84,25 @@ export interface Translations {
   // データ入力
   dataInput: {
     title: string;
-    description: string;
     date: string;
     amount: string;
     taxRate: string;
     currency: string;
     category: string;
-    department: string;
     qualification: string;
-    receiptNumber: string;
     save: string;
     clear: string;
     validation: {
       required: string;
-      invalidDate: string;
       invalidAmount: string;
       invalidTaxRate: string;
     };
+    description: string;
+    descriptionPlaceholder: string;
+    companyName: string;
+    companyNamePlaceholder: string;
+    participantFromClient: string;
+    participantFromCompany: string;
   };
 
   // 経費リスト
@@ -158,6 +139,8 @@ export interface Translations {
     totalAmount: string;
     difference: string;
     selectedExpenses: string;
+    availableExpenses: string;
+    noExpenses: string;
   };
 
   // 統計情報
@@ -275,43 +258,22 @@ const translations: Record<Language, Translations> = {
   ja: {
     common: {
       loading: '読み込み中...',
-      error: 'エラー',
-      success: '成功',
+      error: 'エラーが発生しました',
+      success: '成功しました',
       cancel: 'キャンセル',
-      confirm: '確認',
-      delete: '削除',
-      edit: '編集',
       save: '保存',
-      close: '閉じる',
-      back: '戻る',
-      next: '次へ',
-      previous: '前へ',
-      search: '検索',
-      filter: 'フィルター',
-      sort: '並び替え',
       export: 'エクスポート',
-      import: 'インポート',
-      download: 'ダウンロード',
-      upload: 'アップロード',
-      select: '選択',
-      selectAll: '全選択',
-      clearSelection: '選択解除',
-      noData: 'データがありません',
-      total: '合計',
-      selected: '選択済み',
+      select: '選択してください',
       items: '件',
-      of: 'の',
-      settings: '設定',
       email: 'メールアドレス',
       targetMonth: '対象月',
       budget: '予算金額',
+      user: 'ユーザー',
+      version: 'バージョン',
+      settings: '設定'
     },
     header: {
-      title: 'Expenscan',
-      subtitle: 'OCR技術による自動抽出・管理',
-      exportAll: '全件出力',
-      exportSelected: '選択出力',
-      downloadImages: '画像一括DL',
+      title: 'Expenscan - レシート経費管理システム'
     },
     navigation: {
       singleUpload: '単一アップロード',
@@ -359,7 +321,7 @@ const translations: Record<Language, Translations> = {
       processingStatus: '処理状況',
     },
     dataInput: {
-      title: '経費データ入力・編集',
+      title: 'データ入力',
       description: 'OCR結果を確認し、必要に応じて手動で修正してください。すべての項目を正確に入力することで、より良い分析が可能になります。',
       date: '日付',
       amount: '金額',
@@ -372,11 +334,17 @@ const translations: Record<Language, Translations> = {
       save: '保存',
       clear: 'クリア',
       validation: {
-        required: '必須項目です',
+        required: 'この項目は必須です',
         invalidDate: '有効な日付を入力してください',
         invalidAmount: '有効な金額を入力してください',
-        invalidTaxRate: '有効な税率を入力してください',
+        invalidTaxRate: '税率は0-100の間で入力してください'
       },
+      description: '説明',
+      descriptionPlaceholder: '経費の詳細を入力してください',
+      companyName: '会社名',
+      companyNamePlaceholder: '会社名を入力してください',
+      participantFromClient: 'クライアント参加人数',
+      participantFromCompany: '社内参加人数',
     },
     expenseList: {
       title: '経費リスト',
@@ -400,15 +368,17 @@ const translations: Record<Language, Translations> = {
       qualifiedExpenses: '適格経費',
     },
     budgetOptimizer: {
-      title: '予算最適化エンジン',
+      title: '予算最適化',
       description: '指定された予算に最も近い経費の組み合わせを自動提案します。効率的な予算管理にお役立てください。',
       targetBudget: '目標予算',
-      optimize: '最適化',
-      results: '結果',
-      noResults: '結果がありません',
-      totalAmount: '合計金額',
-      difference: '差額',
+      optimize: '最適化実行',
+      results: '最適化結果',
+      noResults: '最適化結果がありません',
+      totalAmount: '総金額',
+      difference: '予算差額',
       selectedExpenses: '選択された経費',
+      availableExpenses: '利用可能な経費',
+      noExpenses: '経費データがありません',
     },
     statistics: {
       title: '統計情報',
@@ -512,43 +482,22 @@ const translations: Record<Language, Translations> = {
   en: {
     common: {
       loading: 'Loading...',
-      error: 'Error',
+      error: 'An error occurred',
       success: 'Success',
       cancel: 'Cancel',
-      confirm: 'Confirm',
-      delete: 'Delete',
-      edit: 'Edit',
       save: 'Save',
-      close: 'Close',
-      back: 'Back',
-      next: 'Next',
-      previous: 'Previous',
-      search: 'Search',
-      filter: 'Filter',
-      sort: 'Sort',
       export: 'Export',
-      import: 'Import',
-      download: 'Download',
-      upload: 'Upload',
-      select: 'Select',
-      selectAll: 'Select All',
-      clearSelection: 'Clear Selection',
-      noData: 'No data available',
-      total: 'Total',
-      selected: 'Selected',
+      select: 'Please select',
       items: 'items',
-      of: 'of',
-      settings: 'Settings',
       email: 'Email Address',
       targetMonth: 'Target Month',
       budget: 'Budget Amount',
+      user: 'User',
+      version: 'Version',
+      settings: 'Settings'
     },
     header: {
-      title: 'Expenscan',
-      subtitle: 'Automatic extraction and management with OCR technology',
-      exportAll: 'Export All',
-      exportSelected: 'Export Selected',
-      downloadImages: 'Download Images',
+      title: 'Expenscan - Receipt Expense Management System'
     },
     navigation: {
       singleUpload: 'Single Upload',
@@ -596,7 +545,7 @@ const translations: Record<Language, Translations> = {
       processingStatus: 'Processing Status',
     },
     dataInput: {
-      title: 'Expense Data Input & Edit',
+      title: 'Data Input',
       description: 'Review OCR results and manually correct as needed. Accurate input of all items enables better analysis.',
       date: 'Date',
       amount: 'Amount',
@@ -610,10 +559,15 @@ const translations: Record<Language, Translations> = {
       clear: 'Clear',
       validation: {
         required: 'This field is required',
-        invalidDate: 'Please enter a valid date',
         invalidAmount: 'Please enter a valid amount',
-        invalidTaxRate: 'Please enter a valid tax rate',
+        invalidTaxRate: 'Tax rate must be between 0-100'
       },
+      description: 'Description',
+      descriptionPlaceholder: 'Enter expense details',
+      companyName: 'Company Name',
+      companyNamePlaceholder: 'Enter company name',
+      participantFromClient: 'Client Participants',
+      participantFromCompany: 'Company Participants',
     },
     expenseList: {
       title: 'Expense List',
@@ -637,15 +591,17 @@ const translations: Record<Language, Translations> = {
       qualifiedExpenses: 'Qualified Expenses',
     },
     budgetOptimizer: {
-      title: 'Budget Optimization Engine',
+      title: 'Budget Optimization',
       description: 'Automatically suggest expense combinations closest to specified budgets. Use for efficient budget management.',
       targetBudget: 'Target Budget',
-      optimize: 'Optimize',
-      results: 'Results',
-      noResults: 'No results available',
+      optimize: 'Run Optimization',
+      results: 'Optimization Results',
+      noResults: 'No optimization results available',
       totalAmount: 'Total Amount',
-      difference: 'Difference',
+      difference: 'Budget Difference',
       selectedExpenses: 'Selected Expenses',
+      availableExpenses: 'Available Expenses',
+      noExpenses: 'No expense data available',
     },
     statistics: {
       title: 'Statistics',
