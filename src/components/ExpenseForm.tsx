@@ -9,9 +9,10 @@ interface ExpenseFormProps {
   onSave?: (expenseData: ExpenseData) => void;
   onCancel?: () => void;
   initialData?: Partial<ExpenseData>;
+  hideTitle?: boolean;
 }
 
-export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFormProps) {
+export default function ExpenseForm({ onSave, onCancel, initialData, hideTitle }: ExpenseFormProps) {
   const [formData, setFormData] = useState<Partial<ExpenseData>>({
     date: new Date().toISOString().split('T')[0],
     totalAmount: 0,
@@ -120,6 +121,9 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
 
   return (
     <div className="space-y-6 text-center">
+      {!hideTitle && (
+        <h2 className="text-xl font-semibold mb-4">データ入力</h2>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 基本情報 */}
         <div className="space-y-4">
