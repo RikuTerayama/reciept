@@ -70,6 +70,25 @@ export default function Home() {
     }
   }, []);
 
+  // ユーザー情報同期のためのストレージイベントリスナー
+  // @ts-ignore
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user_info' && e.newValue) {
+        try {
+          const newUserInfo = JSON.parse(e.newValue);
+          setUserInfo(newUserInfo);
+          console.log('User info synced from other tab/device:', newUserInfo);
+        } catch (error) {
+          console.error('Failed to parse synced user info:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const handleSettingsSave = (userData: any) => {
     console.log('Saving settings:', userData);
     localStorage.setItem('user_info', JSON.stringify(userData));
