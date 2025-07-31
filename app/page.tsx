@@ -234,7 +234,7 @@ export default function Home() {
                     onClick={handleSingleUpload}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                   >
-                    {t('common.upload', currentLanguage)}
+                    {t('navigation.singleUpload', currentLanguage)}
                   </button>
                 </div>
               </div>
@@ -294,13 +294,13 @@ export default function Home() {
               <div className="bg-gray-800 rounded-lg p-4 sm:p-6 flex flex-col h-full">
                 <div className="flex-1">
                   <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('common.settings', currentLanguage)}</h2>
-                  <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('common.settings', currentLanguage)}</p>
+                  <p className="text-gray-400 mb-4 text-center sm:text-left text-sm sm:text-base">{t('common.personalSettingEditable', currentLanguage)}</p>
                   <div className="flex justify-center sm:justify-start">
                     <button 
                       onClick={() => setShowSettingsModal(true)}
                       className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm sm:text-base"
                     >
-                      {t('common.edit', currentLanguage)}
+                      {t('common.personalSettings', currentLanguage)}
                     </button>
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export default function Home() {
                     onClick={handleReset}
                     className="w-full px-4 py-2 bg-gray-800/50 text-gray-300 rounded-lg hover:bg-gray-700/50 transition-colors text-sm"
                   >
-                    {t('common.personalSettingEditable', currentLanguage)}
+                    {t('common.clearAllLogs', currentLanguage)}
                   </button>
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function Home() {
       {/* モーダル */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-sm">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-sm text-white">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.singleUpload', currentLanguage)}</h2>
               <button
