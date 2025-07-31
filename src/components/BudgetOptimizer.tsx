@@ -6,7 +6,11 @@ import { getCurrentLanguage, t } from '@/lib/i18n';
 import { optimizeBudget } from '@/lib/optimizer';
 import { exportBudgetOptimizationToExcel } from '@/lib/excel';
 
-export default function BudgetOptimizer() {
+interface BudgetOptimizerProps {
+  hideTitle?: boolean;
+}
+
+export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
   const [targetBudget, setTargetBudget] = useState(100000);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<any>(null);
@@ -51,7 +55,9 @@ export default function BudgetOptimizer() {
     <div className="space-y-6 text-center">
       {/* 設定セクション */}
       <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage)}</h3>
+        {!hideTitle && (
+          <h3 className="text-lg font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage)}</h3>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
