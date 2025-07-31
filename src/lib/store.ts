@@ -44,37 +44,37 @@ export const useExpenseStore = create<ExpenseStore>()(
       currentMonth: getCurrentYearMonth(),
 
       // 経費データの追加
-      addExpense: (expense: ExpenseData) => {
+      addExpense: (expense: ExpenseData, userEmail?: string) => {
         set((state) => {
           const newExpenses = [...state.expenses, expense];
-          // ローカルストレージにも保存
-          addExpenseToStorage(expense);
+          // ローカルストレージにも保存（同期対応）
+          addExpenseToStorage(expense, userEmail);
           return { expenses: newExpenses };
         });
       },
 
       // 経費データの更新
-      updateExpense: (expense: ExpenseData) => {
+      updateExpense: (expense: ExpenseData, userEmail?: string) => {
         set((state) => {
           const updatedExpenses = state.expenses.map((exp) =>
             exp.id === expense.id ? expense : exp
           );
-          // ローカルストレージにも更新
-          updateExpenseInStorage(expense);
+          // ローカルストレージにも更新（同期対応）
+          updateExpenseInStorage(expense, userEmail);
           return { expenses: updatedExpenses };
         });
       },
 
       // 経費データの削除
-      deleteExpense: (id: string) => {
+      deleteExpense: (id: string, userEmail?: string) => {
         set((state) => {
           const expenseToDelete = state.expenses.find(exp => exp.id === id);
           const filteredExpenses = state.expenses.filter((exp) => exp.id !== id);
           const filteredSelection = state.selectedExpenses.filter((selectedId) => selectedId !== id);
           
-          // ローカルストレージからも削除
+          // ローカルストレージからも削除（同期対応）
           if (expenseToDelete) {
-            deleteExpenseFromStorage(id, expenseToDelete.date);
+            deleteExpenseFromStorage(id, userEmail, expenseToDelete.date);
           }
           
           return { 
