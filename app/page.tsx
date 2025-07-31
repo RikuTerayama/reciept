@@ -234,6 +234,13 @@ export default function Home() {
 
               {/* メインコンテンツ */}
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 残予算表示ボックス */}
+        {userInfo && (
+          <div className="mb-6 bg-gray-800 rounded-lg p-4 text-center">
+            <BudgetDisplay userInfo={userInfo} />
+          </div>
+        )}
+        
         {/* メインアプリケーション */}
         {userInfo && (
           <div className="max-w-full overflow-hidden text-center">
