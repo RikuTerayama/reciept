@@ -6,11 +6,11 @@ interface BudgetDisplayProps {
     budget: number;
     email: string;
   };
+  currentLanguage: string;
 }
 
-export default function BudgetDisplay({ userInfo }: BudgetDisplayProps) {
+export default function BudgetDisplay({ userInfo, currentLanguage }: BudgetDisplayProps) {
   const expenses = useExpenseStore((state) => state.expenses);
-  const currentLanguage = 'ja'; // 言語設定は後で動的に取得
 
   // 登録済み経費の合計金額を計算
   const totalRegistered = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
