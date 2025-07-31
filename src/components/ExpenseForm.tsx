@@ -119,7 +119,7 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-center">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 基本情報 */}
         <div className="space-y-4">
@@ -162,6 +162,7 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               onChange={handleInputChange}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
             >
+              <option value="JPY">JPY</option>
               <option value="PHP">PHP</option>
               <option value="THB">THB</option>
               <option value="HKD">HKD</option>
@@ -189,7 +190,6 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               <option value="BHD">BHD</option>
               <option value="SGD">SGD</option>
               <option value="SEK">SEK</option>
-              <option value="JPY">JPY</option>
               <option value="GBP">GBP</option>
               <option value="CZK">CZK</option>
               <option value="AED">AED</option>
@@ -287,7 +287,7 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               value={formData.companyName}
               onChange={handleInputChange}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-              placeholder="クライアント名を入力"
+              placeholder={t('dataInput.companyNamePlaceholder', currentLanguage)}
             />
           </div>
 
@@ -323,10 +323,10 @@ export default function ExpenseForm({ onSave, onCancel, initialData }: ExpenseFo
               onChange={handleInputChange}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
             >
-              <option value="Qualified invoice/receipt">{t('qualifications.qualifiedInvoice', currentLanguage)}</option>
-              <option value="Qualified(by public transportation exception)">{t('qualifications.qualifiedPublicTransport', currentLanguage)}</option>
-              <option value="Qualified(by business trip/allowance exception)">{t('qualifications.qualifiedBusinessTrip', currentLanguage)}</option>
-              <option value="Not Qualified">{t('qualifications.notQualified', currentLanguage)}</option>
+              <option value="Qualified invoice/receipt">Qualified invoice/receipt</option>
+              <option value="Qualified(by public transportation exception)">Qualified(by public transportation exception)</option>
+              <option value="Qualified(by business trip/allowance exception)">Qualified(by business trip/allowance exception)</option>
+              <option value="Not Qualified">Not Qualified</option>
             </select>
           </div>
         </div>
