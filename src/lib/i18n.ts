@@ -22,6 +22,8 @@ export interface Translations {
     version: string;
     settings: string;
     personalSettingEditable: string;
+    personalSettings: string;
+    clearAllLogs: string;
   };
 
   // ヘッダー
@@ -272,7 +274,9 @@ const translations: Record<Language, Translations> = {
       user: 'ユーザー',
       version: 'バージョン',
       settings: '設定',
-      personalSettingEditable: '個人設定を編集可能'
+      personalSettingEditable: '個人設定を編集可能',
+      personalSettings: '個人設定',
+      clearAllLogs: '全てのログをクリア'
     },
     header: {
       title: 'Expenscan - レシート経費管理システム'
@@ -497,7 +501,9 @@ const translations: Record<Language, Translations> = {
       user: 'User',
       version: 'Version',
       settings: 'Settings',
-      personalSettingEditable: 'Edit personal settings'
+      personalSettingEditable: 'Edit personal settings',
+      personalSettings: 'Personal Settings',
+      clearAllLogs: 'Clear All Logs'
     },
     header: {
       title: 'Expenscan - Receipt Expense Management System'
