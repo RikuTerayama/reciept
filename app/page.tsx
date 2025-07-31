@@ -342,14 +342,14 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage)} *</label>
+                  <label className="block text-sm font-medium mb-2 text-center">{t('common.targetMonth', currentLanguage)} *</label>
                   <input
                     type="month"
                     name="targetMonth"
                     value={formData.targetMonth}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center mx-auto"
                   />
                 </div>
                 <div>
@@ -463,7 +463,7 @@ export default function Home() {
 
       {showDataInputModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-[90vw] max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.dataInput', currentLanguage)}</h2>
               <button
