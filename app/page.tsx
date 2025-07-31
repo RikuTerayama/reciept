@@ -396,7 +396,7 @@ export default function Home() {
       {/* モーダル */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.singleUpload', currentLanguage)}</h2>
               <button
@@ -422,7 +422,7 @@ export default function Home() {
 
       {showBatchUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto text-sm text-white">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.batchUpload', currentLanguage)}</h2>
               <button
@@ -444,7 +444,7 @@ export default function Home() {
 
       {showDataInputModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-[90vw] max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.dataInput', currentLanguage)}</h2>
               <button
