@@ -25,6 +25,8 @@ import ExpenseForm from '@/components/ExpenseForm';
 import ExpenseList from '@/components/ExpenseList';
 // @ts-ignore
 import BudgetOptimizer from '@/components/BudgetOptimizer';
+// @ts-ignore
+import BudgetDisplay from '@/components/BudgetDisplay';
 
 export default function Home() {
   // @ts-ignore
