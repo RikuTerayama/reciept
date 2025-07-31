@@ -2,371 +2,185 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileImage, Loader2, CheckCircle, AlertCircle, X, Camera, Grid3X3, List, Trash2 } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { processImageWithOCR } from '@/lib/ocr';
+import { detectReceipt } from '@/lib/receipt-detection';
+import { compressImage } from '@/lib/image-utils';
 import { useExpenseStore } from '@/lib/store';
-import { extractTextFromImage, validateOCRResult } from '@/lib/ocr';
-import { detectReceiptInImage, simpleReceiptDetection } from '@/lib/receipt-detection';
-import { addExpenseToStorage } from '@/lib/storage';
-import { ExpenseData, OCRResult } from '@/types';
-
-interface BatchUploadItem {
-  id: string;
-  file: File;
-  status: 'pending' | 'processing' | 'success' | 'error';
-  ocrResult?: OCRResult;
-  error?: string;
-  croppedImage?: string;
-}
+import { getCurrentLanguage, t } from '@/lib/i18n';
 
 interface BatchUploadProps {
   onComplete?: () => void;
 }
 
 export default function BatchUpload({ onComplete }: BatchUploadProps) {
-  const [uploadItems, setUploadItems] = useState<BatchUploadItem[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [useReceiptDetection, setUseReceiptDetection] = useState(true);
+  const [processedCount, setProcessedCount] = useState(0);
+  const [successCount, setSuccessCount] = useState(0);
+  const [failedCount, setFailedCount] = useState(0);
+  const [currentFile, setCurrentFile] = useState('');
   const { addExpense } = useExpenseStore();
+  const currentLanguage = getCurrentLanguage();
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newItems: BatchUploadItem[] = acceptedFiles.map(file => ({
-      id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      file,
-      status: 'pending'
-    }));
-
-    setUploadItems(prev => [...prev, ...newItems]);
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setFiles(prev => [...prev, ...acceptedFiles]);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp']
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp', '.pdf']
     },
-    multiple: true,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    multiple: true
   });
 
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearAll = () => {
+    setFiles([]);
+    setProcessedCount(0);
+    setSuccessCount(0);
+    setFailedCount(0);
+  };
+
   const processBatch = async () => {
+    if (files.length === 0) return;
+
     setIsProcessing(true);
-    
-    for (let i = 0; i < uploadItems.length; i++) {
-      const item = uploadItems[i];
-      
-      if (item.status === 'pending') {
-        // ステータスを処理中に更新
-        setUploadItems(prev => prev.map((it, index) => 
-          index === i ? { ...it, status: 'processing' } : it
-        ));
+    setProcessedCount(0);
+    setSuccessCount(0);
+    setFailedCount(0);
 
-        try {
-          let processedFile = item.file;
-          let croppedImage: string | undefined;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setCurrentFile(file.name);
 
-          // レシート検出を実行
-          if (useReceiptDetection) {
-            const detectionResult = await detectReceiptInImage(item.file);
-            
-            if (detectionResult.success && detectionResult.croppedImage) {
-              // 検出されたレシート領域を使用
-              croppedImage = detectionResult.croppedImage;
-              // Base64からBlobに変換してFileオブジェクトを作成
-              const response = await fetch(croppedImage);
-              const blob = await response.blob();
-              processedFile = new File([blob], item.file.name, { type: item.file.type });
-            } else {
-              // 検出に失敗した場合は簡易版を使用
-              const simpleResult = await simpleReceiptDetection(item.file);
-              if (simpleResult.success && simpleResult.croppedImage) {
-                croppedImage = simpleResult.croppedImage;
-                const response = await fetch(croppedImage);
-                const blob = await response.blob();
-                processedFile = new File([blob], item.file.name, { type: item.file.type });
-              }
-            }
-          }
+      try {
+        // 画像圧縮
+        const compressedImage = await compressImage(file);
+        
+        // レシート検出
+        const isReceipt = await detectReceipt(compressedImage);
+        
+        // OCR処理
+        const ocrResult = await processImageWithOCR(compressedImage);
+        
+        // 経費データとして保存
+        const expenseData = {
+          id: Date.now().toString() + i,
+          date: ocrResult.date || new Date().toISOString().split('T')[0],
+          totalAmount: ocrResult.totalAmount || 0,
+          currency: 'JPY',
+          category: ocrResult.category || '',
+          description: ocrResult.description || '',
+          taxRate: 10,
+          companyName: '',
+          participantFromClient: 0,
+          participantFromCompany: 0,
+          isQualified: 'Not Qualified',
+          createdAt: new Date()
+        };
 
-          // OCR処理を実行
-          const ocrResult = await extractTextFromImage(processedFile);
-          const errors = validateOCRResult(ocrResult);
-
-          if (errors.length === 0) {
-            // 成功
-            setUploadItems(prev => prev.map((it, index) => 
-              index === i ? { 
-                ...it, 
-                status: 'success', 
-                ocrResult,
-                croppedImage
-              } : it
-            ));
-
-            // 自動的に経費データを作成
-            const expenseData: ExpenseData = {
-              id: Date.now().toString(),
-              date: ocrResult.date || new Date().toISOString().split('T')[0],
-              totalAmount: ocrResult.totalAmount || 0,
-              currency: 'JPY',
-              category: '',
-              description: ocrResult.text || '',
-              participantFromClient: '',
-              participantFromCompany: '',
-              taxRate: ocrResult.taxRate || 10,
-              isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
-              imageData: ocrResult.imageData,
-              receiptNumber: ocrResult.receiptNumber,
-              ocrText: ocrResult.text,
-              createdAt: new Date()
-            };
-
-            addExpense(expenseData);
-            addExpenseToStorage(expenseData);
-          } else {
-            // エラー
-            setUploadItems(prev => prev.map((it, index) => 
-              index === i ? { 
-                ...it, 
-                status: 'error', 
-                error: errors.join(', '),
-                ocrResult,
-                croppedImage
-              } : it
-            ));
-          }
-        } catch (error) {
-          setUploadItems(prev => prev.map((it, index) => 
-            index === i ? { 
-              ...it, 
-              status: 'error', 
-              error: '処理中にエラーが発生しました'
-            } : it
-          ));
-        }
+        addExpense(expenseData);
+        setSuccessCount(prev => prev + 1);
+      } catch (error) {
+        console.error(`Error processing ${file.name}:`, error);
+        setFailedCount(prev => prev + 1);
       }
+
+      setProcessedCount(prev => prev + 1);
     }
-    
+
     setIsProcessing(false);
-    
-    // 処理完了後にコールバックを呼び出す
+    setCurrentFile('');
+
     if (onComplete && successCount > 0) {
       setTimeout(onComplete, 1000);
     }
   };
 
-  const removeItem = (id: string) => {
-    setUploadItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const clearAll = () => {
-    setUploadItems([]);
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <FileImage className="w-5 h-5 text-gray-400" />;
-      case 'processing':
-        return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
-      case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
-      default:
-        return <FileImage className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return '待機中';
-      case 'processing':
-        return '処理中';
-      case 'success':
-        return '完了';
-      case 'error':
-        return 'エラー';
-      default:
-        return '不明';
-    }
-  };
-
-  const pendingCount = uploadItems.filter(item => item.status === 'pending').length;
-  const successCount = uploadItems.filter(item => item.status === 'success').length;
-  const errorCount = uploadItems.filter(item => item.status === 'error').length;
-
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* ヘッダー */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">一括アップロード</h2>
-          <p className="text-gray-600">複数のレシート画像を同時に処理できます</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={useReceiptDetection}
-              onChange={(e) => setUseReceiptDetection(e.target.checked)}
-              className="rounded"
-            />
-            <span className="text-sm">レシート自動検出</span>
-          </label>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded ${viewMode === 'grid' ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-600'}`}
-            >
-              <Grid3X3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded ${viewMode === 'list' ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-600'}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 統計情報 */}
-      {uploadItems.length > 0 && (
-        <div className="card">
-          <div className="card-body">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{uploadItems.length}</div>
-                <div className="text-sm text-gray-600">総数</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-600">{pendingCount}</div>
-                <div className="text-sm text-gray-600">待機中</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">{successCount}</div>
-                <div className="text-sm text-gray-600">完了</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-red-600">{errorCount}</div>
-                <div className="text-sm text-gray-600">エラー</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* アップロードエリア */}
-      <div
-        {...getRootProps()}
-        className={`
-          border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300
-          ${isDragActive ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:border-primary-400'}
-        `}
-      >
-        <input {...getInputProps()} />
-        <div className="flex flex-col items-center space-y-4">
-          <Upload className="w-12 h-12 text-gray-400" />
-          <div>
-            <p className="text-lg font-semibold text-white">
-              {isDragActive ? 'ここにドロップしてください' : 'レシート画像をアップロード'}
+    <div className="space-y-6 text-center">
+      {!isProcessing && (
+        <div className="space-y-4">
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+              isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <input {...getInputProps()} />
+            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <p className="text-sm text-gray-600">
+              {isDragActive ? t('batchUpload.dragDropText', currentLanguage) : t('batchUpload.dragDropText', currentLanguage)}
             </p>
-            <p className="text-sm text-gray-200">
-              複数の画像を選択するか、ここにドラッグ&ドロップしてください
-            </p>
+            <p className="text-xs text-gray-500 mt-2">{t('imageUpload.supportedFormats', currentLanguage)}</p>
           </div>
-        </div>
-      </div>
 
-      {/* アクションボタン */}
-      {uploadItems.length > 0 && (
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={processBatch}
-              disabled={isProcessing || pendingCount === 0}
-              className="btn-primary flex items-center space-x-2"
-            >
-              {isProcessing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Camera className="w-4 h-4" />
-              )}
-              <span>{isProcessing ? '処理中...' : '一括処理開始'}</span>
-            </button>
-            <button
-              onClick={clearAll}
-              className="btn-secondary flex items-center space-x-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>全削除</span>
-            </button>
-          </div>
-          <div className="text-sm text-gray-600">
-            {pendingCount}件の処理待ち
-          </div>
-        </div>
-      )}
+          {files.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-white">{t('batchUpload.title', currentLanguage)}</h3>
+                <button
+                  onClick={clearAll}
+                  className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+                >
+                  {t('batchUpload.clearAll', currentLanguage)}
+                </button>
+              </div>
 
-      {/* アップロードアイテム一覧 */}
-      {uploadItems.length > 0 && (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : 'space-y-4'}>
-          {uploadItems.map((item) => (
-            <div
-              key={item.id}
-              className={`
-                card relative overflow-hidden
-                ${viewMode === 'grid' ? '' : 'flex items-center space-x-4'}
-              `}
-            >
-              {/* 削除ボタン */}
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {files.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-700 rounded-lg p-3">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-4 h-4 text-blue-400" />
+                      <span className="text-sm text-white">{file.name}</span>
+                    </div>
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
               <button
-                onClick={() => removeItem(item.id)}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors z-10"
+                onClick={processBatch}
+                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
               >
-                <X className="w-3 h-3" />
+                {t('batchUpload.startProcessing', currentLanguage)}
               </button>
-
-              {/* サムネイル */}
-              <div className={viewMode === 'grid' ? 'aspect-square' : 'w-20 h-20 flex-shrink-0'}>
-                {item.croppedImage ? (
-                  <img
-                    src={item.croppedImage}
-                    alt="レシート"
-                    className="w-full h-full object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-100 rounded flex items-center justify-center">
-                    <FileImage className="w-8 h-8 text-gray-400" />
-                  </div>
-                )}
-              </div>
-
-              {/* 情報 */}
-              <div className={viewMode === 'grid' ? 'p-4' : 'flex-1'}>
-                <div className="flex items-center space-x-2 mb-2">
-                  {getStatusIcon(item.status)}
-                  <span className="text-sm font-medium">{getStatusText(item.status)}</span>
-                </div>
-                
-                <p className="text-sm text-gray-600 truncate mb-2">
-                  {item.file.name}
-                </p>
-                
-                {item.ocrResult && (
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>日付: {item.ocrResult.date || '未検出'}</div>
-                    <div>金額: ¥{item.ocrResult.totalAmount?.toLocaleString() || '未検出'}</div>
-                  </div>
-                )}
-                
-                {item.error && (
-                  <p className="text-xs text-red-500 mt-2">{item.error}</p>
-                )}
-              </div>
             </div>
-          ))}
+          )}
+        </div>
+      )}
+
+      {isProcessing && (
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="text-sm text-gray-400">{t('batchUpload.processing', currentLanguage)}</p>
+          <p className="text-xs text-gray-500">{currentFile}</p>
+          <div className="text-sm text-gray-400">
+            {processedCount} / {files.length} {t('batchUpload.completed', currentLanguage)}
+          </div>
+        </div>
+      )}
+
+      {!isProcessing && processedCount > 0 && (
+        <div className="text-center space-y-4">
+          <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
+          <div className="space-y-2">
+            <p className="text-sm text-green-600">{t('batchUpload.completed', currentLanguage)}</p>
+            <div className="text-xs text-gray-400 space-y-1">
+              <p>{t('batchUpload.completed', currentLanguage)}: {successCount}</p>
+              <p>{t('batchUpload.failed', currentLanguage)}: {failedCount}</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
