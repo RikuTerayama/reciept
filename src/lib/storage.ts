@@ -16,47 +16,77 @@ const isLocalStorageAvailable = (): boolean => {
   }
 };
 
-export const addExpenseToStorage = (expense: ExpenseData): void => {
+// メールアドレスベースのキー生成
+const getUserKey = (email: string, dataType: string): string => {
+  return `user_${email}_${dataType}`;
+};
+
+// 同期イベントの発火
+const triggerSync = (email: string, dataType: string): void => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('storage-sync', {
+      detail: { email, dataType }
+    }));
+  }
+};
+
+export const addExpenseToStorage = (expense: ExpenseData, userEmail?: string): void => {
   if (!isLocalStorageAvailable()) return;
   
   try {
-    const current = JSON.parse(localStorage.getItem('expenses') || '[]');
+    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
+    const current = JSON.parse(localStorage.getItem(key) || '[]');
     current.push(expense);
-    localStorage.setItem('expenses', JSON.stringify(current));
+    localStorage.setItem(key, JSON.stringify(current));
+    
+    if (userEmail) {
+      triggerSync(userEmail, 'expenses');
+    }
   } catch (error) {
     console.error('経費データの追加エラー:', error);
   }
 };
 
-export const updateExpenseInStorage = (expense: ExpenseData): void => {
+export const updateExpenseInStorage = (expense: ExpenseData, userEmail?: string): void => {
   if (!isLocalStorageAvailable()) return;
   
   try {
-    const current = JSON.parse(localStorage.getItem('expenses') || '[]');
+    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
+    const current = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = current.map((e: ExpenseData) => e.id === expense.id ? expense : e);
-    localStorage.setItem('expenses', JSON.stringify(updated));
+    localStorage.setItem(key, JSON.stringify(updated));
+    
+    if (userEmail) {
+      triggerSync(userEmail, 'expenses');
+    }
   } catch (error) {
     console.error('経費データの更新エラー:', error);
   }
 };
 
-export const deleteExpenseFromStorage = (id: string, date?: string): void => {
+export const deleteExpenseFromStorage = (id: string, userEmail?: string, date?: string): void => {
   if (!isLocalStorageAvailable()) return;
   
   try {
-    const current = JSON.parse(localStorage.getItem('expenses') || '[]');
+    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
+    const current = JSON.parse(localStorage.getItem(key) || '[]');
     const filtered = current.filter((e: ExpenseData) => e.id !== id);
-    localStorage.setItem('expenses', JSON.stringify(filtered));
+    localStorage.setItem(key, JSON.stringify(filtered));
+    
+    if (userEmail) {
+      triggerSync(userEmail, 'expenses');
+    }
   } catch (error) {
     console.error('経費データの削除エラー:', error);
   }
 };
 
-export const loadAllExpenses = (): ExpenseData[] => {
+export const loadAllExpenses = (userEmail?: string): ExpenseData[] => {
   if (!isLocalStorageAvailable()) return [];
   
   try {
-    const data = localStorage.getItem('expenses');
+    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
+    const data = localStorage.getItem(key);
     if (data) {
       const expenses = JSON.parse(data);
       return expenses.map((expense: ExpenseData) => ({
@@ -71,11 +101,11 @@ export const loadAllExpenses = (): ExpenseData[] => {
   }
 };
 
-export const loadMonthlyExpenses = (year: number, month: number): ExpenseData[] => {
+export const loadMonthlyExpenses = (year: number, month: number, userEmail?: string): ExpenseData[] => {
   if (!isLocalStorageAvailable()) return [];
   
   try {
-    const allExpenses = loadAllExpenses();
+    const allExpenses = loadAllExpenses(userEmail);
     const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
     return allExpenses.filter((expense: ExpenseData) => 
       expense.date && expense.date.startsWith(yearMonth)
@@ -102,25 +132,89 @@ export const getYearMonthFromDate = (dateString: string): { year: number; month:
   };
 };
 
-// 追加のユーティリティ関数
-export const saveSettings = (settings: any): void => {
+export const saveSettings = (settings: any, userEmail?: string): void => {
   if (!isLocalStorageAvailable()) return;
   
   try {
-    localStorage.setItem('user_settings', JSON.stringify(settings));
+    const key = userEmail ? getUserKey(userEmail, 'settings') : 'user_info';
+    localStorage.setItem(key, JSON.stringify(settings));
+    
+    if (userEmail) {
+      triggerSync(userEmail, 'settings');
+    }
   } catch (error) {
     console.error('設定の保存エラー:', error);
   }
 };
 
-export const loadSettings = (): any => {
-  if (!isLocalStorageAvailable()) return {};
+export const loadSettings = (userEmail?: string): any => {
+  if (!isLocalStorageAvailable()) return null;
   
   try {
-    const data = localStorage.getItem('user_settings');
-    return data ? JSON.parse(data) : {};
+    const key = userEmail ? getUserKey(userEmail, 'settings') : 'user_info';
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error('設定の読み込みエラー:', error);
-    return {};
+    return null;
+  }
+};
+
+// OCR結果の保存
+export const saveOCRResult = (ocrResult: any, userEmail?: string): void => {
+  if (!isLocalStorageAvailable()) return;
+  
+  try {
+    const key = userEmail ? getUserKey(userEmail, 'ocr_results') : 'ocr_results';
+    const current = JSON.parse(localStorage.getItem(key) || '[]');
+    current.push({
+      ...ocrResult,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem(key, JSON.stringify(current));
+    
+    if (userEmail) {
+      triggerSync(userEmail, 'ocr_results');
+    }
+  } catch (error) {
+    console.error('OCR結果の保存エラー:', error);
+  }
+};
+
+// 予算最適化結果の保存
+export const saveOptimizationResult = (result: any, userEmail?: string): void => {
+  if (!isLocalStorageAvailable()) return;
+  
+  try {
+    const key = userEmail ? getUserKey(userEmail, 'optimization_results') : 'optimization_results';
+    const current = JSON.parse(localStorage.getItem(key) || '[]');
+    current.push({
+      ...result,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem(key, JSON.stringify(current));
+    
+    if (userEmail) {
+      triggerSync(userEmail, 'optimization_results');
+    }
+  } catch (error) {
+    console.error('最適化結果の保存エラー:', error);
+  }
+};
+
+// ユーザー別データの完全削除
+export const clearUserData = (userEmail: string): void => {
+  if (!isLocalStorageAvailable()) return;
+  
+  try {
+    const dataTypes = ['expenses', 'settings', 'ocr_results', 'optimization_results'];
+    dataTypes.forEach(dataType => {
+      const key = getUserKey(userEmail, dataType);
+      localStorage.removeItem(key);
+    });
+    
+    triggerSync(userEmail, 'all');
+  } catch (error) {
+    console.error('ユーザーデータの削除エラー:', error);
   }
 }; 
