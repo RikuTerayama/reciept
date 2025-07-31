@@ -239,7 +239,7 @@ export default function Home() {
         {/* 残予算表示ボックス */}
         {userInfo && (
           <div className="mb-6 bg-gray-800 rounded-lg p-4 text-center">
-            <BudgetDisplay userInfo={userInfo} />
+            <BudgetDisplay userInfo={userInfo} currentLanguage={currentLanguage} />
           </div>
         )}
         
@@ -437,8 +437,8 @@ export default function Home() {
       {/* モーダル */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-sm text-white">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-sm text-white text-center items-center flex flex-col">
+            <div className="flex justify-between items-center mb-4 w-full">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.singleUpload', currentLanguage)}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
@@ -463,8 +463,8 @@ export default function Home() {
 
       {showBatchUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto text-sm text-white">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto text-sm text-white text-center items-center flex flex-col">
+            <div className="flex justify-between items-center mb-4 w-full">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.batchUpload', currentLanguage)}</h2>
               <button
                 onClick={() => setShowBatchUploadModal(false)}
@@ -485,8 +485,8 @@ export default function Home() {
 
       {showDataInputModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto text-center items-center flex flex-col">
+            <div className="flex justify-between items-center mb-4 w-full">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.dataInput', currentLanguage)}</h2>
               <button
                 onClick={() => setShowDataInputModal(false)}
@@ -497,10 +497,10 @@ export default function Home() {
             </div>
             <ExpenseForm 
               onSave={(expenseData) => {
-                console.log('Expense saved:', expenseData);
                 setShowDataInputModal(false);
               }}
               onCancel={() => setShowDataInputModal(false)}
+              hideTitle={true}
             />
           </div>
         </div>
@@ -525,8 +525,8 @@ export default function Home() {
 
       {showOptimizerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-center items-center flex flex-col">
+            <div className="flex justify-between items-center mb-4 w-full">
               <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
               <button
                 onClick={() => setShowOptimizerModal(false)}
@@ -535,7 +535,7 @@ export default function Home() {
                 ✕
               </button>
             </div>
-            <BudgetOptimizer />
+            <BudgetOptimizer hideTitle={true} />
           </div>
         </div>
       )}
