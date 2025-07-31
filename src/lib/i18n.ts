@@ -28,7 +28,6 @@ export interface Translations {
 
   // ヘッダー
   header: {
-    title: string;
   };
 
   // ナビゲーション
@@ -278,9 +277,8 @@ const translations: Record<Language, Translations> = {
       personalSettings: '個人設定',
       clearAllLogs: '全てのログをクリア'
     },
-    header: {
-      title: 'Expenscan - レシート経費管理システム'
-    },
+          header: {
+      },
     navigation: {
       singleUpload: '単一アップロード',
       batchUpload: '一括アップロード',
@@ -505,9 +503,8 @@ const translations: Record<Language, Translations> = {
       personalSettings: 'Personal Settings',
       clearAllLogs: 'Clear All Logs'
     },
-    header: {
-      title: 'Expenscan - Receipt Expense Management System'
-    },
+          header: {
+      },
     navigation: {
       singleUpload: 'Single Upload',
       batchUpload: 'Batch Upload',
