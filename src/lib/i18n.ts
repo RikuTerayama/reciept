@@ -145,6 +145,13 @@ export interface Translations {
     noExpenses: string;
   };
 
+  // 残予算表示
+  budgetDisplay: {
+    remaining: string;
+    budget: string;
+    registered: string;
+  };
+
   // 統計情報
   statistics: {
     title: string;
@@ -608,6 +615,11 @@ const translations: Record<Language, Translations> = {
       selectedExpenses: 'Selected Expenses',
       availableExpenses: 'Available Expenses',
       noExpenses: 'No expense data available',
+    },
+    budgetDisplay: {
+      remaining: '残りの使用可能金額',
+      budget: '予算',
+      registered: '登録済',
     },
     statistics: {
       title: 'Statistics',
