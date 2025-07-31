@@ -36,7 +36,7 @@ export default function ExpenseList() {
 
   if (expenses.length === 0) {
     return (
-      <div className="card">
+      <div className="card text-center">
         <div className="card-body text-center py-12">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-800/50 rounded-full mb-4">
             <Calendar className="w-8 h-8 text-gray-400" />
@@ -51,9 +51,9 @@ export default function ExpenseList() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-center">
       {/* ヘッダー（中央揃え） */}
-      <div className="expense-list-header">
+      <div className="expense-list-header text-center">
         <h1 className="expense-list-title">経費リスト</h1>
         <p className="expense-list-description">登録された経費データの一覧と管理</p>
       </div>
@@ -191,11 +191,6 @@ export default function ExpenseList() {
                     </div>
                   </td>
                   <td className="text-center">
-                    <span className="text-sm text-gray-600 font-mono">
-                      {expense.receiptNumber || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="text-center">
                     <div className="flex items-center justify-center space-x-2">
                       <button
                         onClick={() => handleDelete(expense.id)}
@@ -215,13 +210,13 @@ export default function ExpenseList() {
 
       {/* 統計情報 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="stat-card">
+        <div className="stat-card text-center">
           <div className="stat-number">
             ¥{expenses.reduce((sum, exp) => sum + exp.totalAmount, 0).toLocaleString()}
           </div>
           <div className="stat-label">総金額</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card text-center">
           <div className="stat-number">
             ¥{expenses
               .filter(exp => selectedExpenses.includes(exp.id))
@@ -230,7 +225,7 @@ export default function ExpenseList() {
           </div>
           <div className="stat-label">選択金額</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card text-center">
           <div className="stat-number">
             {expenses.filter(exp => exp.isQualified.includes('Qualified')).length}
           </div>
