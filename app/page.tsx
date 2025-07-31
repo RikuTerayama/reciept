@@ -309,7 +309,7 @@ export default function Home() {
                     onClick={handleReset}
                     className="w-full px-4 py-2 bg-gray-800/50 text-gray-300 rounded-lg hover:bg-gray-700/50 transition-colors text-sm"
                   >
-                    個人設定を編集可能
+                    {t('common.personalSettingEditable', currentLanguage)}
                   </button>
                 </div>
               </div>
