@@ -617,9 +617,9 @@ const translations: Record<Language, Translations> = {
       noExpenses: 'No expense data available',
     },
     budgetDisplay: {
-      remaining: '残りの使用可能金額',
-      budget: '予算',
-      registered: '登録済',
+      remaining: 'Remaining Budget',
+      budget: 'Budget',
+      registered: 'Registered',
     },
     statistics: {
       title: 'Statistics',
