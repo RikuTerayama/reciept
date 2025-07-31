@@ -85,9 +85,22 @@ export default function Home() {
       }
     };
 
+    const handleStorageSync = (e: CustomEvent) => {
+      const { email, dataType } = e.detail;
+      if (userInfo && userInfo.email === email) {
+        console.log(`Data synced for ${email}: ${dataType}`);
+        // 必要に応じてUIを更新
+      }
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    window.addEventListener('storage-sync', handleStorageSync as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage-sync', handleStorageSync as EventListener);
+    };
+  }, [userInfo]);
 
   const handleSettingsSave = (userData: any) => {
     console.log('Saving settings:', userData);
@@ -205,7 +218,6 @@ export default function Home() {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            <h1 className="text-2xl font-bold">{t('header.title', currentLanguage)}</h1>
           </div>
           <div className="flex items-center space-x-4">
             <LanguageSwitcher 
@@ -407,7 +419,8 @@ export default function Home() {
           {/* モバイル表示 */}
           <div className="md:hidden text-center text-sm text-gray-400 space-y-1 py-2">
             <div>v{APP_VERSION}</div>
-            <div>© 2025 Expenscan. All rights reserved. Developed by Riku Terayama</div>
+            <div>© 2025 Expenscan. All rights reserved.</div>
+            <div>Developed by Riku Terayama</div>
           </div>
         </div>
       </footer>
