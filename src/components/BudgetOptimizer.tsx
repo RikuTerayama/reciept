@@ -48,10 +48,10 @@ export default function BudgetOptimizer() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-center">
       {/* 設定セクション */}
       <div className="bg-gray-800 rounded-lg p-6">
-
+        <h3 className="text-lg font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage)}</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
