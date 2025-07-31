@@ -201,11 +201,11 @@ export default function Home() {
         </div>
       </header>
 
-      {/* メインコンテンツ */}
+              {/* メインコンテンツ */}
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* メインアプリケーション */}
         {userInfo && (
-          <div className="max-w-full overflow-hidden">
+          <div className="max-w-full overflow-hidden text-center">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-center sm:text-left">{t('navigation.singleUpload', currentLanguage)}</h2>
@@ -290,7 +290,7 @@ export default function Home() {
                     onClick={handleReset}
                     className="w-full px-4 py-2 bg-gray-800/50 text-gray-300 rounded-lg hover:bg-gray-700/50 transition-colors text-sm"
                   >
-                    設定をリセット
+                    個人設定を編集可能
                   </button>
                 </div>
               </div>
@@ -300,7 +300,7 @@ export default function Home() {
 
         {/* 設定画面 */}
         {!userInfo && (
-          <div className="max-w-4xl mx-auto max-w-full overflow-hidden">
+          <div className="max-w-4xl mx-auto max-w-full overflow-hidden text-center">
             <div className="text-center mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
               <p className="text-lg sm:text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
@@ -330,7 +330,7 @@ export default function Home() {
                     value={formData.targetMonth}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center"
                   />
                 </div>
                 <div>
@@ -377,7 +377,7 @@ export default function Home() {
                 }}
               />
               <div className="text-sm text-gray-400">
-                © 2025 Expenscan. All rights reserved.
+                © 2025 Expenscan. All rights reserved. Developed by Riku Terayama
               </div>
             </div>
             <div className="text-sm text-gray-400">
@@ -388,7 +388,7 @@ export default function Home() {
           {/* モバイル表示 */}
           <div className="md:hidden text-center text-sm text-gray-400 space-y-1 py-2">
             <div>v{APP_VERSION}</div>
-            <div>© 2025 Expenscan. All rights reserved.</div>
+            <div>© 2025 Expenscan. All rights reserved. Developed by Riku Terayama</div>
           </div>
         </div>
       </footer>
