@@ -27,6 +27,8 @@ import ExpenseList from '@/components/ExpenseList';
 import BudgetOptimizer from '@/components/BudgetOptimizer';
 // @ts-ignore
 import BudgetDisplay from '@/components/BudgetDisplay';
+// @ts-ignore
+import { loadUserDataByEmail } from '@/lib/storage';
 
 export default function Home() {
   // @ts-ignore
@@ -118,6 +120,21 @@ export default function Home() {
       ...prev,
       [name]: value
     }));
+    
+    // メールアドレスが変更された場合、自動復元を試行
+    if (name === 'email' && value) {
+      loadUserDataByEmail(value).then(userData => {
+        if (userData && userData.settings) {
+          console.log('ユーザーデータを復元:', userData);
+          // 設定情報を復元
+          setFormData(prev => ({
+            ...prev,
+            targetMonth: userData.settings.targetMonth || prev.targetMonth,
+            budget: userData.settings.budget || prev.budget
+          }));
+        }
+      });
+    }
   };
 
   // 設定保存ボタンクリック
@@ -485,9 +502,9 @@ export default function Home() {
 
       {showDataInputModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto text-center items-center flex flex-col">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto text-center items-center flex flex-col text-white">
             <div className="flex justify-between items-center mb-4 w-full">
-              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.dataInput', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white">{t('navigation.dataInput', currentLanguage)}</h2>
               <button
                 onClick={() => setShowDataInputModal(false)}
                 className="text-gray-400 hover:text-white p-2"
@@ -525,9 +542,9 @@ export default function Home() {
 
       {showOptimizerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-center items-center flex flex-col">
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-center items-center flex flex-col text-white">
             <div className="flex justify-between items-center mb-4 w-full">
-              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
               <button
                 onClick={() => setShowOptimizerModal(false)}
                 className="text-gray-400 hover:text-white p-2"
