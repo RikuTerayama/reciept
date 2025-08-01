@@ -96,4 +96,37 @@ export const BUDGET_OPTIONS: BudgetOption[] = [
   { id: '100000', amount: 100000, label: '10万円' },
   { id: '150000', amount: 150000, label: '15万円' },
   { id: '200000', amount: 200000, label: '20万円' }
-]; 
+];
+
+// 認証関連の型定義
+export interface UserInfo {
+  uid: string;
+  email: string;
+  targetMonth: string;
+  budget: number;
+  currency: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AuthState {
+  user: UserInfo | null;
+  loading: boolean;
+  error: string | null;
+}
+
+// 為替レート関連の型定義
+export interface ExchangeRate {
+  base: string;
+  rates: Record<string, number>;
+  date: string;
+}
+
+export interface CurrencyConversion {
+  originalAmount: number;
+  originalCurrency: string;
+  convertedAmount: number;
+  baseCurrency: string;
+  conversionRate: number;
+  conversionDate: string;
+} 
