@@ -44,17 +44,17 @@ export const generateReceiptNumber = (date: string, amount: number): string => {
   return `R${dateStr}${paddedAmount}${randomStr}`;
 };
 
-// 画像の圧縮
-export const compressImage = (base64: string, quality: number = 0.8): Promise<string> => {
+// 画像の圧縮（最適化版）
+export const compressImage = (file: File | string, quality: number = 0.7): Promise<string> => {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     const img = new Image();
     
     img.onload = () => {
-      // 最大サイズを設定（1920x1080）
-      const maxWidth = 1920;
-      const maxHeight = 1080;
+      // 最大サイズを設定（1200x800に縮小して処理速度向上）
+      const maxWidth = 1200;
+      const maxHeight = 800;
       
       let { width, height } = img;
       
@@ -77,7 +77,12 @@ export const compressImage = (base64: string, quality: number = 0.8): Promise<st
       resolve(compressedBase64);
     };
     
-    img.src = base64;
+    // File または string に対応
+    if (typeof file === 'string') {
+      img.src = file;
+    } else {
+      img.src = URL.createObjectURL(file);
+    }
   });
 };
 
