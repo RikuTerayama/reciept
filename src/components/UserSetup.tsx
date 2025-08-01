@@ -43,21 +43,21 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
     const newErrors: Record<string, string> = {};
 
     if (!formData.email) {
-      newErrors.email = t('dataInput.validation.required', currentLanguage);
+              newErrors.email = t('dataInput.validation.required', currentLanguage, 'この項目は必須です');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('dataInput.validation.invalidEmail', currentLanguage);
+              newErrors.email = t('dataInput.validation.invalidEmail', currentLanguage, '有効なメールアドレスを入力してください');
     }
 
     if (!formData.targetMonth) {
-      newErrors.targetMonth = t('dataInput.validation.required', currentLanguage);
+              newErrors.targetMonth = t('dataInput.validation.required', currentLanguage, 'この項目は必須です');
     }
 
     if (!formData.budget || formData.budget <= 0) {
-      newErrors.budget = t('dataInput.validation.invalidAmount', currentLanguage);
+              newErrors.budget = t('dataInput.validation.invalidAmount', currentLanguage, '有効な金額を入力してください');
     }
 
     if (!formData.currency) {
-      newErrors.currency = t('dataInput.validation.required', currentLanguage);
+              newErrors.currency = t('dataInput.validation.required', currentLanguage, 'この項目は必須です');
     }
 
     setErrors(newErrors);
