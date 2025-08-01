@@ -14,7 +14,11 @@ import {
   where, 
   getDocs,
   addDoc,
-  updateDoc 
+  updateDoc,
+  orderBy,
+  limit,
+  writeBatch,
+  runTransaction
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserInfo, ExpenseData } from '@/types';
@@ -114,16 +118,60 @@ export const saveExpenseData = async (uid: string, expense: ExpenseData) => {
   }
 };
 
-// 経費データの取得
-export const getExpenseData = async (uid: string): Promise<ExpenseData[]> => {
+// 経費データの取得（ページネーション対応）
+export const getExpenseData = async (uid: string, limit: number = 100): Promise<ExpenseData[]> => {
   try {
-    const expensesQuery = query(collection(db, 'users', uid, 'expenses'));
+    const expensesQuery = query(
+      collection(db, 'users', uid, 'expenses'),
+      orderBy('receiptDate', 'desc'),
+      limit(limit as number)
+    );
     const querySnapshot = await getDocs(expensesQuery);
     
     return querySnapshot.docs.map(doc => ({
       ...doc.data(),
       id: doc.id
     })) as ExpenseData[];
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+// 経費データの一括保存（バッチ処理）
+export const saveExpenseDataBatch = async (uid: string, expenses: ExpenseData[]) => {
+  try {
+    const batch = writeBatch(db);
+    
+    expenses.forEach(expense => {
+      const docRef = doc(collection(db, 'users', uid, 'expenses'));
+      batch.set(docRef, {
+        ...expense,
+        createdAt: new Date()
+      });
+    });
+    
+    await batch.commit();
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+// 経費データの更新（トランザクション対応）
+export const updateExpenseData = async (uid: string, expenseId: string, updates: Partial<ExpenseData>) => {
+  try {
+    const expenseRef = doc(db, 'users', uid, 'expenses', expenseId);
+    
+    await runTransaction(db, async (transaction) => {
+      const expenseDoc = await transaction.get(expenseRef);
+      if (!expenseDoc.exists()) {
+        throw new Error('Expense not found');
+      }
+      
+      transaction.update(expenseRef, {
+        ...updates,
+        updatedAt: new Date()
+      });
+    });
   } catch (error: any) {
     throw new Error(error.message);
   }
