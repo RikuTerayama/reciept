@@ -5,7 +5,12 @@ import { Search, X, Filter } from 'lucide-react';
 
 export interface SearchFilters {
   searchTerm: string;
+  query?: string;
   category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
   dateRange?: {
     start: string;
     end: string;
@@ -21,31 +26,41 @@ interface SearchBarProps {
   filters: SearchFilters;
   onFiltersChange: (filters: SearchFilters) => void;
   categories: string[];
-  onSearch: () => void;
+  onSearch: (filters: SearchFilters) => void;
   onReset: () => void;
+  onClear?: () => void;
+  departments?: string[];
+  className?: string;
 }
 
 export default function SearchBar({ 
+  filters,
+  onFiltersChange,
   onSearch, 
+  onReset,
   onClear, 
   categories, 
-  departments, 
+  departments = [], 
   className = '' 
 }: SearchBarProps) {
-  const [filters, setFilters] = useState<SearchFilters>({ query: '' });
+  const [localFilters, setLocalFilters] = useState<SearchFilters>(filters);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSearch = useCallback(() => {
-    onSearch(filters);
-  }, [filters, onSearch]);
+    onSearch(localFilters);
+  }, [localFilters, onSearch]);
 
   const handleClear = useCallback(() => {
-    setFilters({ query: '' });
-    onClear();
-  }, [onClear]);
+    const clearedFilters = { searchTerm: '' };
+    setLocalFilters(clearedFilters);
+    onFiltersChange(clearedFilters);
+    onClear?.();
+  }, [onClear, onFiltersChange]);
 
   const handleInputChange = (field: keyof SearchFilters, value: string | number) => {
-    setFilters((prev: SearchFilters) => ({ ...prev, [field]: value }));
+    const updatedFilters = { ...localFilters, [field]: value };
+    setLocalFilters(updatedFilters);
+    onFiltersChange(updatedFilters);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -63,16 +78,16 @@ export default function SearchBar({
         </div>
         <input
           type="text"
-          value={filters.query}
-          onChange={(e) => handleInputChange('query', e.target.value)}
+          value={localFilters.searchTerm}
+          onChange={(e) => handleInputChange('searchTerm', e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="経費を検索..."
           className="form-input pl-10 pr-12"
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-2">
-          {filters.query && (
+          {localFilters.searchTerm && (
             <button
-              onClick={() => handleInputChange('query', '')}
+              onClick={() => handleInputChange('searchTerm', '')}
               className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
             >
               <X className="w-4 h-4" />
