@@ -276,6 +276,31 @@ export default function ExpenseForm({ onSave, onCancel, initialData, hideTitle }
           />
         </div>
 
+        {/* Currency */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-surface-300">
+            Currency
+          </label>
+          <select
+            name="currency"
+            value={formData.currency || 'JPY'}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="JPY">日本円（JPY）</option>
+            <option value="USD">米ドル（USD）</option>
+            <option value="EUR">ユーロ（EUR）</option>
+            <option value="GBP">ポンド（GBP）</option>
+            <option value="CNY">人民元（CNY）</option>
+            <option value="KRW">韓国ウォン（KRW）</option>
+            <option value="SGD">シンガポールドル（SGD）</option>
+            <option value="AUD">豪ドル（AUD）</option>
+            <option value="CAD">カナダドル（CAD）</option>
+            <option value="CHF">スイスフラン（CHF）</option>
+          </select>
+        </div>
+
         {/* Tax Credit Q */}
         <div>
           <label className="block text-sm font-medium mb-2 text-surface-300">
