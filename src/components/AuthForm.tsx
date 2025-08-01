@@ -95,9 +95,35 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
         onSuccess(userInfo);
       }
     } catch (error: any) {
-      setErrors({ general: error.message });
+      // Firebase Auth エラーの詳細ハンドリング
+      const errorMessage = getAuthErrorMessage(error.message);
+      setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Firebase Auth エラーメッセージの日本語化
+  const getAuthErrorMessage = (errorCode: string): string => {
+    switch (errorCode) {
+      case 'auth/user-not-found':
+        return 'このメールアドレスは登録されていません';
+      case 'auth/wrong-password':
+        return 'パスワードが正しくありません';
+      case 'auth/invalid-email':
+        return 'メールアドレスの形式が正しくありません';
+      case 'auth/weak-password':
+        return 'パスワードは6文字以上で入力してください';
+      case 'auth/email-already-in-use':
+        return 'このメールアドレスは既に使用されています';
+      case 'auth/network-request-failed':
+        return 'ネットワークに接続できません。再度お試しください';
+      case 'auth/too-many-requests':
+        return 'リクエストが多すぎます。しばらく時間をおいてから再度お試しください';
+      case 'auth/user-disabled':
+        return 'このアカウントは無効になっています';
+      default:
+        return errorCode || '認証に失敗しました。再度お試しください';
     }
   };
 
