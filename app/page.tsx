@@ -457,7 +457,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto text-sm text-white text-center items-center flex flex-col">
             <div className="flex justify-between items-center mb-4 w-full">
-              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.singleUpload', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white">{t('navigation.singleUpload', currentLanguage)}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className="text-gray-400 hover:text-white p-2"
@@ -483,7 +483,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto text-sm text-white text-center items-center flex flex-col">
             <div className="flex justify-between items-center mb-4 w-full">
-              <h2 className="text-xl sm:text-2xl font-semibold">{t('navigation.batchUpload', currentLanguage)}</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-white">{t('navigation.batchUpload', currentLanguage)}</h2>
               <button
                 onClick={() => setShowBatchUploadModal(false)}
                 className="text-gray-400 hover:text-white p-2"
