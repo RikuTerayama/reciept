@@ -19,7 +19,7 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
 
   const handleOptimize = async () => {
     if (expenses.length === 0) {
-      alert(t('budgetOptimizer.noExpenses', currentLanguage));
+      alert(t('budgetOptimizer.noExpenses', currentLanguage, '経費データがありません'));
       return;
     }
 
@@ -29,7 +29,7 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
       setOptimizationResult(result);
     } catch (error) {
       console.error('Optimization error:', error);
-      alert(t('common.error', currentLanguage));
+      alert(t('common.error', currentLanguage, 'エラーが発生しました'));
     } finally {
       setIsOptimizing(false);
     }
@@ -37,7 +37,7 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
 
   const handleExport = () => {
     if (!optimizationResult || !optimizationResult.selectedExpenses || optimizationResult.selectedExpenses.length === 0) {
-      alert(t('budgetOptimizer.noResults', currentLanguage));
+      alert(t('budgetOptimizer.noResults', currentLanguage, '最適化結果がありません'));
       return;
     }
 
@@ -49,10 +49,10 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
         targetBudget, // 目標予算
         filename
       );
-      alert(t('common.success', currentLanguage));
+      alert(t('common.success', currentLanguage, '成功しました'));
     } catch (error) {
       console.error('Export error:', error);
-      alert(t('common.error', currentLanguage));
+      alert(t('common.error', currentLanguage, 'エラーが発生しました'));
     }
   };
 
