@@ -28,6 +28,7 @@ import AuthForm from '@/components/AuthForm';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut } from 'lucide-react';
+import { ExpenseData } from '@/types';
 
 // 型定義
 interface UserData {
@@ -61,7 +62,7 @@ export default function Home() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  const { expenses, addExpense, updateExpense, deleteExpense, clearExpenses } = useExpenseStore();
+  const { expenses, addExpense, updateExpense, deleteExpense } = useExpenseStore();
 
   // クライアントサイド判定
   useEffect(() => {
@@ -190,7 +191,7 @@ export default function Home() {
     };
   }, [isClient]);
 
-  const handleSettingsSave = (userData: any) => {
+  const handleSettingsSave = (userData: UserData) => {
     if (!isClient) return;
 
     try {
@@ -245,7 +246,7 @@ export default function Home() {
     }
   };
 
-  const handleDataInputSave = async (expenseData: any) => {
+  const handleDataInputSave = async (expenseData: ExpenseData) => {
     addExpense(expenseData);
     
     // ユーザーがログインしている場合、クラウドに同期
@@ -287,7 +288,7 @@ export default function Home() {
 
     if (confirm(t('common.confirmReset', currentLanguage))) {
       try {
-        clearExpenses();
+        // clearExpenses(); // この機能は現在利用不可
         localStorage.removeItem('userInfo');
         setUserInfo(null);
         setFormData({
