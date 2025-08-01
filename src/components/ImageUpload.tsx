@@ -38,7 +38,10 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       
       // ステップ2: レシート検出 (40%)
       setProgress(40);
-      const isReceipt = await detectReceipt(compressedImage);
+      // 圧縮された画像をFileに変換
+      const compressedBlob = await fetch(compressedImage).then(r => r.blob());
+      const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+      const isReceipt = await detectReceipt(compressedFile);
       
       if (!isReceipt) {
         console.log('Receipt detection failed, using original image');
@@ -46,7 +49,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
 
       // ステップ3: OCR処理 (80%)
       setProgress(80);
-      const ocrResult = await processImageWithOCR(compressedImage);
+      const ocrResult = await processImageWithOCR(compressedFile);
       
       // 完了 (100%)
       setProgress(100);
