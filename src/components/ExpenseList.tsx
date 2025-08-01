@@ -157,39 +157,38 @@ export default function ExpenseList() {
                       className="w-4 h-4 text-primary-600 bg-surface-700 border-surface-600 rounded focus:ring-primary-500 focus:ring-2"
                     />
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4 text-surface-400" />
                       <span className="text-sm text-white">{expense.date}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
                       <Tag className="w-4 h-4 text-surface-400" />
                       <span className="text-sm text-white">{expense.category}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4">
                     <div className="max-w-xs">
                       <span className="text-sm text-surface-300">
                         {expense.description}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-right">
+                  <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      <DollarSign className="w-4 h-4 text-surface-400" />
                       <span className="text-sm font-medium text-white">
-                        ¥{expense.totalAmount.toLocaleString()}
+                        {expense.totalAmount.toLocaleString()}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-center">
+                  <td className="px-6 py-4 text-center">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-700 text-surface-300">
                       {expense.taxRate}%
                     </span>
                   </td>
-                  <td className="px-4 py-4 text-center">
+                  <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center space-x-2">
                       <CheckCircle className={`w-4 h-4 ${
                         expense.isQualified.includes('Qualified') 
@@ -199,7 +198,7 @@ export default function ExpenseList() {
                       <span className="text-sm text-surface-300">{expense.isQualified}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-4">
                     <div className="flex items-center justify-center space-x-2">
                       <button
                         onClick={() => handleEdit(expense)}
