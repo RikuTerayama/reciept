@@ -5,6 +5,16 @@ import { getCurrentLanguage, t } from '@/lib/i18n';
 import { registerUser, loginUser } from '@/lib/auth-service';
 import { UserInfo } from '@/types';
 
+// 型定義
+interface AuthFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  targetMonth: string;
+  budget: number;
+  currency: string;
+}
+
 interface AuthFormProps {
   mode: 'login' | 'register';
   onSuccess: (userInfo: UserInfo) => void;
@@ -12,7 +22,7 @@ interface AuthFormProps {
 }
 
 export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AuthFormData>({
     email: '',
     password: '',
     confirmPassword: '',
