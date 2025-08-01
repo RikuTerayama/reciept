@@ -476,7 +476,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
                 <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.budgetOptimizer')}</h2>
                 <p className="text-gray-400 max-w-2xl mx-auto">{t('budgetOptimizer.description')}</p>
               </div>
-              <BudgetOptimizer targetBudget={userInfo.budget} />
+              <BudgetOptimizer />
             </div>
           )}
         </div>
