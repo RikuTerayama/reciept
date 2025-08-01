@@ -76,17 +76,17 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
     <div className="max-w-2xl mx-auto">
       {!hideWelcomeTitle && (
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
-          <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
+                  <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage, 'Welcome')}</h2>
+        <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage, 'OCR技術による自動抽出・管理')}</p>
         </div>
       )}
       
       <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-2xl font-semibold mb-6">{t('common.settings', currentLanguage)}</h3>
+        <h3 className="text-2xl font-semibold mb-6">{t('common.settings', currentLanguage, '設定')}</h3>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage)} *</label>
+            <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
             <input
               type="email"
               name="email"
@@ -102,7 +102,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage)} *</label>
+            <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage, '対象月')} *</label>
             <input
               type="month"
               name="targetMonth"
@@ -117,7 +117,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage)} *</label>
+            <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage, '予算')} *</label>
             <input
               type="number"
               name="budget"
@@ -134,7 +134,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t('dataInput.currency', currentLanguage)} *</label>
+            <label className="block text-sm font-medium mb-2">{t('dataInput.currency', currentLanguage, '通貨')} *</label>
             <select
               name="currency"
               value={formData.currency}
@@ -162,7 +162,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
             type="submit"
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            {t('common.save', currentLanguage)}
+            {t('common.save', currentLanguage, '保存')}
           </button>
         </form>
       </div>
