@@ -24,6 +24,8 @@ export interface OCRResult {
   totalAmount?: number;
   taxRate?: number;
   isQualified?: boolean;
+  category?: string;
+  description?: string;
   text: string;
   imageData?: string; // Base64画像データ
   receiptNumber?: string; // レシート番号
