@@ -126,35 +126,37 @@ export const syncExpenseData = async (uid: string, localExpenses: ExpenseData[])
 
     // ローカルとクラウドのデータをマージ
     const mergedExpenses = mergeExpenses(localExpenses, cloudExpenses);
+  
+  // マージされたデータをクラウドに保存
+  const batch = writeBatch(db);
+  mergedExpenses.forEach(expense => {
+    if (!expense.id.startsWith('local_')) {
+      // 既存のクラウドデータは更新
+      const expenseRef = doc(db, 'users', uid, 'expenses', expense.id);
+      batch.update(expenseRef, {
+        ...expense,
+        updatedAt: new Date()
+      });
+    } else {
+      // 新しいローカルデータは追加
+      const expenseRef = doc(collection(db, 'users', uid, 'expenses'));
+      batch.set(expenseRef, {
+        ...expense,
+        id: undefined, // Firestoreが自動生成
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+  });
+  
+  await batch.commit();
+  
+  // 同期済みデータをローカルに保存
+  saveLocalExpenses(mergedExpenses);
+  
+  return mergedExpenses;
     
-    // マージされたデータをクラウドに保存
-    const batch = writeBatch(db);
-    mergedExpenses.forEach(expense => {
-      if (!expense.id.startsWith('local_')) {
-        // 既存のクラウドデータは更新
-        const expenseRef = doc(db, 'users', uid, 'expenses', expense.id);
-        batch.update(expenseRef, {
-          ...expense,
-          updatedAt: new Date()
-        });
-      } else {
-        // 新しいローカルデータは追加
-        const expenseRef = doc(collection(db, 'users', uid, 'expenses'));
-        batch.set(expenseRef, {
-          ...expense,
-          id: undefined, // Firestoreが自動生成
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-      }
-    });
-    
-    await batch.commit();
-    
-    // 同期済みデータをローカルに保存
-    saveLocalExpenses(mergedExpenses);
-    
-    return mergedExpenses;
+
   } catch (error) {
     console.error('Error syncing expense data:', error);
     throw error;
