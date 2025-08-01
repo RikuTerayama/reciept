@@ -115,7 +115,23 @@ npm run dev
 ## 🔧 設定
 
 ### 環境変数
-現在、特別な環境変数は必要ありません。
+Firebase認証機能を使用する場合は、以下の環境変数を設定してください：
+
+```bash
+# .env.local ファイルを作成
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id_here
+```
+
+### Firebase設定手順
+1. [Firebase Console](https://console.firebase.google.com/) でプロジェクトを作成
+2. Authentication でメール/パスワード認証を有効化
+3. Firestore Database を作成
+4. プロジェクト設定から設定値を取得し、環境変数に設定
 
 ### カスタマイズ
 - `src/types/index.ts`: 予算オプションの変更
