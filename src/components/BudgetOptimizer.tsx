@@ -61,12 +61,12 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
       {/* 設定セクション */}
       <div className="bg-gray-800 rounded-lg p-6">
         {!hideTitle && (
-          <h3 className="text-lg font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage)}</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage, '予算最適化')}</h3>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">{t('budgetOptimizer.targetBudget', currentLanguage)}</label>
+            <label className="block text-sm font-medium mb-2">{t('budgetOptimizer.targetBudget', currentLanguage, '目標予算')}</label>
             <input
               type="number"
               value={targetBudget}
@@ -83,13 +83,13 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
               disabled={isOptimizing || expenses.length === 0}
               className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isOptimizing ? t('common.loading', currentLanguage) : t('budgetOptimizer.optimize', currentLanguage)}
+              {isOptimizing ? t('common.loading', currentLanguage, '処理中...') : t('budgetOptimizer.optimize', currentLanguage, '最適化実行')}
             </button>
           </div>
         </div>
 
         <div className="mt-4 text-sm text-gray-400">
-          {t('budgetOptimizer.availableExpenses', currentLanguage)}: {expenses.length} {t('common.items', currentLanguage)}
+          {t('budgetOptimizer.availableExpenses', currentLanguage, '利用可能な経費')}: {expenses.length} {t('common.items', currentLanguage, '件')}
         </div>
       </div>
 
@@ -97,12 +97,12 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
       {optimizationResult && (
         <div className="bg-gray-800 rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">{t('budgetOptimizer.results', currentLanguage)}</h3>
+            <h3 className="text-lg font-semibold">{t('budgetOptimizer.results', currentLanguage, '最適化結果')}</h3>
             <button
               onClick={handleExport}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-              {t('common.export', currentLanguage)}
+                              {t('common.export', currentLanguage, 'エクスポート')}
             </button>
           </div>
 
@@ -111,27 +111,27 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
               <div className="text-2xl font-bold text-blue-400">
                 ¥{optimizationResult.totalAmount.toLocaleString()}
               </div>
-              <div className="text-sm text-gray-400">{t('budgetOptimizer.totalAmount', currentLanguage)}</div>
+              <div className="text-sm text-gray-400">{t('budgetOptimizer.totalAmount', currentLanguage, '総金額')}</div>
             </div>
             
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-400">
                 ¥{(targetBudget - optimizationResult.totalAmount).toLocaleString()}
               </div>
-              <div className="text-sm text-gray-400">{t('budgetOptimizer.difference', currentLanguage)}</div>
+              <div className="text-sm text-gray-400">{t('budgetOptimizer.difference', currentLanguage, '予算差額')}</div>
             </div>
             
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-2xl font-bold text-purple-400">
                 {optimizationResult.selectedExpenses.length}
               </div>
-              <div className="text-sm text-gray-400">{t('budgetOptimizer.selectedExpenses', currentLanguage)}</div>
+              <div className="text-sm text-gray-400">{t('budgetOptimizer.selectedExpenses', currentLanguage, '選択された経費')}</div>
             </div>
           </div>
 
           {/* 選択された経費一覧 */}
           <div className="space-y-2">
-            <h4 className="font-medium">{t('budgetOptimizer.selectedExpenses', currentLanguage)}</h4>
+            <h4 className="font-medium">{t('budgetOptimizer.selectedExpenses', currentLanguage, '選択された経費')}</h4>
             <div className="max-h-64 overflow-y-auto space-y-2">
               {optimizationResult.selectedExpenses.map((expense: any) => (
                 <div key={expense.id} className="bg-gray-700 rounded-lg p-3 flex justify-between items-center">
@@ -152,21 +152,21 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
 
       {/* 統計情報 */}
       <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">{t('statistics.title', currentLanguage)}</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('statistics.title', currentLanguage, '統計情報')}</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <div className="text-2xl font-bold text-blue-400">
               {expenses.length}
             </div>
-            <div className="text-sm text-gray-400">{t('statistics.registeredExpenses', currentLanguage)}</div>
+            <div className="text-sm text-gray-400">{t('statistics.registeredExpenses', currentLanguage, '登録済み経費')}</div>
           </div>
           
           <div>
             <div className="text-2xl font-bold text-green-400">
               ¥{expenses.reduce((sum, expense) => sum + expense.totalAmount, 0).toLocaleString()}
             </div>
-            <div className="text-sm text-gray-400">{t('statistics.totalAmount', currentLanguage)}</div>
+            <div className="text-sm text-gray-400">{t('statistics.totalAmount', currentLanguage, '総金額')}</div>
           </div>
         </div>
       </div>
