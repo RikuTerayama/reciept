@@ -36,14 +36,19 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
   };
 
   const handleExport = () => {
-    if (!optimizationResult) {
+    if (!optimizationResult || !optimizationResult.selectedExpenses || optimizationResult.selectedExpenses.length === 0) {
       alert(t('budgetOptimizer.noResults', currentLanguage));
       return;
     }
 
     try {
       const filename = `budget_optimization_${new Date().toISOString().split('T')[0]}.xlsx`;
-      exportBudgetOptimizationToExcel(optimizationResult.selectedExpenses, filename);
+      exportBudgetOptimizationToExcel(
+        expenses, // 元の経費データ
+        optimizationResult.selectedExpenses, // 最適化された経費データ
+        targetBudget, // 目標予算
+        filename
+      );
       alert(t('common.success', currentLanguage));
     } catch (error) {
       console.error('Export error:', error);
