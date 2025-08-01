@@ -218,3 +218,49 @@ export const clearUserData = (userEmail: string): void => {
     console.error('ユーザーデータの削除エラー:', error);
   }
 }; 
+
+// メールアドレスベースの自動復元機能を追加
+export const loadUserDataByEmail = async (email: string): Promise<any> => {
+  if (!isLocalStorageAvailable()) return null;
+  
+  try {
+    const settings = loadSettings(email);
+    const expenses = loadAllExpenses(email);
+    const ocrResults = JSON.parse(localStorage.getItem(getUserKey(email, 'ocr_results')) || '[]');
+    const optimizationResults = JSON.parse(localStorage.getItem(getUserKey(email, 'optimization_results')) || '[]');
+    
+    return {
+      settings,
+      expenses,
+      ocrResults,
+      optimizationResults
+    };
+  } catch (error) {
+    console.error('ユーザーデータの読み込みエラー:', error);
+    return null;
+  }
+};
+
+// メールアドレス変更時のデータ移行
+export const migrateUserData = (oldEmail: string, newEmail: string): void => {
+  if (!isLocalStorageAvailable()) return;
+  
+  try {
+    const dataTypes = ['expenses', 'settings', 'ocr_results', 'optimization_results'];
+    
+    dataTypes.forEach(dataType => {
+      const oldKey = getUserKey(oldEmail, dataType);
+      const newKey = getUserKey(newEmail, dataType);
+      const data = localStorage.getItem(oldKey);
+      
+      if (data) {
+        localStorage.setItem(newKey, data);
+        localStorage.removeItem(oldKey);
+      }
+    });
+    
+    console.log(`データ移行完了: ${oldEmail} → ${newEmail}`);
+  } catch (error) {
+    console.error('データ移行エラー:', error);
+  }
+}; 
