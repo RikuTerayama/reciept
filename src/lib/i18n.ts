@@ -24,6 +24,13 @@ export interface Translations {
     personalSettingEditable: string;
     personalSettings: string;
     clearAllLogs: string;
+    reset: string;
+    confirmReset: string;
+    confirmDelete: string;
+    edit: string;
+    delete: string;
+    download: string;
+    actions: string;
   };
 
   // ヘッダー
@@ -33,9 +40,13 @@ export interface Translations {
   // ナビゲーション
   navigation: {
     singleUpload: string;
+    singleUploadDesc: string;
     batchUpload: string;
+    batchUploadDesc: string;
     dataInput: string;
+    dataInputDesc: string;
     expenseList: string;
+    expenseListDesc: string;
     budgetOptimizer: string;
     menu: string;
   };
@@ -105,6 +116,20 @@ export interface Translations {
     companyNamePlaceholder: string;
     participantFromClient: string;
     participantFromCompany: string;
+    isQualified: string;
+    qualified: string;
+    nonQualified: string;
+    participantPlaceholder: string;
+    totalAmount: string;
+    selectCategory: string;
+    categories: {
+      transport: string;
+      food: string;
+      accommodation: string;
+      meeting: string;
+      communication: string;
+      other: string;
+    };
   };
 
   // 経費リスト
@@ -113,6 +138,8 @@ export interface Translations {
     description: string;
     noData: string;
     noDataDescription: string;
+    noExpenses: string;
+    addFirstExpense: string;
     expenseCount: string;
     selectedCount: string;
     exportSelected: string;
@@ -128,6 +155,7 @@ export interface Translations {
     totalAmount: string;
     selectedAmount: string;
     qualifiedExpenses: string;
+    editExpense: string;
   };
 
   // 予算最適化
@@ -150,6 +178,14 @@ export interface Translations {
     remaining: string;
     budget: string;
     registered: string;
+  };
+
+  // 統計情報
+  stats: {
+    totalAmount: string;
+    totalExpenses: string;
+    qualifiedExpenses: string;
+    selectedAmount: string;
   };
 
   // 統計情報
@@ -282,15 +318,26 @@ const translations: Record<Language, Translations> = {
       settings: '設定',
       personalSettingEditable: '個人設定を編集可能',
       personalSettings: '個人設定',
-      clearAllLogs: '全てのログをクリア'
+      clearAllLogs: '全てのログをクリア',
+      reset: '全データリセット',
+      confirmReset: 'すべてのデータをリセットしますか？',
+      confirmDelete: 'この項目を削除しますか？',
+      edit: '編集',
+      delete: '削除',
+      download: 'ダウンロード',
+      actions: '操作',
     },
-          header: {
-      },
+    header: {
+    },
     navigation: {
       singleUpload: '単一アップロード',
+      singleUploadDesc: 'レシート画像を1枚ずつアップロードしてOCR処理',
       batchUpload: '一括アップロード',
+      batchUploadDesc: '複数のレシート画像を同時にアップロードして一括処理',
       dataInput: 'データ入力',
+      dataInputDesc: '経費情報を手動で入力・編集',
       expenseList: '経費リスト',
+      expenseListDesc: '登録済み経費の一覧表示と管理',
       budgetOptimizer: '予算最適化',
       menu: 'メニュー',
     },
@@ -356,12 +403,28 @@ const translations: Record<Language, Translations> = {
       companyNamePlaceholder: '会社名を入力してください',
       participantFromClient: 'クライアント参加人数',
       participantFromCompany: '社内参加人数',
+      isQualified: '適格区分',
+      qualified: '適格',
+      nonQualified: '不適格',
+      participantPlaceholder: '参加人数を入力してください',
+      totalAmount: '合計金額',
+      selectCategory: 'カテゴリを選択',
+      categories: {
+        transport: '交通費',
+        food: '食費',
+        accommodation: '宿泊費',
+        meeting: '会議費',
+        communication: '通信費',
+        other: 'その他',
+      },
     },
     expenseList: {
       title: '経費リスト',
       description: '登録された経費データの一覧と管理',
       noData: '経費データがありません',
       noDataDescription: '画像をアップロードして経費データを追加してください',
+      noExpenses: '経費データがありません',
+      addFirstExpense: '最初の経費を追加してください',
       expenseCount: '件の経費データ',
       selectedCount: '件選択中',
       exportSelected: '選択した経費をエクスポート',
@@ -377,6 +440,7 @@ const translations: Record<Language, Translations> = {
       totalAmount: '総金額',
       selectedAmount: '選択金額',
       qualifiedExpenses: '適格経費',
+      editExpense: '経費編集',
     },
     budgetOptimizer: {
       title: '予算最適化',
@@ -390,6 +454,17 @@ const translations: Record<Language, Translations> = {
       selectedExpenses: '選択された経費',
       availableExpenses: '利用可能な経費',
       noExpenses: '経費データがありません',
+    },
+    budgetDisplay: {
+      remaining: '残りの使用可能金額',
+      budget: '予算',
+      registered: '登録済',
+    },
+    stats: {
+      totalAmount: '総金額',
+      totalExpenses: '登録件数',
+      qualifiedExpenses: '適格経費件数',
+      selectedAmount: '選択金額',
     },
     statistics: {
       title: '統計情報',
@@ -508,15 +583,26 @@ const translations: Record<Language, Translations> = {
       settings: 'Settings',
       personalSettingEditable: 'Edit personal settings',
       personalSettings: 'Personal Settings',
-      clearAllLogs: 'Clear All Logs'
+      clearAllLogs: 'Clear All Logs',
+      reset: 'Reset All Data',
+      confirmReset: 'Are you sure you want to reset all data?',
+      confirmDelete: 'Are you sure you want to delete this item?',
+      edit: 'Edit',
+      delete: 'Delete',
+      download: 'Download',
+      actions: 'Actions',
     },
-          header: {
-      },
+    header: {
+    },
     navigation: {
       singleUpload: 'Single Upload',
+      singleUploadDesc: 'Upload receipt images one by one for OCR processing',
       batchUpload: 'Batch Upload',
+      batchUploadDesc: 'Upload multiple receipt images simultaneously for batch processing',
       dataInput: 'Data Input',
+      dataInputDesc: 'Manually input and edit expense information',
       expenseList: 'Expense List',
+      expenseListDesc: 'View and manage registered expenses',
       budgetOptimizer: 'Budget Optimizer',
       menu: 'Menu',
     },
@@ -581,12 +667,28 @@ const translations: Record<Language, Translations> = {
       companyNamePlaceholder: 'Enter company name',
       participantFromClient: 'Client Participants',
       participantFromCompany: 'Company Participants',
+      isQualified: 'Qualification',
+      qualified: 'Qualified',
+      nonQualified: 'Non-Qualified',
+      participantPlaceholder: 'Enter number of participants',
+      totalAmount: 'Total Amount',
+      selectCategory: 'Select Category',
+      categories: {
+        transport: 'Transportation',
+        food: 'Food',
+        accommodation: 'Accommodation',
+        meeting: 'Meeting',
+        communication: 'Communication',
+        other: 'Other',
+      },
     },
     expenseList: {
       title: 'Expense List',
       description: 'List and management of registered expense data',
       noData: 'No expense data available',
       noDataDescription: 'Upload images to add expense data',
+      noExpenses: 'No expenses available',
+      addFirstExpense: 'Add your first expense',
       expenseCount: 'expense items',
       selectedCount: 'selected',
       exportSelected: 'Export Selected Expenses',
@@ -602,6 +704,7 @@ const translations: Record<Language, Translations> = {
       totalAmount: 'Total Amount',
       selectedAmount: 'Selected Amount',
       qualifiedExpenses: 'Qualified Expenses',
+      editExpense: 'Edit Expense',
     },
     budgetOptimizer: {
       title: 'Budget Optimization',
@@ -620,6 +723,12 @@ const translations: Record<Language, Translations> = {
       remaining: 'Remaining Budget',
       budget: 'Budget',
       registered: 'Registered',
+    },
+    stats: {
+      totalAmount: 'Total Amount',
+      totalExpenses: 'Total Expenses',
+      qualifiedExpenses: 'Qualified Expenses',
+      selectedAmount: 'Selected Amount',
     },
     statistics: {
       title: 'Statistics',
