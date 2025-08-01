@@ -29,9 +29,17 @@ import OfflineIndicator from '@/components/OfflineIndicator';
 import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut } from 'lucide-react';
 
+// 型定義
+interface UserData {
+  email: string;
+  targetMonth: string;
+  budget: number;
+  currency?: string;
+}
+
 export default function Home() {
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<UserData | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     targetMonth: '',
@@ -77,7 +85,7 @@ export default function Home() {
             targetMonth: userData.targetMonth,
             budget: userData.budget,
             currency: userData.currency
-          });
+          } as UserData);
           
           setFormData({
             email: userData.email || '',
@@ -101,7 +109,7 @@ export default function Home() {
             targetMonth: user.targetMonth,
             budget: user.budget,
             currency: user.currency
-          });
+          } as UserData);
         }
       } else {
         setUser(null);
@@ -327,11 +335,11 @@ export default function Home() {
           // オフライン時の処理
           console.log('App went offline');
         }}
-        showDebugInfo={process.env.NODE_ENV === 'development'}
+        showDebugInfo={typeof window !== 'undefined' && window.location.hostname === 'localhost'}
       />
       
       {/* 開発環境でのテスト用シミュレーター */}
-      {process.env.NODE_ENV === 'development' && (
+      {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
         <NetworkSimulator />
       )}
       {/* ヘッダー */}
