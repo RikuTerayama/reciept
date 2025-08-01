@@ -1,280 +1,371 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useExpenseStore } from '@/lib/store';
-import { Calendar, DollarSign, Tag, CheckCircle, Trash2, Edit, Download, FileText, X } from 'lucide-react';
-import { exportExpensesToExcel } from '@/lib/excel';
+import { useAuthStore } from '@/lib/auth-store';
+import { getExpenseData } from '@/lib/auth-service';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { ExpenseData } from '@/types';
-import ExpenseForm from './ExpenseForm';
+import { ChevronLeft, ChevronRight, Edit, Trash2, Download, Search } from 'lucide-react';
 
-export default function ExpenseList() {
-  const { expenses, deleteExpense, updateExpense } = useExpenseStore();
-  const [selectedExpenses, setSelectedExpenses] = useState<string[]>([]);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<ExpenseData | null>(null);
+interface ExpenseListProps {
+  onEdit?: (expense: ExpenseData) => void;
+  onDelete?: (expenseId: string) => void;
+}
+
+const ITEMS_PER_PAGE = 20;
+
+export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
+  const { user } = useAuthStore();
+  const { expenses, updateExpense, deleteExpense } = useExpenseStore();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isLoading, setIsLoading] = useState(false);
+  const [cloudExpenses, setCloudExpenses] = useState<ExpenseData[]>([]);
   const currentLanguage = getCurrentLanguage();
 
-  const handleDelete = (id: string) => {
-    if (confirm(t('common.confirmDelete', currentLanguage))) {
-      deleteExpense(id);
-    }
-  };
+  // クラウドデータの取得
+  useEffect(() => {
+    if (!user?.uid) return;
 
-  const handleEdit = (expense: ExpenseData) => {
-    setEditingExpense(expense);
-    setShowEditModal(true);
-  };
+    const loadCloudExpenses = async () => {
+      setIsLoading(true);
+      try {
+        const cloudData = await getExpenseData(user.uid, 1000); // 最大1000件取得
+        setCloudExpenses(cloudData);
+      } catch (error) {
+        console.error('Failed to load cloud expenses:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleSaveEdit = (updatedExpense: ExpenseData) => {
-    updateExpense(updatedExpense);
-    setShowEditModal(false);
-    setEditingExpense(null);
-  };
+    loadCloudExpenses();
+  }, [user?.uid]);
 
-  const handleCancelEdit = () => {
-    setShowEditModal(false);
-    setEditingExpense(null);
-  };
+  // 全経費データ（ローカル + クラウド）
+  const allExpenses = [...expenses, ...cloudExpenses];
 
-  const handleExportSelected = () => {
-    const selectedExpensesData = expenses.filter(exp => selectedExpenses.includes(exp.id));
-    exportExpensesToExcel(selectedExpensesData, 'selected_expenses.xlsx');
-  };
-
-  const handleDownloadSelectedImages = async () => {
-    // 画像ダウンロード機能は後で実装
-    console.log('Download selected images');
-  };
-
-  const handleSelectAll = () => {
-    if (selectedExpenses.length === expenses.length) {
-      setSelectedExpenses([]);
-    } else {
-      setSelectedExpenses(expenses.map(exp => exp.id));
-    }
-  };
-
-  const handleSelectExpense = (id: string) => {
-    setSelectedExpenses(prev => 
-      prev.includes(id) 
-        ? prev.filter(expId => expId !== id)
-        : [...prev, id]
-    );
-  };
-
-  if (expenses.length === 0) {
+  // 検索・フィルタリング
+  const filteredExpenses = allExpenses.filter(expense => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 bg-surface-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="w-8 h-8 text-surface-400" />
-        </div>
-        <h3 className="text-lg font-medium text-white mb-2">{t('expenseList.noExpenses', currentLanguage)}</h3>
-        <p className="text-surface-400">{t('expenseList.addFirstExpense', currentLanguage)}</p>
-      </div>
+      expense.description?.toLowerCase().includes(searchLower) ||
+      expense.category?.toLowerCase().includes(searchLower) ||
+      expense.receiptDate?.includes(searchTerm) ||
+      expense.totalAmount?.toString().includes(searchTerm)
     );
-  }
+  });
+
+  // ソート
+  const sortedExpenses = filteredExpenses.sort((a, b) => {
+    let aValue: any, bValue: any;
+
+    switch (sortBy) {
+      case 'date':
+        aValue = new Date(a.receiptDate || '');
+        bValue = new Date(b.receiptDate || '');
+        break;
+      case 'amount':
+        aValue = a.totalAmount || 0;
+        bValue = b.totalAmount || 0;
+        break;
+      case 'category':
+        aValue = a.category || '';
+        bValue = b.category || '';
+        break;
+      default:
+        return 0;
+    }
+
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // ページネーション
+  const totalPages = Math.ceil(sortedExpenses.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedExpenses = sortedExpenses.slice(startIndex, endIndex);
+
+  // ページ変更
+  const handlePageChange = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  // 検索処理
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // 検索時は最初のページに戻る
+  };
+
+  // ソート処理
+  const handleSort = (field: 'date' | 'amount' | 'category') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+    setCurrentPage(1);
+  };
+
+  // 削除処理
+  const handleDelete = async (expenseId: string) => {
+    if (!confirm('この経費を削除しますか？')) return;
+
+    try {
+      // ローカルストアから削除
+      deleteExpense(expenseId);
+      
+      // クラウドデータからも削除（実装予定）
+      // await deleteExpenseData(user?.uid, expenseId);
+      
+      // ページネーション調整
+      if (paginatedExpenses.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    } catch (error) {
+      console.error('Failed to delete expense:', error);
+      alert('削除に失敗しました');
+    }
+  };
+
+  // 統計情報
+  const totalAmount = allExpenses.reduce((sum, exp) => sum + (exp.totalAmount || 0), 0);
+  const qualifiedCount = allExpenses.filter(exp => exp.isQualified?.includes('Qualified')).length;
 
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
-          <h3 className="text-lg font-semibold text-white">{t('expenseList.title', currentLanguage)}</h3>
-          <p className="text-sm text-surface-400">{t('expenseList.description', currentLanguage)}</p>
+          <h2 className="text-2xl font-bold text-white">経費リスト</h2>
+          <p className="text-surface-400">
+            {allExpenses.length}件の経費データ
+          </p>
         </div>
         
-        <div className="flex items-center space-x-2">
-          {selectedExpenses.length > 0 && (
-            <>
-              <button
-                onClick={handleExportSelected}
-                className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 text-sm flex items-center space-x-2"
-              >
-                <Download className="w-4 h-4" />
-                <span>{t('common.export', currentLanguage)}</span>
-              </button>
-              <button
-                onClick={handleDownloadSelectedImages}
-                className="px-3 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 transition-colors duration-200 text-sm flex items-center space-x-2"
-              >
-                <Download className="w-4 h-4" />
-                <span>{t('common.download', currentLanguage)}</span>
-              </button>
-            </>
+        {/* 統計情報 */}
+        <div className="flex space-x-4 text-sm">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-white">
+              ¥{totalAmount.toLocaleString()}
+            </div>
+            <div className="text-surface-400">総額</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-semibold text-white">
+              {qualifiedCount}
+            </div>
+            <div className="text-surface-400">適格</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 検索・フィルター */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-surface-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="経費を検索..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="w-full pl-10 pr-4 py-2 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+        
+        <select
+          value={`${sortBy}-${sortOrder}`}
+          onChange={(e) => {
+            const [field, order] = e.target.value.split('-') as ['date' | 'amount' | 'category', 'asc' | 'desc'];
+            setSortBy(field);
+            setSortOrder(order);
+          }}
+          className="px-4 py-2 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >
+          <option value="date-desc">日付（新しい順）</option>
+          <option value="date-asc">日付（古い順）</option>
+          <option value="amount-desc">金額（高い順）</option>
+          <option value="amount-asc">金額（低い順）</option>
+          <option value="category-asc">カテゴリ（A-Z）</option>
+          <option value="category-desc">カテゴリ（Z-A）</option>
+        </select>
+      </div>
+
+      {/* ローディング */}
+      {isLoading && (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="text-surface-400 mt-2">データを読み込み中...</p>
+        </div>
+      )}
+
+      {/* 経費リスト */}
+      {!isLoading && (
+        <>
+          {paginatedExpenses.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-surface-400 mb-4">
+                {searchTerm ? '検索条件に一致する経費が見つかりません' : '経費データがありません'}
+              </div>
+              {!searchTerm && (
+                <p className="text-sm text-surface-500">
+                  画像アップロードまたは手動入力で経費を追加してください
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-surface-800 rounded-lg border border-surface-700 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-surface-700">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        日付
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        説明
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        カテゴリ
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        金額
+                      </th>
+                      <th className="px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        適格区分
+                      </th>
+                      <th className="px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-700">
+                    {paginatedExpenses.map((expense) => (
+                      <tr key={expense.id} className="hover:bg-surface-700/50 transition-colors">
+                        <td className="px-6 py-4 text-sm text-white">
+                          {expense.receiptDate ? new Date(expense.receiptDate).toLocaleDateString('ja-JP') : '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-white max-w-xs truncate">
+                          {expense.description || '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-surface-300">
+                          {expense.category || '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <span className="text-white font-medium">
+                              {expense.totalAmount?.toLocaleString() || '0'}
+                            </span>
+                            {expense.currency && expense.currency !== 'JPY' && (
+                              <span className="text-xs text-surface-400">
+                                ({expense.currency})
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-center">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            expense.isQualified?.includes('Qualified')
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {expense.isQualified || '-'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-center">
+                          <div className="flex items-center justify-center space-x-2">
+                            {onEdit && (
+                              <button
+                                onClick={() => onEdit(expense)}
+                                className="p-1 text-surface-400 hover:text-blue-400 transition-colors"
+                                title="編集"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            )}
+                            {onDelete && (
+                              <button
+                                onClick={() => handleDelete(expense.id)}
+                                className="p-1 text-surface-400 hover:text-red-400 transition-colors"
+                                title="削除"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* リスト */}
-      <div className="bg-surface-800 rounded-lg border border-surface-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-900/50 border-b border-surface-700">
-              <tr>
-                <th className="px-4 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={selectedExpenses.length === expenses.length && expenses.length > 0}
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 text-primary-600 bg-surface-700 border-surface-600 rounded focus:ring-primary-500 focus:ring-2"
-                  />
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-surface-300">
-                  {t('expenseList.date', currentLanguage)}
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-surface-300">
-                  {t('expenseList.category', currentLanguage)}
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-surface-300">
-                  {t('expenseList.description', currentLanguage)}
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-surface-300">
-                  {t('expenseList.amount', currentLanguage)}
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-surface-300">
-                  {t('expenseList.taxRate', currentLanguage)}
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-surface-300">
-                  {t('expenseList.qualified', currentLanguage)}
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-surface-300">
-                  {t('common.actions', currentLanguage)}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-700">
-              {expenses.map((expense) => (
-                <tr 
-                  key={expense.id} 
-                  className="hover:bg-surface-700/50 transition-colors duration-200"
+          {/* ページネーション */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-surface-400">
+                {startIndex + 1}-{Math.min(endIndex, sortedExpenses.length)} / {sortedExpenses.length}件
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 text-surface-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <td className="px-4 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedExpenses.includes(expense.id)}
-                      onChange={() => handleSelectExpense(expense.id)}
-                      className="w-4 h-4 text-primary-600 bg-surface-700 border-surface-600 rounded focus:ring-primary-500 focus:ring-2"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4 text-surface-400" />
-                      <span className="text-sm text-white">{expense.date}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <Tag className="w-4 h-4 text-surface-400" />
-                      <span className="text-sm text-white">{expense.category}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="max-w-xs">
-                      <span className="text-sm text-surface-300">
-                        {expense.description}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <span className="text-sm font-medium text-white">
-                        {expense.totalAmount.toLocaleString()}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-700 text-surface-300">
-                      {expense.taxRate}%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center space-x-2">
-                      <CheckCircle className={`w-4 h-4 ${
-                        expense.isQualified.includes('Qualified') 
-                          ? 'text-green-500' 
-                          : 'text-red-500'
-                      }`} />
-                      <span className="text-sm text-surface-300">{expense.isQualified}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center space-x-2">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
                       <button
-                        onClick={() => handleEdit(expense)}
-                        className="p-1.5 text-surface-400 hover:text-white hover:bg-surface-700 rounded-md transition-all duration-200 opacity-50 hover:opacity-100"
-                        title={t('common.edit', currentLanguage)}
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`px-3 py-1 text-sm rounded ${
+                          currentPage === pageNum
+                            ? 'bg-primary-600 text-white'
+                            : 'text-surface-400 hover:text-white hover:bg-surface-700'
+                        } transition-colors`}
                       >
-                        <Edit className="w-4 h-4" />
+                        {pageNum}
                       </button>
-                      <button
-                        onClick={() => handleDelete(expense.id)}
-                        className="p-1.5 text-surface-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all duration-200 opacity-50 hover:opacity-100"
-                        title={t('common.delete', currentLanguage)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 統計情報 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white mb-2">
-              ¥{expenses.reduce((sum, exp) => sum + exp.totalAmount, 0).toLocaleString()}
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 text-surface-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="text-sm text-surface-400">{t('stats.totalAmount', currentLanguage)}</div>
-          </div>
-        </div>
-        <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white mb-2">
-              ¥{expenses
-                .filter(exp => selectedExpenses.includes(exp.id))
-                .reduce((sum, exp) => sum + exp.totalAmount, 0)
-                .toLocaleString()}
-            </div>
-            <div className="text-sm text-surface-400">{t('stats.selectedAmount', currentLanguage)}</div>
-          </div>
-        </div>
-        <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white mb-2">
-              {expenses.filter(exp => exp.isQualified.includes('Qualified')).length}
-            </div>
-            <div className="text-sm text-surface-400">{t('stats.qualifiedExpenses', currentLanguage)}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 編集モーダル */}
-      {showEditModal && editingExpense && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-surface-900 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{t('expenseList.editExpense', currentLanguage)}</h2>
-              <button
-                onClick={handleCancelEdit}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <ExpenseForm 
-              onSave={handleSaveEdit}
-              onCancel={handleCancelEdit}
-              initialData={editingExpense}
-              hideTitle={true}
-            />
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );
