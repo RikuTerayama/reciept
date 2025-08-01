@@ -308,11 +308,11 @@ export default function Home() {
   };
 
   const navigationItems = [
-    { key: 'singleUpload', label: t('navigation.singleUpload', currentLanguage), action: handleSingleUpload },
-    { key: 'batchUpload', label: t('navigation.batchUpload', currentLanguage), action: handleBatchUpload },
-    { key: 'dataInput', label: t('navigation.dataInput', currentLanguage), action: handleDataInput },
-    { key: 'expenseList', label: t('navigation.expenseList', currentLanguage), action: handleExpenseList },
-    { key: 'budgetOptimizer', label: t('navigation.budgetOptimizer', currentLanguage), action: handleOptimizer },
+            { key: 'singleUpload', label: t('navigation.singleUpload', currentLanguage, '単一アップロード'), action: handleSingleUpload },
+        { key: 'batchUpload', label: t('navigation.batchUpload', currentLanguage, '一括アップロード'), action: handleBatchUpload },
+        { key: 'dataInput', label: t('navigation.dataInput', currentLanguage, 'データ入力'), action: handleDataInput },
+        { key: 'expenseList', label: t('navigation.expenseList', currentLanguage, '経費リスト'), action: handleExpenseList },
+        { key: 'budgetOptimizer', label: t('navigation.budgetOptimizer', currentLanguage, '予算最適化'), action: handleOptimizer },
   ];
 
   // クライアントサイドでない場合はローディング表示
@@ -391,7 +391,7 @@ export default function Home() {
                   <button
                     onClick={() => setShowSettingsModal(true)}
                     className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
-                    title={t('common.settings', currentLanguage)}
+                    title={t('common.settings', currentLanguage, '設定')}
                   >
                     <Settings className="w-5 h-5" />
                   </button>
@@ -490,8 +490,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-primary-500 transition-colors">
                         <Camera className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage)}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage)}</p>
+                                      <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h3>
+                <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロードしてOCR処理')}</p>
         </div>
                 </button>
 
@@ -503,8 +503,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-secondary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-secondary-500 transition-colors">
                         <FolderOpen className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage)}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage)}</p>
+                                      <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h3>
+                <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理')}</p>
               </div>
                 </button>
 
@@ -516,8 +516,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-accent-500 transition-colors">
                         <Edit3 className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage)}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.dataInputDesc', currentLanguage)}</p>
+                                      <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h3>
+                <p className="text-sm text-surface-400">{t('navigation.dataInputDesc', currentLanguage, '経費情報を手動で入力・編集')}</p>
               </div>
                 </button>
 
@@ -529,8 +529,8 @@ export default function Home() {
                       <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-green-500 transition-colors">
                         <List className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.expenseList', currentLanguage)}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.expenseListDesc', currentLanguage)}</p>
+                                      <h3 className="font-medium text-white mb-1">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h3>
+                <p className="text-sm text-surface-400">{t('navigation.expenseListDesc', currentLanguage, '登録済み経費の一覧表示と管理')}</p>
               </div>
                 </button>
               </div>
@@ -542,7 +542,7 @@ export default function Home() {
                       <div className="text-2xl font-bold text-white mb-2">
                         ¥{expenses.reduce((sum, exp) => sum + exp.totalAmount, 0).toLocaleString()}
                       </div>
-                      <div className="text-sm text-surface-400">{t('stats.totalAmount', currentLanguage)}</div>
+                      <div className="text-sm text-surface-400">{t('stats.totalAmount', currentLanguage, '総金額')}</div>
                     </div>
                   </div>
                   <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
@@ -550,7 +550,7 @@ export default function Home() {
                       <div className="text-2xl font-bold text-white mb-2">
                         {expenses.length}
                       </div>
-                      <div className="text-sm text-surface-400">{t('stats.totalExpenses', currentLanguage)}</div>
+                      <div className="text-sm text-surface-400">{t('stats.totalExpenses', currentLanguage, '総経費数')}</div>
                     </div>
                   </div>
                   <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
@@ -558,7 +558,7 @@ export default function Home() {
                       <div className="text-2xl font-bold text-white mb-2">
                         {expenses.filter(exp => exp.isQualified.includes('Qualified')).length}
                       </div>
-                      <div className="text-sm text-surface-400">{t('stats.qualifiedExpenses', currentLanguage)}</div>
+                      <div className="text-sm text-surface-400">{t('stats.qualifiedExpenses', currentLanguage, '適格経費')}</div>
                     </div>
                   </div>
               </div>
@@ -569,7 +569,7 @@ export default function Home() {
                     onClick={handleReset}
                     className="px-4 py-2 text-sm text-surface-400 hover:text-red-400 transition-colors duration-200"
                   >
-                    {t('common.reset', currentLanguage)}
+                    {t('common.reset', currentLanguage, 'リセット')}
                 </button>
               </div>
             </div>
@@ -577,16 +577,16 @@ export default function Home() {
               // 設定画面
               <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-4 text-white">{t('welcome.title', currentLanguage)}</h2>
-                  <p className="text-lg text-surface-400">{t('welcome.description', currentLanguage)}</p>
+                                  <h2 className="text-3xl font-bold mb-4 text-white">{t('welcome.title', currentLanguage, 'Welcome')}</h2>
+                <p className="text-lg text-surface-400">{t('welcome.description', currentLanguage, 'OCR技術による自動抽出・管理')}</p>
             </div>
             
                 <div className="bg-surface-800 rounded-lg p-8 border border-surface-700">
-                  <h3 className="text-xl font-semibold mb-6 text-center text-white">{t('common.settings', currentLanguage)}</h3>
+                  <h3 className="text-xl font-semibold mb-6 text-center text-white">{t('common.settings', currentLanguage, '設定')}</h3>
               
                   <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.email', currentLanguage)} *</label>
+                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
                   <input
                     type="email"
                     name="email"
@@ -598,7 +598,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.targetMonth', currentLanguage)} *</label>
+                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.targetMonth', currentLanguage, '対象月')} *</label>
                   <input
                     type="month"
                     name="targetMonth"
@@ -609,7 +609,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.budget', currentLanguage)} *</label>
+                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.budget', currentLanguage, '予算')} *</label>
                   <input
                     type="number"
                     name="budget"
@@ -627,7 +627,7 @@ export default function Home() {
                   onClick={handleSaveSettings}
                         className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium"
                 >
-                        {t('common.save', currentLanguage)}
+                        {t('common.save', currentLanguage, '保存')}
                 </button>
                     </div>
                   </div>
@@ -649,7 +649,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{t('navigation.singleUpload', currentLanguage)}</h2>
+                              <h2 className="text-xl font-semibold text-white">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -681,7 +681,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{t('navigation.batchUpload', currentLanguage)}</h2>
+                              <h2 className="text-xl font-semibold text-white">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
               <button
                 onClick={() => setShowBatchUploadModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -709,7 +709,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{t('navigation.dataInput', currentLanguage)}</h2>
+                              <h2 className="text-xl font-semibold text-white">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h2>
               <button
                 onClick={() => setShowDataInputModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -732,7 +732,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{t('navigation.expenseList', currentLanguage)}</h2>
+                              <h2 className="text-xl font-semibold text-white">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
               <button
                 onClick={() => setShowExpenseListModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -755,7 +755,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{t('navigation.budgetOptimizer', currentLanguage)}</h2>
+                              <h2 className="text-xl font-semibold text-white">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
               <button
                 onClick={() => setShowOptimizerModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -779,7 +779,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{t('common.settings', currentLanguage)}</h2>
+                              <h2 className="text-xl font-semibold text-white">{t('common.settings', currentLanguage, '設定')}</h2>
               <button
                 onClick={() => setShowSettingsModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -861,7 +861,7 @@ export default function Home() {
               </div>
             </div>
             <div className="text-sm text-surface-400">
-              {t('common.version', currentLanguage)}: {APP_VERSION}
+                              {t('common.version', currentLanguage, 'バージョン')}: {APP_VERSION}
             </div>
           </div>
           
