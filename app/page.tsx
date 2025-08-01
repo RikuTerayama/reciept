@@ -73,45 +73,50 @@ export default function Home() {
   useEffect(() => {
     if (!isClient) return;
 
-    const unsubscribe = onAuthStateChange(async (user) => {
+    const unsubscribe = onAuthStateChange((user) => {
       if (user) {
         setUser(user);
         
-        try {
-          // 初回ログイン時のデータ復元
-          const { userData, expenses: cloudExpenses } = await restoreUserData(user.uid);
-          
-          setUserInfo({
-            email: userData.email,
-            targetMonth: userData.targetMonth,
-            budget: userData.budget,
-            currency: userData.currency
-          } as UserData);
-          
-          setFormData({
-            email: userData.email || '',
-            targetMonth: userData.targetMonth || '',
-            budget: userData.budget || 100000
-          });
+        // 非同期処理を別関数で実行
+        const handleUserData = async () => {
+          try {
+            // 初回ログイン時のデータ復元
+            const { userData, expenses: cloudExpenses } = await restoreUserData(user.uid);
+            
+            setUserInfo({
+              email: userData.email,
+              targetMonth: userData.targetMonth,
+              budget: userData.budget,
+              currency: userData.currency
+            } as UserData);
+            
+            setFormData({
+              email: userData.email || '',
+              targetMonth: userData.targetMonth || '',
+              budget: userData.budget || 100000
+            });
 
-          // クラウドデータをローカルストアに反映
-          cloudExpenses.forEach(expense => {
-            addExpense(expense);
-          });
+            // クラウドデータをローカルストアに反映
+            cloudExpenses.forEach(expense => {
+              addExpense(expense);
+            });
 
-          // ユーザーデータの同期
-          await syncUserData(user.uid, userData);
-          
-        } catch (error) {
-          console.error('Error restoring user data:', error);
-          // エラー時はローカルデータを使用
-          setUserInfo({
-            email: user.email,
-            targetMonth: user.targetMonth,
-            budget: user.budget,
-            currency: user.currency
-          } as UserData);
-        }
+            // ユーザーデータの同期
+            await syncUserData(user.uid, userData);
+            
+          } catch (error) {
+            console.error('Error restoring user data:', error);
+            // エラー時はローカルデータを使用
+            setUserInfo({
+              email: user.email,
+              targetMonth: user.targetMonth,
+              budget: user.budget,
+              currency: user.currency
+            } as UserData);
+          }
+        };
+        
+        handleUserData();
       } else {
         setUser(null);
         setUserInfo(null);
