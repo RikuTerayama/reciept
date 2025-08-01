@@ -45,6 +45,7 @@ export interface Translations {
     batchUploadDesc: string;
     dataInput: string;
     dataInputDesc: string;
+    dataEntry: string;
     expenseList: string;
     expenseListDesc: string;
     budgetOptimizer: string;
@@ -97,12 +98,14 @@ export interface Translations {
   // データ入力
   dataInput: {
     title: string;
+    description: string;
     date: string;
     amount: string;
     taxRate: string;
     currency: string;
     category: string;
     qualification: string;
+    receiptNumber: string;
     save: string;
     clear: string;
     validation: {
@@ -110,7 +113,7 @@ export interface Translations {
       invalidAmount: string;
       invalidTaxRate: string;
     };
-    description: string;
+    descriptionField: string;
     descriptionPlaceholder: string;
     companyName: string;
     companyNamePlaceholder: string;
@@ -130,6 +133,11 @@ export interface Translations {
       communication: string;
       other: string;
     };
+  };
+
+    // 経費フォーム
+  expenseForm: {
+    description: string;
   };
 
   // 経費リスト
@@ -156,6 +164,16 @@ export interface Translations {
     selectedAmount: string;
     qualifiedExpenses: string;
     editExpense: string;
+    searchPlaceholder: string;
+    noSearchResults: string;
+    sort: {
+      dateDesc: string;
+      dateAsc: string;
+      amountDesc: string;
+      amountAsc: string;
+      categoryAsc: string;
+      categoryDesc: string;
+    };
   };
 
   // 予算最適化
@@ -336,6 +354,7 @@ const translations: Record<Language, Translations> = {
       batchUploadDesc: '複数のレシート画像を同時にアップロードして一括処理',
       dataInput: 'データ入力',
       dataInputDesc: '経費情報を手動で入力・編集',
+      dataEntry: 'データ入力',
       expenseList: '経費リスト',
       expenseListDesc: '登録済み経費の一覧表示と管理',
       budgetOptimizer: '予算最適化',
@@ -386,18 +405,16 @@ const translations: Record<Language, Translations> = {
       taxRate: '税率',
       currency: '通貨',
       category: 'カテゴリ',
-      department: '部署',
       qualification: '適格区分',
       receiptNumber: 'レシート番号',
       save: '保存',
       clear: 'クリア',
       validation: {
         required: 'この項目は必須です',
-        invalidDate: '有効な日付を入力してください',
         invalidAmount: '有効な金額を入力してください',
         invalidTaxRate: '税率は0-100の間で入力してください'
       },
-      description: '説明',
+      descriptionField: '説明',
       descriptionPlaceholder: '経費の詳細を入力してください',
       companyName: '会社名',
       companyNamePlaceholder: '会社名を入力してください',
@@ -417,6 +434,9 @@ const translations: Record<Language, Translations> = {
         communication: '通信費',
         other: 'その他',
       },
+    },
+    expenseForm: {
+      description: '経費情報を手動で入力・編集します。OCR結果の確認や新規データの入力に使用できます。',
     },
     expenseList: {
       title: '経費リスト',
@@ -441,6 +461,16 @@ const translations: Record<Language, Translations> = {
       selectedAmount: '選択金額',
       qualifiedExpenses: '適格経費',
       editExpense: '経費編集',
+      searchPlaceholder: '経費を検索...',
+      noSearchResults: '検索条件に一致する経費が見つかりません',
+      sort: {
+        dateDesc: '日付（新しい順）',
+        dateAsc: '日付（古い順）',
+        amountDesc: '金額（高い順）',
+        amountAsc: '金額（低い順）',
+        categoryAsc: 'カテゴリ（A-Z）',
+        categoryDesc: 'カテゴリ（Z-A）',
+      },
     },
     budgetOptimizer: {
       title: '予算最適化',
@@ -601,6 +631,7 @@ const translations: Record<Language, Translations> = {
       batchUploadDesc: 'Upload multiple receipt images simultaneously for batch processing',
       dataInput: 'Data Input',
       dataInputDesc: 'Manually input and edit expense information',
+      dataEntry: 'Data Entry',
       expenseList: 'Expense List',
       expenseListDesc: 'View and manage registered expenses',
       budgetOptimizer: 'Budget Optimizer',
@@ -651,7 +682,6 @@ const translations: Record<Language, Translations> = {
       taxRate: 'Tax Rate',
       currency: 'Currency',
       category: 'Category',
-      department: 'Department',
       qualification: 'Qualification',
       receiptNumber: 'Receipt Number',
       save: 'Save',
@@ -661,7 +691,7 @@ const translations: Record<Language, Translations> = {
         invalidAmount: 'Please enter a valid amount',
         invalidTaxRate: 'Tax rate must be between 0-100'
       },
-      description: 'Description',
+      descriptionField: 'Description',
       descriptionPlaceholder: 'Enter expense details',
       companyName: 'Company Name',
       companyNamePlaceholder: 'Enter company name',
@@ -681,6 +711,9 @@ const translations: Record<Language, Translations> = {
         communication: 'Communication',
         other: 'Other',
       },
+    },
+    expenseForm: {
+      description: 'Manually input and edit expense information. Used for reviewing OCR results or entering new data.',
     },
     expenseList: {
       title: 'Expense List',
@@ -705,6 +738,16 @@ const translations: Record<Language, Translations> = {
       selectedAmount: 'Selected Amount',
       qualifiedExpenses: 'Qualified Expenses',
       editExpense: 'Edit Expense',
+      searchPlaceholder: 'Search expenses...',
+      noSearchResults: 'No expenses match your search criteria',
+      sort: {
+        dateDesc: 'Date (Newest First)',
+        dateAsc: 'Date (Oldest First)',
+        amountDesc: 'Amount (High to Low)',
+        amountAsc: 'Amount (Low to High)',
+        categoryAsc: 'Category (A-Z)',
+        categoryDesc: 'Category (Z-A)',
+      },
     },
     budgetOptimizer: {
       title: 'Budget Optimization',
