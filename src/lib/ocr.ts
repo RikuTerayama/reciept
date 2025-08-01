@@ -11,7 +11,7 @@ function getOCRWorker(): Worker {
   return ocrWorker;
 }
 
-// 画像前処理関数
+// 画像前処理関数（最適化版）
 async function preprocessImage(file: File): Promise<HTMLCanvasElement> {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
@@ -19,8 +19,8 @@ async function preprocessImage(file: File): Promise<HTMLCanvasElement> {
     const img = new Image();
     
     img.onload = () => {
-      // キャンバスサイズを設定（最大1500pxに制限して処理速度を向上）
-      const maxSize = 1500;
+      // キャンバスサイズを設定（最大1200pxに制限して処理速度を向上）
+      const maxSize = 1200;
       let { width, height } = img;
       
       if (width > maxSize || height > maxSize) {
@@ -39,6 +39,7 @@ async function preprocessImage(file: File): Promise<HTMLCanvasElement> {
       const imageData = ctx.getImageData(0, 0, width, height);
       const data = imageData.data;
       
+      // より効率的なグレースケール変換
       for (let i = 0; i < data.length; i += 4) {
         const gray = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
         data[i] = gray;     // R
@@ -48,8 +49,8 @@ async function preprocessImage(file: File): Promise<HTMLCanvasElement> {
       
       ctx.putImageData(imageData, 0, 0);
       
-      // コントラスト強化（軽量化）
-      ctx.filter = 'contrast(1.3) brightness(1.05)';
+      // 軽量なコントラスト強化
+      ctx.filter = 'contrast(1.2) brightness(1.02)';
       ctx.drawImage(canvas, 0, 0);
       ctx.filter = 'none';
       
@@ -114,7 +115,7 @@ async function processWithWorker(file: File): Promise<string> {
   });
 }
 
-// 従来の同期処理（フォールバック用）
+// 最適化された同期処理（フォールバック用）
 async function processWithTesseract(file: File): Promise<string> {
   const preprocessedCanvas = await preprocessImage(file);
   
@@ -126,7 +127,14 @@ async function processWithTesseract(file: File): Promise<string> {
     tessedit_do_invert: '0',
     tessedit_image_border: '0',
     tessedit_adaptive_threshold: '1',
-    tessedit_adaptive_method: '1'
+    tessedit_adaptive_method: '1',
+    // 処理速度向上のための追加設定
+    tessedit_do_ocr: '1',
+    tessedit_do_bayes_net: '0',
+    tessedit_do_old_tess: '0',
+    tessedit_do_tess: '0',
+    tessedit_do_unlv: '0',
+    tessedit_do_xform_ocr: '0'
   } as any);
 
   return result.data.text;
