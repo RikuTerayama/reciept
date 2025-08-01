@@ -63,7 +63,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
 
     } catch (err) {
       console.error('Processing error:', err);
-      setError(t('imageUpload.error', currentLanguage));
+              setError(t('imageUpload.error', currentLanguage, 'エラーが発生しました'));
     } finally {
       setIsProcessing(false);
     }
@@ -104,7 +104,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             <input {...getInputProps()} />
             <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <p className="text-sm text-white">
-              {isDragActive ? t('imageUpload.dragDropText', currentLanguage) : t('imageUpload.dragDropText', currentLanguage)}
+              {isDragActive ? t('imageUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択') : t('imageUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択')}
             </p>
             <p className="text-xs text-gray-300 mt-2">サポートされている形式：JPG / PNG / PDF</p>
           </div>
@@ -115,7 +115,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
               <Camera className="w-4 h-4" />
-              <span>{t('imageUpload.cameraCapture', currentLanguage)}</span>
+                              <span>{t('imageUpload.cameraCapture', currentLanguage, 'カメラで撮影')}</span>
             </button>
           </div>
         </div>
@@ -140,8 +140,8 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       {success && (
         <div className="text-center space-y-4 flex flex-col items-center justify-center">
           <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-          <p className="text-sm text-green-600">{t('imageUpload.uploadComplete', currentLanguage)}</p>
-          <p className="text-xs text-gray-500">{t('imageUpload.moveToDataInput', currentLanguage)}</p>
+                        <p className="text-sm text-green-600">{t('imageUpload.uploadComplete', currentLanguage, 'アップロード完了')}</p>
+              <p className="text-xs text-gray-500">{t('imageUpload.moveToDataInput', currentLanguage, '画像が正常に処理されました。データ入力画面に移動してください。')}</p>
         </div>
       )}
 
