@@ -103,10 +103,10 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
           >
             <input {...getInputProps()} />
             <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-white">
               {isDragActive ? t('imageUpload.dragDropText', currentLanguage) : t('imageUpload.dragDropText', currentLanguage)}
             </p>
-            <p className="text-xs text-gray-500 mt-2">サポートされている形式：JPG / PNG / PDF</p>
+            <p className="text-xs text-gray-300 mt-2">サポートされている形式：JPG / PNG / PDF</p>
           </div>
 
           <div className="flex justify-center space-x-4">
