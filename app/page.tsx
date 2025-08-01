@@ -16,6 +16,7 @@ import UserSetup from '@/components/UserSetup';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import BudgetDisplay from '@/components/BudgetDisplay';
 import AuthForm from '@/components/AuthForm';
+import OfflineIndicator from '@/components/OfflineIndicator';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut } from 'lucide-react';
 
 export default function Home() {
@@ -265,6 +266,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
+      {/* オフラインインジケーター */}
+      <OfflineIndicator 
+        onOnline={() => {
+          // オンライン復帰時の同期処理
+          if (user?.uid) {
+            // syncOnOnline(user.uid);
+          }
+        }}
+        onOffline={() => {
+          // オフライン時の処理
+          console.log('App went offline');
+        }}
+      />
       {/* ヘッダー */}
       <header className="border-b border-surface-800 bg-surface-900/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -301,13 +315,52 @@ export default function Home() {
                   onLanguageChange={setCurrentLanguage} 
                 />
               </div>
-              <button
-                onClick={() => setShowSettingsModal(true)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
-                title={t('common.settings', currentLanguage)}
-              >
-                <Settings className="w-5 h-5" />
-              </button>
+              
+              {/* 認証状態に応じたボタン */}
+              {user ? (
+                <>
+                  <button
+                    onClick={() => setShowSettingsModal(true)}
+                    className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+                    title={t('common.settings', currentLanguage)}
+                  >
+                    <Settings className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await logout();
+                        setUserInfo(null);
+                        setFormData({
+                          email: '',
+                          targetMonth: '',
+                          budget: 100000
+                        });
+                        // SWRキャッシュクリア
+                        if (typeof window !== 'undefined') {
+                          localStorage.removeItem('swr-cache');
+                        }
+                      } catch (error) {
+                        console.error('Logout error:', error);
+                      }
+                    }}
+                    className="p-2 text-surface-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors duration-200"
+                    title="ログアウト"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setShowAuthModal(true);
+                  }}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 text-sm font-medium"
+                >
+                  ログイン
+                </button>
+              )}
               
               {/* モバイルメニューボタン */}
               <button
@@ -666,6 +719,61 @@ export default function Home() {
               </button>
             </div>
             <UserSetup onSave={handleSettingsSave} hideWelcomeTitle={true} />
+          </div>
+        </div>
+      )}
+
+      {/* 認証モーダル */}
+      {showAuthModal && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div 
+            className="bg-surface-900 rounded-lg p-6 w-full max-w-md border border-surface-700 shadow-xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-white">
+                {authMode === 'login' ? 'ログイン' : '新規登録'}
+              </h2>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <AuthForm 
+              mode={authMode}
+              onSuccess={(userInfo) => {
+                setUser(userInfo);
+                setUserInfo({
+                  email: userInfo.email,
+                  targetMonth: userInfo.targetMonth,
+                  budget: userInfo.budget,
+                  currency: userInfo.currency
+                });
+                setFormData({
+                  email: userInfo.email || '',
+                  targetMonth: userInfo.targetMonth || '',
+                  budget: userInfo.budget || 100000
+                });
+                setShowAuthModal(false);
+              }}
+              onCancel={() => setShowAuthModal(false)}
+            />
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
+              >
+                {authMode === 'login' 
+                  ? 'アカウントをお持ちでない方はこちら' 
+                  : '既にアカウントをお持ちの方はこちら'
+                }
+              </button>
+            </div>
           </div>
         </div>
       )}
