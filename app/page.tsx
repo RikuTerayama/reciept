@@ -168,17 +168,17 @@ export default function Home() {
       }
     };
 
-    const handleStorageSync = (e: CustomEvent) => {
+    const handleStorageSync = async (e: CustomEvent) => {
       const { email } = e.detail;
       if (email) {
         try {
-          const userData = loadUserDataByEmail(email);
-          if (userData) {
-            setUserInfo(userData.userInfo);
+          const userData = await loadUserDataByEmail(email);
+          if (userData && userData.settings) {
+            setUserInfo(userData.settings);
             setFormData({
-              email: userData.userInfo.email || '',
-              targetMonth: userData.userInfo.targetMonth || '',
-              budget: userData.userInfo.budget || 100000
+              email: userData.settings.email || '',
+              targetMonth: userData.settings.targetMonth || '',
+              budget: userData.settings.budget || 100000
             });
           }
         } catch (error) {
