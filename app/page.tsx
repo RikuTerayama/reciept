@@ -7,6 +7,15 @@ import { loadUserDataByEmail } from '@/lib/storage';
 import { APP_VERSION } from '@/lib/constants';
 import { useAuthStore } from '@/lib/auth-store';
 import { onAuthStateChange } from '@/lib/auth-service';
+import { 
+  syncUserData, 
+  syncExpenseData, 
+  restoreUserData, 
+  saveOfflineData, 
+  syncOnOnline,
+  clearAllData,
+  setupNetworkListener 
+} from '@/lib/sync-service';
 import ImageUpload from '@/components/ImageUpload';
 import BatchUpload from '@/components/BatchUpload';
 import ExpenseForm from '@/components/ExpenseForm';
@@ -17,6 +26,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import BudgetDisplay from '@/components/BudgetDisplay';
 import AuthForm from '@/components/AuthForm';
 import OfflineIndicator from '@/components/OfflineIndicator';
+import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut } from 'lucide-react';
 
 export default function Home() {
@@ -50,32 +60,59 @@ export default function Home() {
     setIsClient(true);
   }, []);
 
-  // 認証状態の監視
+  // 認証状態の監視とデータ同期
   useEffect(() => {
     if (!isClient) return;
 
-    const unsubscribe = onAuthStateChange((user) => {
+    const unsubscribe = onAuthStateChange(async (user) => {
       if (user) {
         setUser(user);
-        setUserInfo({
-          email: user.email,
-          targetMonth: user.targetMonth,
-          budget: user.budget,
-          currency: user.currency
-        });
-        setFormData({
-          email: user.email || '',
-          targetMonth: user.targetMonth || '',
-          budget: user.budget || 100000
-        });
+        
+        try {
+          // 初回ログイン時のデータ復元
+          const { userData, expenses: cloudExpenses } = await restoreUserData(user.uid);
+          
+          setUserInfo({
+            email: userData.email,
+            targetMonth: userData.targetMonth,
+            budget: userData.budget,
+            currency: userData.currency
+          });
+          
+          setFormData({
+            email: userData.email || '',
+            targetMonth: userData.targetMonth || '',
+            budget: userData.budget || 100000
+          });
+
+          // クラウドデータをローカルストアに反映
+          cloudExpenses.forEach(expense => {
+            addExpense(expense);
+          });
+
+          // ユーザーデータの同期
+          await syncUserData(user.uid, userData);
+          
+        } catch (error) {
+          console.error('Error restoring user data:', error);
+          // エラー時はローカルデータを使用
+          setUserInfo({
+            email: user.email,
+            targetMonth: user.targetMonth,
+            budget: user.budget,
+            currency: user.currency
+          });
+        }
       } else {
         setUser(null);
         setUserInfo(null);
+        // ログアウト時にデータをクリア
+        clearAllData();
       }
     });
 
     return () => unsubscribe();
-  }, [isClient, setUser]);
+  }, [isClient, setUser, addExpense]);
 
   // 初期化（認証なしの場合）
   useEffect(() => {
@@ -200,8 +237,20 @@ export default function Home() {
     }
   };
 
-  const handleDataInputSave = (expenseData: any) => {
+  const handleDataInputSave = async (expenseData: any) => {
     addExpense(expenseData);
+    
+    // ユーザーがログインしている場合、クラウドに同期
+    if (user?.uid) {
+      try {
+        await syncExpenseData(user.uid, [...expenses, expenseData]);
+      } catch (error) {
+        console.error('Error syncing expense data:', error);
+        // オフライン時はローカルに保存
+        saveOfflineData([...expenses, expenseData]);
+      }
+    }
+    
     setShowDataInputModal(false);
   };
 
@@ -266,19 +315,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
-      {/* オフラインインジケーター */}
-      <OfflineIndicator 
+      {/* ネットワーク状態監視 */}
+      <NetworkStatus 
         onOnline={() => {
           // オンライン復帰時の同期処理
           if (user?.uid) {
-            // syncOnOnline(user.uid);
+            syncOnOnline(user.uid);
           }
         }}
         onOffline={() => {
           // オフライン時の処理
           console.log('App went offline');
         }}
+        showDebugInfo={process.env.NODE_ENV === 'development'}
       />
+      
+      {/* 開発環境でのテスト用シミュレーター */}
+      {process.env.NODE_ENV === 'development' && (
+        <NetworkSimulator />
+      )}
       {/* ヘッダー */}
       <header className="border-b border-surface-800 bg-surface-900/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
