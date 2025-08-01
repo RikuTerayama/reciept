@@ -35,6 +35,7 @@ export interface Translations {
 
   // ヘッダー
   header: {
+    title: string;
   };
 
   // ナビゲーション
@@ -112,6 +113,7 @@ export interface Translations {
       required: string;
       invalidAmount: string;
       invalidTaxRate: string;
+      invalidEmail: string;
     };
     descriptionField: string;
     descriptionPlaceholder: string;
@@ -213,6 +215,8 @@ export interface Translations {
     totalAmount: string;
     selected: string;
     selectedAmount: string;
+    myBudget: string;
+    budgetDifference: string;
   };
 
   // フッター
@@ -346,6 +350,7 @@ const translations: Record<Language, Translations> = {
       actions: '操作',
     },
     header: {
+      title: 'Expenscan',
     },
     navigation: {
       singleUpload: '単一アップロード',
@@ -412,7 +417,8 @@ const translations: Record<Language, Translations> = {
       validation: {
         required: 'この項目は必須です',
         invalidAmount: '有効な金額を入力してください',
-        invalidTaxRate: '税率は0-100の間で入力してください'
+        invalidTaxRate: '税率は0-100の間で入力してください',
+        invalidEmail: '有効なメールアドレスを入力してください'
       },
       descriptionField: '説明',
       descriptionPlaceholder: '経費の詳細を入力してください',
@@ -502,6 +508,8 @@ const translations: Record<Language, Translations> = {
       totalAmount: '総金額',
       selected: '選択済み',
       selectedAmount: '選択金額',
+      myBudget: '私の予算',
+      budgetDifference: '予算差額',
     },
     footer: {
       copyright: '© 2025 Expenscan. Developed by RT. All rights reserved.',
@@ -623,6 +631,7 @@ const translations: Record<Language, Translations> = {
       actions: 'Actions',
     },
     header: {
+      title: 'Expenscan',
     },
     navigation: {
       singleUpload: 'Single Upload',
@@ -689,7 +698,8 @@ const translations: Record<Language, Translations> = {
       validation: {
         required: 'This field is required',
         invalidAmount: 'Please enter a valid amount',
-        invalidTaxRate: 'Tax rate must be between 0-100'
+        invalidTaxRate: 'Tax rate must be between 0-100',
+        invalidEmail: 'Please enter a valid email address'
       },
       descriptionField: 'Description',
       descriptionPlaceholder: 'Enter expense details',
@@ -779,6 +789,8 @@ const translations: Record<Language, Translations> = {
       totalAmount: 'Total Amount',
       selected: 'Selected',
       selectedAmount: 'Selected Amount',
+      myBudget: 'My Budget',
+      budgetDifference: 'Budget Difference',
     },
     footer: {
       copyright: '© 2025 Expenscan. Developed by RT. All rights reserved.',
@@ -887,7 +899,7 @@ export const setLanguage = (language: Language): void => {
 };
 
 // 翻訳を取得
-export const t = (key: string, language: Language = getCurrentLanguage()): string => {
+export const t = (key: string, language: Language = getCurrentLanguage(), defaultValue?: string): string => {
   const keys = key.split('.');
   let value: Translations | string | Record<string, any> = translations[language];
   
@@ -896,11 +908,11 @@ export const t = (key: string, language: Language = getCurrentLanguage()): strin
       value = (value as Record<string, any>)[k];
     } else {
       console.warn(`Translation key not found: ${key}`);
-      return key;
+      return defaultValue || key;
     }
   }
   
-  return typeof value === 'string' ? value : key;
+  return typeof value === 'string' ? value : (defaultValue || key);
 };
 
 // 翻訳オブジェクトを取得
