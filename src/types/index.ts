@@ -27,6 +27,12 @@ export interface ExpenseData {
   updatedAt?: Date;
 }
 
+// 同期用の型定義
+export interface SyncableExpenseData extends ExpenseData {
+  synced?: boolean;
+  lastSyncAt?: Date;
+}
+
 export interface OCRResult {
   date?: string;
   totalAmount?: number;
