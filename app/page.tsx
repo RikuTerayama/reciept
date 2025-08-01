@@ -5,6 +5,8 @@ import { useExpenseStore } from '@/lib/store';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { loadUserDataByEmail } from '@/lib/storage';
 import { APP_VERSION } from '@/lib/constants';
+import { useAuthStore } from '@/lib/auth-store';
+import { onAuthStateChange } from '@/lib/auth-service';
 import ImageUpload from '@/components/ImageUpload';
 import BatchUpload from '@/components/BatchUpload';
 import ExpenseForm from '@/components/ExpenseForm';
@@ -13,7 +15,8 @@ import BudgetOptimizer from '@/components/BudgetOptimizer';
 import UserSetup from '@/components/UserSetup';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import BudgetDisplay from '@/components/BudgetDisplay';
-import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List } from 'lucide-react';
+import AuthForm from '@/components/AuthForm';
+import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut } from 'lucide-react';
 
 export default function Home() {
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
@@ -24,6 +27,9 @@ export default function Home() {
     budget: 100000
   });
   
+  // 認証状態
+  const { user, loading: authLoading, setUser, logout } = useAuthStore();
+  
   // モーダル状態
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showBatchUploadModal, setShowBatchUploadModal] = useState(false);
@@ -31,6 +37,8 @@ export default function Home() {
   const [showExpenseListModal, setShowExpenseListModal] = useState(false);
   const [showOptimizerModal, setShowOptimizerModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -41,9 +49,36 @@ export default function Home() {
     setIsClient(true);
   }, []);
 
-  // 初期化
+  // 認証状態の監視
   useEffect(() => {
     if (!isClient) return;
+
+    const unsubscribe = onAuthStateChange((user) => {
+      if (user) {
+        setUser(user);
+        setUserInfo({
+          email: user.email,
+          targetMonth: user.targetMonth,
+          budget: user.budget,
+          currency: user.currency
+        });
+        setFormData({
+          email: user.email || '',
+          targetMonth: user.targetMonth || '',
+          budget: user.budget || 100000
+        });
+      } else {
+        setUser(null);
+        setUserInfo(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isClient, setUser]);
+
+  // 初期化（認証なしの場合）
+  useEffect(() => {
+    if (!isClient || user) return;
 
     try {
       const savedUserInfo = localStorage.getItem('userInfo');
@@ -59,7 +94,7 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to load user info:', error);
     }
-  }, [isClient]);
+  }, [isClient, user]);
 
   // ストレージ変更の監視
   useEffect(() => {
