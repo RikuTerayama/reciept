@@ -12,9 +12,10 @@ interface UserInfo {
 
 interface UserSetupProps {
   onSave: (userInfo: UserInfo) => void;
+  hideWelcomeTitle?: boolean;
 }
 
-export default function UserSetup({ onSave }: UserSetupProps) {
+export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetupProps) {
   const [formData, setFormData] = useState<UserInfo>({
     email: '',
     targetMonth: '',
@@ -29,7 +30,7 @@ export default function UserSetup({ onSave }: UserSetupProps) {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'budget' ? Number(value) : value
+      [name]: name === 'budget' ? Number(value) || 0 : value
     }));
 
     // エラーをクリア
@@ -73,10 +74,12 @@ export default function UserSetup({ onSave }: UserSetupProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
-        <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
-      </div>
+      {!hideWelcomeTitle && (
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage)}</h2>
+          <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage)}</p>
+        </div>
+      )}
       
       <div className="bg-gray-800 rounded-lg p-6">
         <h3 className="text-2xl font-semibold mb-6">{t('common.settings', currentLanguage)}</h3>
@@ -141,16 +144,16 @@ export default function UserSetup({ onSave }: UserSetupProps) {
                 errors.currency ? 'border-red-500' : 'border-gray-600'
               }`}
             >
-              <option value="JPY">JPY - {t('currencies.jpy', currentLanguage)}</option>
-              <option value="USD">USD - {t('currencies.usd', currentLanguage)}</option>
-              <option value="EUR">EUR - {t('currencies.eur', currentLanguage)}</option>
-              <option value="GBP">GBP - {t('currencies.gbp', currentLanguage)}</option>
-              <option value="CNY">CNY - {t('currencies.cny', currentLanguage)}</option>
-              <option value="KRW">KRW - {t('currencies.krw', currentLanguage)}</option>
-              <option value="SGD">SGD - {t('currencies.sgd', currentLanguage)}</option>
-              <option value="AUD">AUD - {t('currencies.aud', currentLanguage)}</option>
-              <option value="CAD">CAD - {t('currencies.cad', currentLanguage)}</option>
-              <option value="CHF">CHF - {t('currencies.chf', currentLanguage)}</option>
+              <option value="JPY">日本円（JPY）</option>
+              <option value="USD">米ドル（USD）</option>
+              <option value="EUR">ユーロ（EUR）</option>
+              <option value="GBP">ポンド（GBP）</option>
+              <option value="CNY">人民元（CNY）</option>
+              <option value="KRW">韓国ウォン（KRW）</option>
+              <option value="SGD">シンガポールドル（SGD）</option>
+              <option value="AUD">豪ドル（AUD）</option>
+              <option value="CAD">カナダドル（CAD）</option>
+              <option value="CHF">スイスフラン（CHF）</option>
             </select>
             {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
           </div>
