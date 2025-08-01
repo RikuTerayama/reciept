@@ -179,7 +179,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="flex items-center space-x-4">
               <ExpenscanLogo size="medium" />
               <h1 className="text-xl font-semibold text-white hidden sm:block">
-                {t('header.title')}
+                {t('header.title', undefined, 'Expenscan')}
               </h1>
             </div>
 
@@ -347,24 +347,24 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-purple-300 transition-colors duration-300">¥{userInfo.budget.toLocaleString()}</div>
-              <div className="stat-label relative z-10">{t('statistics.myBudget')}</div>
+              <div className="stat-label relative z-10">{t('statistics.myBudget', undefined, '私の予算')}</div>
             </div>
           </div>
           <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-orange-300 transition-colors duration-300">¥{(userInfo.budget - totalAmount).toLocaleString()}</div>
-              <div className="stat-label relative z-10">{t('statistics.budgetDifference')}</div>
+              <div className="stat-label relative z-10">{t('statistics.budgetDifference', undefined, '予算差額')}</div>
             </div>
           </div>
         </div>
 
         {/* モバイル統計 */}
         <div className="md:hidden mb-6">
-                  <MobileStatistics 
-          expenses={expenses} 
+          <MobileStatistics
+            expenses={expenses}
           userInfo={userInfo}
-        />
+          />
         </div>
 
         {/* タブコンテンツ */}
