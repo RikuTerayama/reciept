@@ -83,10 +83,10 @@ export default function BudgetDisplay({ userInfo: propUserInfo, currentLanguage:
     <div className="bg-surface-800 rounded-lg p-6 border border-surface-700 mb-8">
       <div className="text-center">
         <div className={`text-lg sm:text-xl font-semibold ${remainingColor}`}>
-          {t('budgetDisplay.remaining', currentLanguage)}: ¥{remainingBudget.toLocaleString()}
+          {t('budgetDisplay.remaining', currentLanguage, '残予算')}: ¥{remainingBudget.toLocaleString()}
         </div>
         <div className="text-sm text-surface-400 mt-1">
-          ({t('budgetDisplay.budget', currentLanguage)} ¥{userInfo.budget.toLocaleString()} - {t('budgetDisplay.registered', currentLanguage)} ¥{totalRegistered.toLocaleString()})
+                      ({t('budgetDisplay.budget', currentLanguage, '予算')} ¥{userInfo.budget.toLocaleString()} - {t('budgetDisplay.registered', currentLanguage, '登録済み')} ¥{totalRegistered.toLocaleString()})
         </div>
       </div>
     </div>
