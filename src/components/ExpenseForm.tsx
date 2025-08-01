@@ -18,6 +18,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   
   const [formData, setFormData] = useState<ExpenseData>({
     id: '',
+    date: new Date().toISOString().split('T')[0],
     receiptDate: '',
     totalAmount: 0,
     category: '',
@@ -33,6 +34,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     baseCurrency: baseCurrency,
     conversionRate: 1,
     conversionDate: new Date().toISOString(),
+    createdAt: new Date(),
     ...initialData
   });
 
