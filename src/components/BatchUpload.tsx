@@ -131,7 +131,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
             <input {...getInputProps()} />
             <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <p className="text-sm text-white">
-              {isDragActive ? t('batchUpload.dragDropText', currentLanguage) : t('batchUpload.dragDropText', currentLanguage)}
+              {isDragActive ? t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択') : t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択')}
             </p>
             <p className="text-xs text-gray-300 mt-2">サポートされている形式：JPG / PNG / PDF</p>
           </div>
@@ -139,12 +139,12 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
           {files.length > 0 && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-white">{t('batchUpload.title', currentLanguage)}</h3>
+                <h3 className="text-lg font-semibold text-white">{t('batchUpload.title', currentLanguage, '一括アップロード')}</h3>
                 <button
                   onClick={clearAll}
                   className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
                 >
-                  {t('batchUpload.clearAll', currentLanguage)}
+                  {t('batchUpload.clearAll', currentLanguage, 'すべてクリア')}
                 </button>
               </div>
 
@@ -169,7 +169,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
                 onClick={processBatch}
                 className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
               >
-                {t('batchUpload.startProcessing', currentLanguage)}
+                {t('batchUpload.startProcessing', currentLanguage, '処理開始')}
               </button>
             </div>
           )}
@@ -191,7 +191,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
           </div>
           <p className="text-xs text-gray-500">{processedCount} / {files.length} 完了</p>
           <div className="text-sm text-gray-400">
-            {processedCount} / {files.length} {t('batchUpload.completed', currentLanguage)}
+                            {processedCount} / {files.length} {t('batchUpload.completed', currentLanguage, '完了')}
           </div>
         </div>
       )}
@@ -200,10 +200,10 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
         <div className="text-center space-y-4 flex flex-col items-center justify-center">
           <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
           <div className="space-y-2">
-            <p className="text-sm text-green-600">{t('batchUpload.completed', currentLanguage)}</p>
+            <p className="text-sm text-green-600">{t('batchUpload.completed', currentLanguage, '完了')}</p>
             <div className="text-xs text-gray-400 space-y-1">
-              <p>{t('batchUpload.completed', currentLanguage)}: {successCount}</p>
-              <p>{t('batchUpload.failed', currentLanguage)}: {failedCount}</p>
+                              <p>{t('batchUpload.completed', currentLanguage, '完了')}: {successCount}</p>
+                <p>{t('batchUpload.failed', currentLanguage, '失敗')}: {failedCount}</p>
             </div>
           </div>
         </div>
