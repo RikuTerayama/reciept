@@ -12,7 +12,7 @@ import UserSetup from '@/components/UserSetup';
 import MobileStatistics from '@/components/MobileStatistics';
 import EnhancedImageUpload from '@/components/EnhancedImageUpload';
 import ExpenscanLogo from '@/components/ExpenscanLogo';
-import { ToastContainer, useToast } from '@/components/Toast';
+import { useToast, ToastManager } from '@/components/Toast';
 import { useExpenseStore } from '@/lib/store';
 import { exportExpensesToExcel } from '@/lib/excel';
 import { t, getCurrentLanguage, Language } from '@/lib/i18n';
@@ -35,8 +35,8 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<Language>(getCurrentLanguage());
-  const { expenses, selectedExpenses, clearSelection } = useExpenseStore();
-  const { toasts, showSuccess, showError, showInfo, removeToast } = useToast();
+  const { expenses, selectedExpenses, clearSelection, addExpense } = useExpenseStore();
+  const { toasts, success, error, info, removeToast } = useToast();
 
   // メモ化された値
   const totalAmount = useMemo(() => 
@@ -99,24 +99,24 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
 
   const handleExportAll = useCallback(() => {
     if (expenses.length === 0) {
-      showError('エクスポートするデータがありません', '経費データを追加してからエクスポートしてください');
+      error('エクスポートするデータがありません', '経費データを追加してからエクスポートしてください');
       return;
     }
     exportExpensesToExcel(expenses, 'all_expenses.xlsx');
-    showSuccess('エクスポート完了', `${expenses.length}件の経費データをエクスポートしました`);
-  }, [expenses, showError, showSuccess]);
+    success('エクスポート完了', `${expenses.length}件の経費データをエクスポートしました`);
+  }, [expenses, error, success]);
 
   const handleExportSelected = useCallback(() => {
     if (selectedExpenses.length === 0) {
-      showError('エクスポートするデータがありません', 'エクスポートする経費を選択してください');
+      error('エクスポートするデータがありません', 'エクスポートする経費を選択してください');
       return;
     }
     const selectedExpenseData = expenses.filter((expense: ExpenseData) => 
       selectedExpenses.includes(expense.id)
     );
     exportExpensesToExcel(selectedExpenseData, 'selected_expenses.xlsx');
-    showSuccess('エクスポート完了', `${selectedExpenses.length}件の経費データをエクスポートしました`);
-  }, [selectedExpenses, expenses, showError, showSuccess]);
+    success('エクスポート完了', `${selectedExpenses.length}件の経費データをエクスポートしました`);
+  }, [selectedExpenses, expenses, error, success]);
 
   // OCR完了後の自動遷移処理
   const handleOCRComplete = useCallback(() => {
@@ -137,7 +137,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
   const downloadSelectedReceiptImages = useCallback((expenses: ExpenseData[], selectedExpenseIds: string[]) => {
     const selectedExpensesData = expenses.filter((expense: ExpenseData) => selectedExpenseIds.includes(expense.id));
     if (selectedExpensesData.length === 0) {
-      showError('ダウンロードするデータがありません', 'ダウンロードする経費を選択してください');
+      error('ダウンロードするデータがありません', 'ダウンロードする経費を選択してください');
       return;
     }
 
@@ -145,7 +145,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
     const expensesWithImages = selectedExpensesData.filter((expense: ExpenseData) => expense.imageData);
     
     if (expensesWithImages.length === 0) {
-      showError('ダウンロード可能な画像がありません', '選択した経費に画像データが含まれていません');
+      error('ダウンロード可能な画像がありません', '選択した経費に画像データが含まれていません');
       return;
     }
 
@@ -161,12 +161,12 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
       }
     });
 
-    showSuccess('画像ダウンロード完了', `${expensesWithImages.length}件の画像をダウンロードしました`);
-  }, [showError, showSuccess]);
+    success('画像ダウンロード完了', `${expensesWithImages.length}件の画像をダウンロードしました`);
+  }, [error, success]);
 
   // ユーザー設定が完了していない場合は設定画面を表示
   if (!userInfo) {
-    return <UserSetup onComplete={onUserSetupComplete} />;
+    return <UserSetup onSave={onUserSetupComplete} />;
   }
 
   return (
@@ -395,7 +395,10 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
                 <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.dataEntry')}</h2>
                 <p className="text-gray-400 max-w-2xl mx-auto">{t('expenseForm.description')}</p>
               </div>
-              <ExpenseForm />
+              <ExpenseForm onSave={(data) => {
+                addExpense(data);
+                success('経費データを保存しました');
+              }} />
             </div>
           )}
 
@@ -480,7 +483,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
       </main>
 
       {/* トースト通知 */}
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
+              <ToastManager toasts={toasts} onClose={removeToast} />
 
       {/* デバッグ用リセットボタン */}
       <button
