@@ -74,19 +74,24 @@ export const logoutUser = async () => {
 
 // 認証状態の監視
 export const onAuthStateChange = (callback: (user: UserInfo | null) => void) => {
-  return onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+  return onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
     if (firebaseUser) {
-      try {
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          callback(userDoc.data() as UserInfo);
-        } else {
+      // 非同期処理を別関数で実行
+      const fetchUserData = async () => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            callback(userDoc.data() as UserInfo);
+          } else {
+            callback(null);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
           callback(null);
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        callback(null);
-      }
+      };
+      
+      fetchUserData();
     } else {
       callback(null);
     }
@@ -124,7 +129,7 @@ export const getExpenseData = async (uid: string, limit: number = 100): Promise<
     const expensesQuery = query(
       collection(db, 'users', uid, 'expenses'),
       orderBy('receiptDate', 'desc'),
-      limit(Number(limit))
+      limit(limit)
     );
     const querySnapshot = await getDocs(expensesQuery);
     
