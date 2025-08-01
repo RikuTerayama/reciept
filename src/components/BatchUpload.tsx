@@ -66,11 +66,13 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
           // 画像圧縮
           const compressedImage = await compressImage(file);
           
-          // レシート検出
-          const isReceipt = await detectReceipt(compressedImage);
+          // レシート検出（圧縮された画像をFileに変換）
+          const compressedBlob = await fetch(compressedImage).then(r => r.blob());
+          const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+          const isReceipt = await detectReceipt(compressedFile);
           
           // OCR処理
-          const ocrResult = await processImageWithOCR(compressedImage);
+          const ocrResult = await processImageWithOCR(compressedFile);
           
           // 経費データとして保存
           const expenseData = {
