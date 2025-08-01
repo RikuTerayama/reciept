@@ -145,9 +145,9 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
       {/* ヘッダー */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
-          <h2 className="text-2xl font-bold text-white">経費リスト</h2>
+          <h2 className="text-2xl font-bold text-white">{t('expenseList.title')}</h2>
           <p className="text-surface-400">
-            {allExpenses.length}件の経費データ
+            {allExpenses.length}{t('common.items')}の{t('expenseList.description')}
           </p>
         </div>
         
@@ -157,13 +157,13 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
             <div className="text-lg font-semibold text-white">
               ¥{totalAmount.toLocaleString()}
             </div>
-            <div className="text-surface-400">総額</div>
+            <div className="text-surface-400">{t('stats.totalAmount')}</div>
           </div>
           <div className="text-center">
             <div className="text-lg font-semibold text-white">
               {qualifiedCount}
             </div>
-            <div className="text-surface-400">適格</div>
+            <div className="text-surface-400">{t('stats.qualifiedExpenses')}</div>
           </div>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-surface-400 w-4 h-4" />
           <input
             type="text"
-            placeholder="経費を検索..."
+            placeholder={t('expenseList.searchPlaceholder') || '経費を検索...'}
             value={searchTerm}
             onChange={handleSearch}
             className="w-full pl-10 pr-4 py-2 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -190,12 +190,12 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
           }}
           className="px-4 py-2 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         >
-          <option value="date-desc">日付（新しい順）</option>
-          <option value="date-asc">日付（古い順）</option>
-          <option value="amount-desc">金額（高い順）</option>
-          <option value="amount-asc">金額（低い順）</option>
-          <option value="category-asc">カテゴリ（A-Z）</option>
-          <option value="category-desc">カテゴリ（Z-A）</option>
+          <option value="date-desc">{t('expenseList.sort.dateDesc') || '日付（新しい順）'}</option>
+          <option value="date-asc">{t('expenseList.sort.dateAsc') || '日付（古い順）'}</option>
+          <option value="amount-desc">{t('expenseList.sort.amountDesc') || '金額（高い順）'}</option>
+          <option value="amount-asc">{t('expenseList.sort.amountAsc') || '金額（低い順）'}</option>
+          <option value="category-asc">{t('expenseList.sort.categoryAsc') || 'カテゴリ（A-Z）'}</option>
+          <option value="category-desc">{t('expenseList.sort.categoryDesc') || 'カテゴリ（Z-A）'}</option>
         </select>
       </div>
 
@@ -203,7 +203,7 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
       {isLoading && (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="text-surface-400 mt-2">データを読み込み中...</p>
+          <p className="text-surface-400 mt-2">{t('common.loading')}</p>
         </div>
       )}
 
@@ -213,11 +213,11 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
           {paginatedExpenses.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-surface-400 mb-4">
-                {searchTerm ? '検索条件に一致する経費が見つかりません' : '経費データがありません'}
+                {searchTerm ? (t('expenseList.noSearchResults') || '検索条件に一致する経費が見つかりません') : (t('expenseList.noExpenses') || '経費データがありません')}
               </div>
               {!searchTerm && (
                 <p className="text-sm text-surface-500">
-                  画像アップロードまたは手動入力で経費を追加してください
+                  {t('expenseList.addFirstExpense') || '画像アップロードまたは手動入力で経費を追加してください'}
                 </p>
               )}
             </div>
@@ -228,22 +228,22 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
                   <thead className="bg-surface-700">
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
-                        日付
+                        {t('expenseList.date')}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
-                        説明
+                        {t('dataInput.descriptionField')}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
-                        カテゴリ
+                        {t('dataInput.category')}
                       </th>
                       <th className="px-6 py-4 text-right text-xs font-medium text-surface-300 uppercase tracking-wider">
-                        金額
+                        {t('expenseList.amount')}
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
-                        適格区分
+                        {t('dataInput.qualification')}
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
-                        操作
+                        {t('common.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -286,7 +286,7 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
                               <button
                                 onClick={() => onEdit(expense)}
                                 className="p-1 text-surface-400 hover:text-blue-400 transition-colors"
-                                title="編集"
+                                title={t('common.edit')}
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
@@ -295,7 +295,7 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
                               <button
                                 onClick={() => handleDelete(expense.id)}
                                 className="p-1 text-surface-400 hover:text-red-400 transition-colors"
-                                title="削除"
+                                title={t('common.delete')}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
