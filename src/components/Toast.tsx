@@ -1,160 +1,173 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
-export interface Toast {
+interface ToastProps {
   id: string;
   type: ToastType;
   title: string;
   message?: string;
   duration?: number;
+  onClose: (id: string) => void;
 }
 
-interface ToastProps {
-  toast: Toast;
-  onRemove: (id: string) => void;
-}
+const toastIcons = {
+  success: CheckCircle,
+  error: XCircle,
+  warning: AlertCircle,
+  info: Info,
+};
 
-const ToastItem: React.FC<ToastProps> = ({ toast, onRemove }) => {
+const toastStyles = {
+  success: 'bg-green-600 border-green-500',
+  error: 'bg-red-600 border-red-500',
+  warning: 'bg-yellow-600 border-yellow-500',
+  info: 'bg-blue-600 border-blue-500',
+};
+
+export default function Toast({ id, type, title, message, duration = 3000, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+
+  const Icon = toastIcons[type];
 
   useEffect(() => {
     // アニメーション開始
-    const showTimer = setTimeout(() => setIsVisible(true), 100);
+    const timer = setTimeout(() => setIsVisible(true), 100);
     
-    // 自動削除
-    const hideTimer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(() => onRemove(toast.id), 300);
-    }, toast.duration || 5000);
+    // 自動クローズ
+    const autoCloseTimer = setTimeout(() => {
+      handleClose();
+    }, duration);
 
     return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
+      clearTimeout(timer);
+      clearTimeout(autoCloseTimer);
     };
-  }, [toast.id, toast.duration, onRemove]);
+  }, [duration]);
 
-  const getIcon = () => {
-    switch (toast.type) {
-      case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-400" />;
-      case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-400" />;
-      case 'warning':
-        return <AlertCircle className="w-5 h-5 text-yellow-400" />;
-      case 'info':
-        return <Info className="w-5 h-5 text-blue-400" />;
-      default:
-        return <Info className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
-  const getBgColor = () => {
-    switch (toast.type) {
-      case 'success':
-        return 'bg-green-900/90 border-green-500/30';
-      case 'error':
-        return 'bg-red-900/90 border-red-500/30';
-      case 'warning':
-        return 'bg-yellow-900/90 border-yellow-500/30';
-      case 'info':
-        return 'bg-blue-900/90 border-blue-500/30';
-      default:
-        return 'bg-gray-900/90 border-gray-500/30';
-    }
+  const handleClose = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onClose(id);
+    }, 200);
   };
 
   return (
     <div
       className={`
-        ${getBgColor()} 
-        border backdrop-blur-sm rounded-lg shadow-lg p-4 min-w-80 max-w-md
-        transform transition-all duration-300 ease-out
-        ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
+        fixed top-4 right-4 z-50 max-w-sm w-full
+        transform transition-all duration-200 ease-out
+        ${isVisible && !isExiting ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
       `}
     >
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0">
-          {getIcon()}
+      <div className={`
+        bg-surface-900 border border-surface-700 rounded-lg shadow-xl
+        p-4 backdrop-blur-sm
+      `}>
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <Icon className={`w-5 h-5 ${type === 'success' ? 'text-green-400' : type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-yellow-400' : 'text-blue-400'}`} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white">{title}</p>
+            {message && (
+              <p className="text-sm text-surface-400 mt-1">{message}</p>
+            )}
+          </div>
+          <div className="flex-shrink-0">
+            <button
+              onClick={handleClose}
+              className="text-surface-400 hover:text-white transition-colors duration-200"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-white">
-            {toast.title}
-          </h4>
-          {toast.message && (
-            <p className="mt-1 text-sm text-gray-300">
-              {toast.message}
-            </p>
-          )}
-        </div>
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(() => onRemove(toast.id), 300);
-          }}
-          className="flex-shrink-0 p-1 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );
-};
-
-interface ToastContainerProps {
-  toasts: Toast[];
-  onRemove: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
+// トーストマネージャー
+interface ToastManagerProps {
+  toasts: Array<{
+    id: string;
+    type: ToastType;
+    title: string;
+    message?: string;
+    duration?: number;
+  }>;
+  onClose: (id: string) => void;
+}
+
+export function ToastManager({ toasts, onClose }: ToastManagerProps) {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
-      {toasts.map((toast) => (
-        <ToastItem key={toast.id} toast={toast} onRemove={onRemove} />
+      {toasts.map((toast, index) => (
+        <div
+          key={toast.id}
+          style={{ transform: `translateY(${index * 80}px)` }}
+        >
+          <Toast
+            id={toast.id}
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            duration={toast.duration}
+            onClose={onClose}
+          />
+        </div>
       ))}
     </div>
   );
-};
+}
 
-// トースト管理フック
-export const useToast = () => {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+// トーストフック
+export function useToast() {
+  const [toasts, setToasts] = useState<Array<{
+    id: string;
+    type: ToastType;
+    title: string;
+    message?: string;
+    duration?: number;
+  }>>([]);
 
-  const addToast = (toast: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast = { ...toast, id };
-    setToasts(prev => [...prev, newToast]);
+  const addToast = (type: ToastType, title: string, message?: string, duration?: number) => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, type, title, message, duration }]);
   };
 
   const removeToast = (id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  const showSuccess = (title: string, message?: string) => {
-    addToast({ type: 'success', title, message });
+  const success = (title: string, message?: string, duration?: number) => {
+    addToast('success', title, message, duration);
   };
 
-  const showError = (title: string, message?: string) => {
-    addToast({ type: 'error', title, message });
+  const error = (title: string, message?: string, duration?: number) => {
+    addToast('error', title, message, duration);
   };
 
-  const showInfo = (title: string, message?: string) => {
-    addToast({ type: 'info', title, message });
+  const warning = (title: string, message?: string, duration?: number) => {
+    addToast('warning', title, message, duration);
   };
 
-  const showWarning = (title: string, message?: string) => {
-    addToast({ type: 'warning', title, message });
+  const info = (title: string, message?: string, duration?: number) => {
+    addToast('info', title, message, duration);
   };
 
   return {
     toasts,
-    showSuccess,
-    showError,
-    showInfo,
-    showWarning,
-    removeToast
+    addToast,
+    removeToast,
+    success,
+    error,
+    warning,
+    info,
   };
-}; 
+} 
