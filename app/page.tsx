@@ -237,6 +237,7 @@ export default function Home() {
                 e.currentTarget.style.display = 'none';
               }}
             />
+            <h1 className="text-xl font-bold text-white">Expenscan</h1>
           </div>
           <div className="flex items-center space-x-4">
             <LanguageSwitcher 
@@ -338,7 +339,7 @@ export default function Home() {
                       onClick={() => setShowSettingsModal(true)}
                       className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm sm:text-base"
                     >
-                      {t('common.personalSettings', currentLanguage)}
+                      {t('common.settings', currentLanguage)}
                     </button>
                   </div>
                 </div>
