@@ -127,7 +127,6 @@ export default function ExpenseForm({ onSave, onCancel, initialData, hideTitle }
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 基本情報 */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">{t('dataInput.title', currentLanguage)}</h3>
           
           <div>
             <label className="block text-sm font-medium mb-2">{t('dataInput.date', currentLanguage)} *</label>
