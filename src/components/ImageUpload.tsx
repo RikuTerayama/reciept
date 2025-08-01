@@ -102,7 +102,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             <p className="text-sm text-gray-600">
               {isDragActive ? t('imageUpload.dragDropText', currentLanguage) : t('imageUpload.dragDropText', currentLanguage)}
             </p>
-            <p className="text-xs text-gray-500 mt-2">{t('imageUpload.supportedFormats', currentLanguage)}</p>
+            <p className="text-xs text-gray-500 mt-2">JPEG, PNG, GIF, BMP, PDF形式のファイル</p>
           </div>
 
           <div className="flex justify-center space-x-4">
