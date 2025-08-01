@@ -1,6 +1,7 @@
 export interface ExpenseData {
   id: string;
   date: string;
+  receiptDate?: string;
   totalAmount: number;
   taxRate: number;
   currency: string;
@@ -16,7 +17,14 @@ export interface ExpenseData {
   imageUrl?: string;
   imageData?: string;
   ocrText?: string;
+  originalAmount?: number;
+  originalCurrency?: string;
+  convertedAmount?: number;
+  baseCurrency?: string;
+  conversionRate?: number;
+  conversionDate?: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface OCRResult {
