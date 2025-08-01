@@ -561,8 +561,8 @@ export default function Home() {
       {/* 設定モーダル */}
       {showSettingsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">{t('common.edit', currentLanguage)}</h2>
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 text-white text-center">
+            <h2 className="text-2xl font-semibold mb-4 text-white">{t('common.settings', currentLanguage)}</h2>
             <form onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
