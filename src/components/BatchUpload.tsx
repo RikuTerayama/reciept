@@ -20,6 +20,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
   const [successCount, setSuccessCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
   const [currentFile, setCurrentFile] = useState('');
+  const [progress, setProgress] = useState(0);
   const { addExpense } = useExpenseStore();
   const currentLanguage = getCurrentLanguage();
 
@@ -44,6 +45,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
     setProcessedCount(0);
     setSuccessCount(0);
     setFailedCount(0);
+    setProgress(0);
   };
 
   const processBatch = async () => {
@@ -53,49 +55,63 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
     setProcessedCount(0);
     setSuccessCount(0);
     setFailedCount(0);
+    setProgress(0);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      setCurrentFile(file.name);
+    try {
+      // 並列処理で複数ファイルを同時に処理
+      const processPromises = files.map(async (file, index) => {
+        try {
+          setCurrentFile(file.name);
+          
+          // 画像圧縮
+          const compressedImage = await compressImage(file);
+          
+          // レシート検出
+          const isReceipt = await detectReceipt(compressedImage);
+          
+          // OCR処理
+          const ocrResult = await processImageWithOCR(compressedImage);
+          
+          // 経費データとして保存
+          const expenseData = {
+            id: Date.now().toString() + index,
+            date: ocrResult.date || new Date().toISOString().split('T')[0],
+            totalAmount: ocrResult.totalAmount || 0,
+            currency: 'JPY',
+            category: ocrResult.category || '',
+            description: ocrResult.description || '',
+            taxRate: 10,
+            companyName: '',
+            participantFromClient: 0,
+            participantFromCompany: 0,
+            isQualified: 'Not Qualified',
+            createdAt: new Date()
+          };
 
-      try {
-        // 画像圧縮
-        const compressedImage = await compressImage(file);
-        
-        // レシート検出
-        const isReceipt = await detectReceipt(compressedImage);
-        
-        // OCR処理
-        const ocrResult = await processImageWithOCR(compressedImage);
-        
-        // 経費データとして保存
-        const expenseData = {
-          id: Date.now().toString() + i,
-          date: ocrResult.date || new Date().toISOString().split('T')[0],
-          totalAmount: ocrResult.totalAmount || 0,
-          currency: 'JPY',
-          category: ocrResult.category || '',
-          description: ocrResult.description || '',
-          taxRate: 10,
-          companyName: '',
-          participantFromClient: 0,
-          participantFromCompany: 0,
-          isQualified: 'Not Qualified',
-          createdAt: new Date()
-        };
+          addExpense(expenseData);
+          setSuccessCount(prev => prev + 1);
+          
+          return { success: true, file };
+        } catch (error) {
+          console.error(`Error processing ${file.name}:`, error);
+          setFailedCount(prev => prev + 1);
+          return { success: false, file, error };
+        }
+      });
 
-        addExpense(expenseData);
-        setSuccessCount(prev => prev + 1);
-      } catch (error) {
-        console.error(`Error processing ${file.name}:`, error);
-        setFailedCount(prev => prev + 1);
-      }
+      // 並列実行
+      const results = await Promise.all(processPromises);
+      
+      // 進行状況を更新
+      setProcessedCount(files.length);
+      setProgress(100);
+      setCurrentFile('');
 
-      setProcessedCount(prev => prev + 1);
+    } catch (error) {
+      console.error('Batch processing error:', error);
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
-    setCurrentFile('');
 
     if (onComplete && successCount > 0) {
       setTimeout(onComplete, 1000);
@@ -117,7 +133,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
             <p className="text-sm text-gray-600">
               {isDragActive ? t('batchUpload.dragDropText', currentLanguage) : t('batchUpload.dragDropText', currentLanguage)}
             </p>
-            <p className="text-xs text-gray-500 mt-2">{t('imageUpload.supportedFormats', currentLanguage)}</p>
+            <p className="text-xs text-gray-500 mt-2">サポートされている形式：JPG / PNG / PDF</p>
           </div>
 
           {files.length > 0 && (
@@ -161,10 +177,19 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
       )}
 
       {isProcessing && (
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="text-sm text-gray-400">{t('batchUpload.processing', currentLanguage)}</p>
+          <p className="text-sm text-gray-400">読み取り中...</p>
           <p className="text-xs text-gray-500">{currentFile}</p>
+          
+          {/* プログレスバー */}
+          <div className="w-full max-w-md bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-green-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-500">{processedCount} / {files.length} 完了</p>
           <div className="text-sm text-gray-400">
             {processedCount} / {files.length} {t('batchUpload.completed', currentLanguage)}
           </div>
@@ -172,7 +197,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
       )}
 
       {!isProcessing && processedCount > 0 && (
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 flex flex-col items-center justify-center">
           <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
           <div className="space-y-2">
             <p className="text-sm text-green-600">{t('batchUpload.completed', currentLanguage)}</p>
