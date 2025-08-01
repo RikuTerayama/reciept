@@ -11,6 +11,7 @@ export interface SearchFilters {
   dateTo?: string;
   amountMin?: number;
   amountMax?: number;
+  department?: string; // 追加
   dateRange?: {
     start: string;
     end: string;
@@ -176,7 +177,7 @@ export default function SearchBar({
               <div className="space-y-2">
                 <label className="form-label">部署</label>
                 <select
-                  value={filters.department || ''}
+                  value={localFilters.department || ''}
                   onChange={(e) => handleInputChange('department', e.target.value)}
                   className="form-select text-sm"
                 >
