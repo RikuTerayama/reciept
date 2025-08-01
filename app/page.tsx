@@ -32,28 +32,23 @@ export default function Home() {
   const [showOptimizerModal, setShowOptimizerModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   const { expenses, addExpense, updateExpense, deleteExpense, clearExpenses } = useExpenseStore();
 
-  // 初期化
+  // クライアントサイド判定
   useEffect(() => {
-    const savedUserInfo = localStorage.getItem('userInfo');
-    if (savedUserInfo) {
-      const parsed = JSON.parse(savedUserInfo);
-      setUserInfo(parsed);
-      setFormData({
-        email: parsed.email || '',
-        targetMonth: parsed.targetMonth || '',
-        budget: parsed.budget || 100000
-      });
-    }
+    setIsClient(true);
   }, []);
 
-  // ストレージ変更の監視
+  // 初期化
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'userInfo' && e.newValue) {
-        const parsed = JSON.parse(e.newValue);
+    if (!isClient) return;
+
+    try {
+      const savedUserInfo = localStorage.getItem('userInfo');
+      if (savedUserInfo) {
+        const parsed = JSON.parse(savedUserInfo);
         setUserInfo(parsed);
         setFormData({
           email: parsed.email || '',
@@ -61,19 +56,46 @@ export default function Home() {
           budget: parsed.budget || 100000
         });
       }
+    } catch (error) {
+      console.error('Failed to load user info:', error);
+    }
+  }, [isClient]);
+
+  // ストレージ変更の監視
+  useEffect(() => {
+    if (!isClient) return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'userInfo' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setUserInfo(parsed);
+          setFormData({
+            email: parsed.email || '',
+            targetMonth: parsed.targetMonth || '',
+            budget: parsed.budget || 100000
+          });
+        } catch (error) {
+          console.error('Failed to parse storage change:', error);
+        }
+      }
     };
 
     const handleStorageSync = (e: CustomEvent) => {
       const { email } = e.detail;
       if (email) {
-        const userData = loadUserDataByEmail(email);
-        if (userData) {
-          setUserInfo(userData.userInfo);
-          setFormData({
-            email: userData.userInfo.email || '',
-            targetMonth: userData.userInfo.targetMonth || '',
-            budget: userData.userInfo.budget || 100000
-          });
+        try {
+          const userData = loadUserDataByEmail(email);
+          if (userData) {
+            setUserInfo(userData.userInfo);
+            setFormData({
+              email: userData.userInfo.email || '',
+              targetMonth: userData.userInfo.targetMonth || '',
+              budget: userData.userInfo.budget || 100000
+            });
+          }
+        } catch (error) {
+          console.error('Failed to sync user data:', error);
         }
       }
     };
@@ -85,18 +107,24 @@ export default function Home() {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('storage-sync', handleStorageSync as EventListener);
     };
-  }, []);
+  }, [isClient]);
 
   const handleSettingsSave = (userData: any) => {
-    localStorage.setItem('userInfo', JSON.stringify(userData));
-    setUserInfo(userData);
-    setShowSettingsModal(false);
-    
-    // 他のタブに同期
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'userInfo',
-      newValue: JSON.stringify(userData)
-    }));
+    if (!isClient) return;
+
+    try {
+      localStorage.setItem('userInfo', JSON.stringify(userData));
+      setUserInfo(userData);
+      setShowSettingsModal(false);
+      
+      // 他のタブに同期
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'userInfo',
+        newValue: JSON.stringify(userData)
+      }));
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
   };
 
   const handleInputChange = (e: any) => {
@@ -108,6 +136,8 @@ export default function Home() {
   };
 
   const handleSaveSettings = () => {
+    if (!isClient) return;
+
     if (!formData.email || !formData.targetMonth || formData.budget <= 0) {
       alert(t('dataInput.validation.required', currentLanguage));
       return;
@@ -119,14 +149,19 @@ export default function Home() {
       budget: formData.budget
     };
 
-    localStorage.setItem('userInfo', JSON.stringify(userData));
-    setUserInfo(userData);
-    
-    // 他のタブに同期
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'userInfo',
-      newValue: JSON.stringify(userData)
-    }));
+    try {
+      localStorage.setItem('userInfo', JSON.stringify(userData));
+      setUserInfo(userData);
+      
+      // 他のタブに同期
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'userInfo',
+        newValue: JSON.stringify(userData)
+      }));
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      alert(t('common.error', currentLanguage));
+    }
   };
 
   const handleDataInputSave = (expenseData: any) => {
@@ -155,15 +190,21 @@ export default function Home() {
   };
 
   const handleReset = () => {
+    if (!isClient) return;
+
     if (confirm(t('common.confirmReset', currentLanguage))) {
-      clearExpenses();
-      localStorage.removeItem('userInfo');
-      setUserInfo(null);
-      setFormData({
-        email: '',
-        targetMonth: '',
-        budget: 100000
-      });
+      try {
+        clearExpenses();
+        localStorage.removeItem('userInfo');
+        setUserInfo(null);
+        setFormData({
+          email: '',
+          targetMonth: '',
+          budget: 100000
+        });
+      } catch (error) {
+        console.error('Failed to reset data:', error);
+      }
     }
   };
 
@@ -174,6 +215,18 @@ export default function Home() {
     { key: 'expenseList', label: t('navigation.expenseList', currentLanguage), action: handleExpenseList },
     { key: 'budgetOptimizer', label: t('navigation.budgetOptimizer', currentLanguage), action: handleOptimizer },
   ];
+
+  // クライアントサイドでない場合はローディング表示
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-surface-950 text-surface-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-surface-400">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
