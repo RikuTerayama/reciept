@@ -365,7 +365,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
             </div>
           </div>
           <div className="card-body">
-            <ExpenseForm onComplete={handleDataFormComplete} />
+            <ExpenseForm onSave={handleDataFormComplete} />
           </div>
         </div>
       )}
