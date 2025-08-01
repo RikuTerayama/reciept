@@ -355,10 +355,11 @@ export default function Home() {
             {/* 左: ロゴ */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">E</span>
-                </div>
-                <span className="text-lg font-semibold text-white">Expenscan</span>
+                <img 
+                  src="/Expenscan_new_logo.png" 
+                  alt="Expenscan Logo" 
+                  className="h-8 w-auto object-contain"
+                />
               </div>
             </div>
 
@@ -853,9 +854,11 @@ export default function Home() {
           {/* デスクトップ表示 */}
           <div className="hidden md:flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-primary-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-xs">E</span>
-              </div>
+              <img 
+                src="/Expenscan_new_logo.png" 
+                alt="Expenscan Logo" 
+                className="h-6 w-auto object-contain"
+              />
               <div className="text-sm text-surface-400">
                 © 2025 Expenscan. All rights reserved. Developed by Riku Terayama
               </div>
@@ -866,7 +869,14 @@ export default function Home() {
           </div>
           
           {/* モバイル表示 */}
-          <div className="md:hidden text-center text-sm text-surface-400 space-y-1 py-2">
+          <div className="md:hidden text-center text-sm text-surface-400 space-y-2 py-2">
+            <div className="flex justify-center">
+              <img 
+                src="/Expenscan_new_logo.png" 
+                alt="Expenscan Logo" 
+                className="h-5 w-auto object-contain"
+              />
+            </div>
             <div>v{APP_VERSION}</div>
             <div>© 2025 Expenscan. All rights reserved.</div>
             <div>Developed by Riku Terayama</div>
