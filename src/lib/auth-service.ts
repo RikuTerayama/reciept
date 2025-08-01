@@ -124,12 +124,12 @@ export const saveExpenseData = async (uid: string, expense: ExpenseData) => {
 };
 
 // 経費データの取得（ページネーション対応）
-export const getExpenseData = async (uid: string, limit: number = 100): Promise<ExpenseData[]> => {
+export const getExpenseData = async (uid: string, limitCount: number = 100): Promise<ExpenseData[]> => {
   try {
     const expensesQuery = query(
       collection(db, 'users', uid, 'expenses'),
       orderBy('receiptDate', 'desc'),
-      limit(limit)
+      limit(limitCount)
     );
     const querySnapshot = await getDocs(expensesQuery);
     
