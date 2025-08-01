@@ -226,7 +226,7 @@ export default function Home() {
     if (!isClient) return;
     
     if (!formData.email || !formData.targetMonth || formData.budget <= 0) {
-      alert(t('dataInput.validation.required', currentLanguage));
+              alert(t('dataInput.validation.required', currentLanguage, 'この項目は必須です'));
       return;
     }
     
@@ -247,7 +247,7 @@ export default function Home() {
       }));
     } catch (error) {
       console.error('Failed to save settings:', error);
-      alert(t('common.error', currentLanguage));
+              alert(t('common.error', currentLanguage, 'エラーが発生しました'));
     }
   };
 
@@ -291,7 +291,7 @@ export default function Home() {
   const handleReset = () => {
     if (!isClient) return;
 
-    if (confirm(t('common.confirmReset', currentLanguage))) {
+          if (confirm(t('common.confirmReset', currentLanguage, 'すべてのデータをリセットしますか？'))) {
       try {
         // clearExpenses(); // この機能は現在利用不可
         localStorage.removeItem('userInfo');
