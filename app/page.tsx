@@ -13,7 +13,7 @@ import BudgetOptimizer from '@/components/BudgetOptimizer';
 import UserSetup from '@/components/UserSetup';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import BudgetDisplay from '@/components/BudgetDisplay';
-import { Settings, Menu, X } from 'lucide-react';
+import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List } from 'lucide-react';
 
 export default function Home() {
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
@@ -321,7 +321,7 @@ export default function Home() {
                   >
                     <div className="text-center">
                       <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-primary-500 transition-colors">
-                        <span className="text-white font-bold">📷</span>
+                        <Camera className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage)}</h3>
                       <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage)}</p>
@@ -334,7 +334,7 @@ export default function Home() {
                   >
                     <div className="text-center">
                       <div className="w-12 h-12 bg-secondary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-secondary-500 transition-colors">
-                        <span className="text-white font-bold">📁</span>
+                        <FolderOpen className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage)}</h3>
                       <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage)}</p>
@@ -347,7 +347,7 @@ export default function Home() {
                   >
                     <div className="text-center">
                       <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-accent-500 transition-colors">
-                        <span className="text-white font-bold">✏️</span>
+                        <Edit3 className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage)}</h3>
                       <p className="text-sm text-surface-400">{t('navigation.dataInputDesc', currentLanguage)}</p>
@@ -360,7 +360,7 @@ export default function Home() {
                   >
                     <div className="text-center">
                       <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-green-500 transition-colors">
-                        <span className="text-white font-bold">📊</span>
+                        <List className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.expenseList', currentLanguage)}</h3>
                       <p className="text-sm text-surface-400">{t('navigation.expenseListDesc', currentLanguage)}</p>
