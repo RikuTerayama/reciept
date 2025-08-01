@@ -16,6 +16,7 @@ interface ImageUploadProps {
 export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const currentLanguage = getCurrentLanguage();
@@ -27,26 +28,29 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
     setIsProcessing(true);
     setError('');
     setSuccess(false);
+    setProgress(0);
 
     try {
-      // ステップ1: 画像圧縮
-      setProcessingStep(t('imageUpload.compressImage', currentLanguage));
+      // ステップ1: 画像圧縮 (20%)
+      setProcessingStep('読み取り中...');
+      setProgress(20);
       const compressedImage = await compressImage(file);
       
-      // ステップ2: レシート検出
-      setProcessingStep(t('imageUpload.detectingReceipt', currentLanguage));
+      // ステップ2: レシート検出 (40%)
+      setProgress(40);
       const isReceipt = await detectReceipt(compressedImage);
       
       if (!isReceipt) {
         console.log('Receipt detection failed, using original image');
-        setProcessingStep(t('imageUpload.usingOriginalImage', currentLanguage));
       }
 
-      // ステップ3: OCR処理
-      setProcessingStep(t('imageUpload.ocrProcessing', currentLanguage));
+      // ステップ3: OCR処理 (80%)
+      setProgress(80);
       const ocrResult = await processImageWithOCR(compressedImage);
       
-      setProcessingStep(t('imageUpload.processingComplete', currentLanguage));
+      // 完了 (100%)
+      setProgress(100);
+      setProcessingStep('処理完了');
       setSuccess(true);
       
       if (onOCRComplete) {
@@ -102,7 +106,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             <p className="text-sm text-gray-600">
               {isDragActive ? t('imageUpload.dragDropText', currentLanguage) : t('imageUpload.dragDropText', currentLanguage)}
             </p>
-            <p className="text-xs text-gray-500 mt-2">JPEG, PNG, GIF, BMP, PDF形式のファイル</p>
+            <p className="text-xs text-gray-500 mt-2">サポートされている形式：JPG / PNG / PDF</p>
           </div>
 
           <div className="flex justify-center space-x-4">
@@ -118,14 +122,23 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       )}
 
       {isProcessing && (
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-sm text-gray-400">{processingStep}</p>
+          
+          {/* プログレスバー */}
+          <div className="w-full max-w-md bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-500">{progress}%</p>
         </div>
       )}
 
       {success && (
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 flex flex-col items-center justify-center">
           <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
           <p className="text-sm text-green-600">{t('imageUpload.uploadComplete', currentLanguage)}</p>
           <p className="text-xs text-gray-500">{t('imageUpload.moveToDataInput', currentLanguage)}</p>
@@ -133,7 +146,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       )}
 
       {error && (
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 flex flex-col items-center justify-center">
           <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
           <p className="text-sm text-red-600">{error}</p>
         </div>
