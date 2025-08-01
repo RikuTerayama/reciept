@@ -55,37 +55,37 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
   const tabs = useMemo(() => [
     {
       id: 'upload' as TabType,
-      label: t('navigation.singleUpload'),
+      label: t('navigation.singleUpload', undefined, '単一アップロード'),
       icon: Receipt,
-      description: t('imageUpload.description'),
+      description: t('imageUpload.description', undefined, 'OCR技術を使用して画像から経費情報を自動抽出します'),
       color: 'from-blue-500 to-cyan-500'
     },
     {
       id: 'batch' as TabType,
-      label: t('navigation.batchUpload'),
+      label: t('navigation.batchUpload', undefined, '一括アップロード'),
       icon: Upload,
-      description: t('batchUpload.description'),
+      description: t('batchUpload.description', undefined, '複数のレシート画像を同時にアップロードして一括処理できます'),
       color: 'from-green-500 to-emerald-500'
     },
     {
       id: 'form' as TabType,
-      label: t('navigation.dataEntry'),
+      label: t('navigation.dataEntry', undefined, 'データ入力'),
       icon: FileText,
-      description: t('expenseForm.description'),
+      description: t('expenseForm.description', undefined, '経費情報を手動で入力・編集します'),
       color: 'from-purple-500 to-pink-500'
     },
     {
       id: 'list' as TabType,
-      label: t('navigation.expenseList'),
+      label: t('navigation.expenseList', undefined, '経費リスト'),
       icon: List,
-      description: t('expenseList.description'),
+      description: t('expenseList.description', undefined, '登録された経費データの一覧と管理'),
       color: 'from-orange-500 to-red-500'
     },
     {
       id: 'optimizer' as TabType,
-      label: t('navigation.budgetOptimizer'),
+      label: t('navigation.budgetOptimizer', undefined, '予算最適化'),
       icon: Calculator,
-      description: t('budgetOptimizer.description'),
+      description: t('budgetOptimizer.description', undefined, '自動的に指定された予算に最も近い経費の組み合わせを提案します'),
       color: 'from-indigo-500 to-purple-500'
     }
   ], []);
@@ -267,7 +267,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="flex items-center justify-between p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/90 to-gray-900/90">
               <div className="flex items-center space-x-3">
                 <ExpenscanLogo size="small" />
-                <h2 className="text-lg font-semibold text-white">{t('navigation.menu')}</h2>
+                <h2 className="text-lg font-semibold text-white">{t('navigation.menu', undefined, 'メニュー')}</h2>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -333,14 +333,14 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-blue-300 transition-colors duration-300">{expenses.length}</div>
-              <div className="stat-label relative z-10">{t('statistics.registeredExpenses')}</div>
+              <div className="stat-label relative z-10">{t('statistics.registeredExpenses', undefined, '登録済み経費')}</div>
             </div>
           </div>
           <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-green-300 transition-colors duration-300">¥{totalAmount.toLocaleString()}</div>
-              <div className="stat-label relative z-10">{t('statistics.totalAmount')}</div>
+              <div className="stat-label relative z-10">{t('statistics.totalAmount', undefined, '総金額')}</div>
             </div>
           </div>
           <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
@@ -354,7 +354,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-orange-300 transition-colors duration-300">¥{(userInfo.budget - totalAmount).toLocaleString()}</div>
-              <div className="stat-label relative z-10">{t('statistics.budgetDifference', undefined, '予算差額')}</div>
+              <div className="stat-label relative z-10">{t('statistics.budgetDifference')}</div>
             </div>
           </div>
         </div>
