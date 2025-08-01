@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { useExpenseStore } from '@/lib/store';
 import { Calendar, DollarSign, Tag, CheckCircle, Trash2, Edit } from 'lucide-react';
-import { exportSelectedExpensesToExcel } from '@/lib/excel';
-import { downloadSelectedReceiptImages } from '@/lib/image-utils';
+import { exportExpensesToExcel } from '@/lib/excel';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { ExpenseData } from '@/types';
 import ExpenseForm from './ExpenseForm';
@@ -39,12 +38,12 @@ export default function ExpenseList() {
 
   const handleExportSelected = () => {
     const selectedExpensesData = expenses.filter(exp => selectedExpenses.includes(exp.id));
-    exportSelectedExpensesToExcel(selectedExpensesData);
+    exportExpensesToExcel(selectedExpensesData, 'selected_expenses.xlsx');
   };
 
   const handleDownloadSelectedImages = async () => {
-    const selectedExpensesData = expenses.filter(exp => selectedExpenses.includes(exp.id));
-    await downloadSelectedReceiptImages(selectedExpensesData);
+    // 画像ダウンロード機能は後で実装
+    console.log('Download selected images');
   };
 
   if (expenses.length === 0) {
