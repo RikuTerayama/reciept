@@ -630,7 +630,7 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <UserSetup onSave={handleSettingsSave} />
+            <UserSetup onSave={handleSettingsSave} hideWelcomeTitle={true} />
           </div>
         </div>
       )}
