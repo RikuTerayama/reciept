@@ -124,7 +124,7 @@ export const getExpenseData = async (uid: string, limit: number = 100): Promise<
     const expensesQuery = query(
       collection(db, 'users', uid, 'expenses'),
       orderBy('receiptDate', 'desc'),
-      limit(limit as number)
+      limit(Number(limit))
     );
     const querySnapshot = await getDocs(expensesQuery);
     
