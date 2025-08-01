@@ -28,7 +28,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
         </p>
 
         {/* エラー詳細（開発環境のみ） */}
-        {process.env.NODE_ENV === 'development' && (
+        {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
           <details className="mb-6 text-left">
             <summary className="text-sm text-surface-400 cursor-pointer hover:text-surface-300 mb-2">
               エラー詳細（開発者向け）
