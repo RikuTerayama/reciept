@@ -14,8 +14,14 @@ const firebaseConfig = {
 // Firebase初期化
 const app = initializeApp(firebaseConfig);
 
-// Auth と Firestore の初期化
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Auth と Firestore の初期化（クライアントサイドのみ）
+let auth: any = null;
+let db: any = null;
 
+if (typeof window !== 'undefined') {
+  auth = getAuth(app);
+  db = getFirestore(app);
+}
+
+export { auth, db };
 export default app; 
