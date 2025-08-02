@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { SWRConfig } from 'swr';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -34,19 +33,7 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
       </head>
       <body className={inter.className}>
-        <SWRConfig
-          value={{
-            fetcher: (resource, init) => fetch(resource, init).then(res => res.json()),
-            revalidateOnFocus: false,
-            dedupingInterval: 10000,
-            errorRetryCount: 2,
-            onError: (error) => {
-              console.error('SWR Error:', error);
-            },
-          }}
-        >
-          {children}
-        </SWRConfig>
+        {children}
       </body>
     </html>
   );
