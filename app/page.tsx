@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { SWRConfig } from 'swr';
 import { useExpenseStore } from '@/lib/store';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { loadUserDataByEmail } from '@/lib/storage';
@@ -328,7 +329,18 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
+    <SWRConfig
+      value={{
+        fetcher: (resource, init) => fetch(resource, init).then(res => res.json()),
+        revalidateOnFocus: false,
+        dedupingInterval: 10000,
+        errorRetryCount: 2,
+        onError: (error) => {
+          console.error('SWR Error:', error);
+        },
+      }}
+    >
+      <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
       {/* ネットワーク状態監視 */}
       <NetworkStatus 
         onOnline={() => {
@@ -884,5 +896,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </SWRConfig>
   );
 } 
