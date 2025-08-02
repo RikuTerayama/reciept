@@ -1,6 +1,4 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -19,6 +17,8 @@ let auth: any = null;
 let db: any = null;
 
 if (typeof window !== 'undefined') {
+  const { getAuth } = require('firebase/auth');
+  const { getFirestore } = require('firebase/firestore');
   auth = getAuth(app);
   db = getFirestore(app);
 }
