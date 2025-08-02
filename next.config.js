@@ -11,6 +11,13 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
 
+  // SSRを無効化（クライアントサイドのみ）
+  output: 'export',
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
+
   // ESM外部モジュールの適切な処理
   experimental: {
     esmExternals: true,
