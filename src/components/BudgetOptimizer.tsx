@@ -57,11 +57,11 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
   };
 
   return (
-    <div className="space-y-6 text-center">
+    <div className="space-y-6">
       {/* 設定セクション */}
       <div className="bg-gray-800 rounded-lg p-6">
         {!hideTitle && (
-          <h3 className="text-lg font-semibold mb-4">{t('budgetOptimizer.title', currentLanguage, '予算最適化')}</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center">{t('budgetOptimizer.title', currentLanguage, '予算最適化')}</h3>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,7 +88,7 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-gray-400">
+        <div className="mt-4 text-sm text-gray-400 text-center">
           {t('budgetOptimizer.availableExpenses', currentLanguage, '利用可能な経費')}: {expenses.length} {t('common.items', currentLanguage, '件')}
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
               onClick={handleExport}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-                              {t('common.export', currentLanguage, 'エクスポート')}
+              {t('common.export', currentLanguage, 'エクスポート')}
             </button>
           </div>
 
@@ -135,11 +135,11 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
             <div className="max-h-64 overflow-y-auto space-y-2">
               {optimizationResult.selectedExpenses.map((expense: any) => (
                 <div key={expense.id} className="bg-gray-700 rounded-lg p-3 flex justify-between items-center">
-                  <div>
+                  <div className="flex-1 text-left">
                     <div className="font-medium">{expense.date}</div>
                     <div className="text-sm text-gray-400">{expense.category}</div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <div className="font-medium">¥{expense.totalAmount.toLocaleString()}</div>
                     <div className="text-sm text-gray-400">{expense.currency}</div>
                   </div>
