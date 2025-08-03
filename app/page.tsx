@@ -30,6 +30,7 @@ import OfflineIndicator from '@/components/OfflineIndicator';
 import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut } from 'lucide-react';
 import { ExpenseData } from '@/types';
+import { calculateTotalAmountWithRounding } from '@/lib/currency';
 
 // 型定義
 interface UserData {
@@ -604,11 +605,19 @@ export default function Home() {
                   <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-white mb-2">
-                        ¥{expenses.reduce((sum, exp) => {
-                          // 通貨換算込みの金額を計算
-                          const amount = exp.convertedAmount || exp.totalAmount;
-                          return sum + amount;
-                        }, 0).toLocaleString()}
+                        ¥{(() => {
+                            // 外貨の切り上げ処理を含む合計計算
+                            const total = expenses.reduce((sum, exp) => {
+                                if (exp.currency === 'JPY') {
+                                    return sum + exp.totalAmount;
+                                } else {
+                                    // 外貨の場合は切り上げ処理
+                                    const convertedAmount = Math.ceil(exp.totalAmount / (exp.conversionRate || 1));
+                                    return sum + convertedAmount;
+                                }
+                            }, 0);
+                            return total.toLocaleString();
+                        })()}
                       </div>
                       <div className="text-sm text-surface-400">{t('stats.totalAmount', currentLanguage, '総金額')}</div>
                     </div>
