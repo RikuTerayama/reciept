@@ -74,7 +74,7 @@ export async function fetchExchangeRates(): Promise<ExchangeRate> {
   return exchangeRates;
 }
 
-// 金額をJPYに換算
+// 金額をJPYに換算（小数点第一位で切り上げ）
 export async function convertToJPY(amount: number, fromCurrency: string): Promise<number> {
   if (fromCurrency === 'JPY') {
     return amount;
@@ -88,7 +88,9 @@ export async function convertToJPY(amount: number, fromCurrency: string): Promis
     return amount; // レートが見つからない場合はそのまま返す
   }
   
-  return amount / rate;
+  const convertedAmount = amount / rate;
+  // 小数点第一位で切り上げ
+  return Math.ceil(convertedAmount);
 }
 
 // JPYを指定通貨に換算
@@ -106,6 +108,23 @@ export async function convertFromJPY(amount: number, toCurrency: string): Promis
   }
   
   return amount * rate;
+}
+
+// 複数の経費データの合計を計算（外貨は切り上げ処理）
+export async function calculateTotalAmountWithRounding(expenses: any[]): Promise<number> {
+  let totalJPY = 0;
+  
+  for (const expense of expenses) {
+    if (expense.currency === 'JPY') {
+      totalJPY += expense.totalAmount;
+    } else {
+      // 外貨の場合は切り上げ処理
+      const convertedAmount = await convertToJPY(expense.totalAmount, expense.currency);
+      totalJPY += convertedAmount;
+    }
+  }
+  
+  return totalJPY;
 }
 
 // 通貨記号を取得
