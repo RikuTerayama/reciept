@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getCurrentLanguage, t } from '@/lib/i18n';
 import { ExpenseData, EXPENSE_CATEGORIES, QUALIFICATION_TYPES } from '@/types';
+import { convertToJPY, convertFromJPY, fetchExchangeRates } from '@/lib/currency';
+import { getCurrentLanguage, t } from '@/lib/i18n';
 import { useExchangeRates, convertCurrencyWithCache } from '@/lib/exchange-rate-cache';
 import { useAuthStore } from '@/lib/auth-store';
 
@@ -390,7 +391,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* Recharged to client? */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              Recharged to client?
+              {t('expenseForm.rechargedToClient', currentLanguage, 'クライアント請求有無')}
             </label>
             <select
               name="rechargedToClient"
@@ -407,7 +408,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* GST/VAT applicable */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              GST/VAT applicable
+              {t('expenseForm.gstVatApplicable', currentLanguage, 'GST/VAT適用有無')}
             </label>
             <select
               name="gstVatApplicable"
