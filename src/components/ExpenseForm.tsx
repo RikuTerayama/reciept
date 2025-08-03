@@ -38,6 +38,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     createdAt: new Date(),
     rechargedToClient: 'N',
     gstVatApplicable: 'N',
+    companyName: '-',
     ...initialData
   });
 
@@ -96,19 +97,13 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         processedValue = value.replace(/^0+/, '');
         if (processedValue === '') processedValue = '0';
       }
+      // 数値として処理
+      const numValue = parseFloat(processedValue) || 0;
+      setFormData(prev => ({ ...prev, [name]: numValue }));
+      return;
     }
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'totalAmount' || name === 'taxRate' || name === 'participantFromClient' || name === 'participantFromCompany' 
-        ? Number(processedValue) || 0 
-        : processedValue
-    }));
-
-    // エラーをクリア
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
   const validateForm = (): boolean => {
@@ -364,6 +359,22 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               placeholder="0"
             />
           </div>
+        </div>
+
+        {/* Company Name */}
+        <div>
+          <label className="block text-sm font-medium mb-2 text-surface-300">
+            Company Name
+          </label>
+          <input
+            type="text"
+            name="companyName"
+            value={formData.companyName}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            placeholder="Company Name"
+          />
         </div>
 
         {/* 適格区分 */}
