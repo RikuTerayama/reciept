@@ -11,14 +11,17 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     'Currency': expense.currency,
     'Category': expense.category,
     'Description': expense.description || '',
-    'Recharged to client?': '', // 新しいフィールド（現在は空）
-    'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
-    'Tax Rate (%)': expense.taxRate,
+    'Recharged to client?': expense.rechargedToClient || 'N',
+    'GST/VAT applicable': expense.gstVatApplicable || 'N',
+    'Tax Rate (%)': `${expense.taxRate}%`,
+    'Company Name': expense.companyName || '',
     '# Participant from client': expense.participantFromClient || '',
     '# Participant from company': expense.participantFromCompany || '',
-    'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
+    'Tax Credit Qualification': expense.isQualified
   }));
   const worksheet = XLSX.utils.json_to_sheet(data);
+  
+  // 列幅の設定
   const columnWidths = [
     { wch: 10 }, // Receipt #
     { wch: 12 }, // Receipt Date
@@ -29,11 +32,23 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
     { wch: 20 }, // Recharged to client?
     { wch: 15 }, // GST/VAT applicable
     { wch: 12 }, // Tax Rate (%)
+    { wch: 20 }, // Company Name
     { wch: 25 }, // # Participant from client
     { wch: 25 }, // # Participant from company
-    { wch: 15 }, // Tax Credit Q
+    { wch: 30 }, // Tax Credit Qualification
   ];
   worksheet['!cols'] = columnWidths;
+  
+  // フォント設定
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!worksheet[cell_address]) continue;
+      worksheet[cell_address].s = { font: { name: 'Arial' } };
+    }
+  }
+  
   XLSX.utils.book_append_sheet(workbook, worksheet, '経費データ');
   XLSX.writeFile(workbook, filename);
 };
@@ -132,26 +147,7 @@ export function exportBudgetOptimizationToExcel(
   try {
     const workbook = XLSX.utils.book_new();
 
-    // 元の経費データ（添付画像の順序に合わせて）
-    const originalData = originalExpenses.map((expense, index) => ({
-      'Receipt #': index + 1,
-      'Receipt Date': expense.date,
-      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
-      'Currency': expense.currency,
-      'Category': expense.category,
-      'Description': expense.description || expense.ocrText || '',
-      'Recharged to client?': '', // 新しいフィールド（現在は空）
-      'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
-      'Tax Rate (%)': expense.taxRate,
-      '# Participant from client': expense.participantFromClient || '',
-      '# Participant from company': expense.participantFromCompany || '',
-      'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
-    }));
-
-    const originalWorksheet = XLSX.utils.json_to_sheet(originalData);
-    XLSX.utils.book_append_sheet(workbook, originalWorksheet, '全経費データ');
-
-    // 最適化された経費データ（添付画像の順序に合わせて）
+    // 1. 最適化結果シート
     const optimizedData = optimizedExpenses.map((expense, index) => ({
       'Receipt #': index + 1,
       'Receipt Date': expense.date,
@@ -159,18 +155,20 @@ export function exportBudgetOptimizationToExcel(
       'Currency': expense.currency,
       'Category': expense.category,
       'Description': expense.description || expense.ocrText || '',
-      'Recharged to client?': '', // 新しいフィールド（現在は空）
-      'GST/VAT applicable': expense.taxRate > 0 ? 'Yes' : 'No',
-      'Tax Rate (%)': expense.taxRate,
+      'Recharged to client?': expense.rechargedToClient || 'N',
+      'GST/VAT applicable': expense.gstVatApplicable || 'N',
+      'Tax Rate (%)': `${expense.taxRate}%`,
+      'Company Name': expense.companyName || '',
       '# Participant from client': expense.participantFromClient || '',
       '# Participant from company': expense.participantFromCompany || '',
-      'Tax Credit Q': expense.isQualified.includes('Qualified') ? 'Yes' : 'No'
+      'Tax Credit Qualification': expense.isQualified
     }));
 
     const optimizedWorksheet = XLSX.utils.json_to_sheet(optimizedData);
+    setWorksheetFont(optimizedWorksheet, 'Arial');
     XLSX.utils.book_append_sheet(workbook, optimizedWorksheet, '最適化結果');
 
-    // サマリーシート
+    // 2. サマリーシート
     const summaryData = [
       {
         '項目': '目標予算',
@@ -191,7 +189,29 @@ export function exportBudgetOptimizationToExcel(
     ];
 
     const summaryWorksheet = XLSX.utils.json_to_sheet(summaryData);
+    setWorksheetFont(summaryWorksheet, 'Arial');
     XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'サマリー');
+
+    // 3. 全経費データシート
+    const originalData = originalExpenses.map((expense, index) => ({
+      'Receipt #': index + 1,
+      'Receipt Date': expense.date,
+      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
+      'Currency': expense.currency,
+      'Category': expense.category,
+      'Description': expense.description || expense.ocrText || '',
+      'Recharged to client?': expense.rechargedToClient || 'N',
+      'GST/VAT applicable': expense.gstVatApplicable || 'N',
+      'Tax Rate (%)': `${expense.taxRate}%`,
+      'Company Name': expense.companyName || '',
+      '# Participant from client': expense.participantFromClient || '',
+      '# Participant from company': expense.participantFromCompany || '',
+      'Tax Credit Qualification': expense.isQualified
+    }));
+
+    const originalWorksheet = XLSX.utils.json_to_sheet(originalData);
+    setWorksheetFont(originalWorksheet, 'Arial');
+    XLSX.utils.book_append_sheet(workbook, originalWorksheet, '全経費データ');
 
     // ファイルをダウンロード
     XLSX.writeFile(workbook, filename);
@@ -200,5 +220,17 @@ export function exportBudgetOptimizationToExcel(
   } catch (error) {
     console.error('Budget optimization Excel export error:', error);
     throw new Error('予算最適化のExcelエクスポートに失敗しました');
+  }
+}
+
+// ワークシートのフォントを設定するヘルパー関数
+function setWorksheetFont(worksheet: XLSX.WorkSheet, fontName: string) {
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!worksheet[cell_address]) continue;
+      worksheet[cell_address].s = { font: { name: fontName } };
+    }
   }
 } 
