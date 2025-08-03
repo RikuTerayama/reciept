@@ -5,6 +5,15 @@ const EXPENSES_KEY = 'expenses';
 const USER_INFO_KEY = 'userInfo';
 const USER_IMAGES_KEY = 'userImages';
 
+// 現在の年月を取得
+export const getCurrentYearMonth = (): { year: number; month: number } => {
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1
+  };
+};
+
 // 経費データの保存
 export const saveExpenses = (expenses: ExpenseData[]): void => {
   try {
@@ -90,15 +99,6 @@ export const loadMonthlyExpenses = (year: number, month: number, userEmail?: str
     console.error('Failed to load monthly expenses:', error);
     return [];
   }
-};
-
-// 現在の年月を取得
-export const getCurrentYearMonth = (): { year: number; month: number } => {
-  const now = new Date();
-  return {
-    year: now.getFullYear(),
-    month: now.getMonth() + 1
-  };
 };
 
 // 日付から年月を取得
