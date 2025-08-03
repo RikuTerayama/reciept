@@ -31,6 +31,15 @@ export interface Translations {
     delete: string;
     download: string;
     actions: string;
+    processing: string;
+  };
+
+  // 認証
+  auth: {
+    login: string;
+    register: string;
+    error: string;
+    passwordPlaceholder: string;
   };
 
   // ヘッダー
@@ -348,6 +357,13 @@ const translations: Record<Language, Translations> = {
       delete: '削除',
       download: 'ダウンロード',
       actions: '操作',
+      processing: '処理中...',
+    },
+    auth: {
+      login: 'ログイン',
+      register: '新規登録',
+      error: '認証エラーが発生しました',
+      passwordPlaceholder: 'パスワードを入力してください',
     },
     header: {
       title: 'Expenscan',
@@ -629,6 +645,13 @@ const translations: Record<Language, Translations> = {
       delete: 'Delete',
       download: 'Download',
       actions: 'Actions',
+      processing: 'Processing...',
+    },
+    auth: {
+      login: 'Login',
+      register: 'Register',
+      error: 'Authentication error occurred',
+      passwordPlaceholder: 'Enter password',
     },
     header: {
       title: 'Expenscan',
