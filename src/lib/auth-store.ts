@@ -1,21 +1,16 @@
 import { create } from 'zustand';
-import { AuthState, UserInfo } from '@/types';
+import { UserInfo } from '@/types';
 
-interface AuthStore extends AuthState {
-  // アクション
+interface AuthState {
+  user: UserInfo | null;
+  loading: boolean;
   setUser: (user: UserInfo | null) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: false,
-  error: null,
-  
-  setUser: (user) => set({ user, error: null }),
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
-  logout: () => set({ user: null, error: null }),
+  setUser: (user) => set({ user }),
+  logout: () => set({ user: null }),
 })); 
