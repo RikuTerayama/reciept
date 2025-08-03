@@ -1,30 +1,29 @@
 export interface ExpenseData {
   id: string;
   date: string;
-  receiptDate?: string;
+  receiptDate: string;
   totalAmount: number;
-  taxRate: number;
-  currency: string;
   category: string;
-  description?: string;
-  rechargedToClient?: boolean;
-  gstVatApplicable?: boolean;
-  companyName?: string;
-  participantFromClient?: number;
-  participantFromCompany?: number;
+  description: string;
+  taxRate: number;
+  participantFromClient: number;
+  participantFromCompany: number;
   isQualified: string;
-  receiptNumber?: string;
-  imageUrl?: string;
-  imageData?: string;
-  ocrText?: string;
-  originalAmount?: number;
-  originalCurrency?: string;
-  convertedAmount?: number;
-  baseCurrency?: string;
-  conversionRate?: number;
-  conversionDate?: string;
+  currency: string;
+  originalAmount: number;
+  originalCurrency: string;
+  convertedAmount: number;
+  baseCurrency: string;
+  conversionRate: number;
+  conversionDate: string;
   createdAt: Date;
   updatedAt?: Date;
+  imageData?: string;
+  ocrText?: string;
+  receiptNumber?: string;
+  companyName?: string;
+  rechargedToClient?: string; // N/Y
+  gstVatApplicable?: string; // N/Y
 }
 
 // 同期用の型定義
