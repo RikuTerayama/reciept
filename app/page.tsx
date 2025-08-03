@@ -413,7 +413,8 @@ export default function Home() {
                 <img 
                   src="/Expenscan_new_logo.png" 
                   alt="Expenscan Logo" 
-                  className="h-8 w-auto object-contain"
+                  className="h-8 w-auto object-contain max-w-full"
+                  style={{ maxHeight: '32px' }}
                   onError={(e) => {
                     console.error('Logo image failed to load');
                     // フォールバック: テキストロゴ
@@ -422,6 +423,9 @@ export default function Home() {
                     textLogo.className = 'flex items-center space-x-2';
                     textLogo.innerHTML = '<span class="text-xl font-bold text-white">Expens</span><span class="text-xl font-bold text-cyan-400">can</span>';
                     e.currentTarget.parentNode?.appendChild(textLogo);
+                  }}
+                  onLoad={() => {
+                    console.log('Logo loaded successfully');
                   }}
                 />
               </div>
