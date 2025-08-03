@@ -595,7 +595,11 @@ export default function Home() {
                   <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-white mb-2">
-                        ¥{expenses.reduce((sum, exp) => sum + exp.totalAmount, 0).toLocaleString()}
+                        ¥{expenses.reduce((sum, exp) => {
+                          // 通貨換算込みの金額を計算
+                          const amount = exp.convertedAmount || exp.totalAmount;
+                          return sum + amount;
+                        }, 0).toLocaleString()}
                       </div>
                       <div className="text-sm text-surface-400">{t('stats.totalAmount', currentLanguage, '総金額')}</div>
                     </div>
@@ -636,10 +640,10 @@ export default function Home() {
                 <p className="text-lg text-surface-400">{t('welcome.description', currentLanguage, 'OCR技術による自動抽出・管理')}</p>
             </div>
             
-                <div className="bg-surface-800 rounded-lg p-8 border border-surface-700">
+                <div className="bg-surface-800 rounded-lg p-8 border border-surface-700 mx-auto">
                   <h3 className="text-xl font-semibold mb-6 text-center text-white">{t('common.settings', currentLanguage, '設定')}</h3>
               
-                  <div className="space-y-6">
+                  <div className="space-y-6 max-w-md mx-auto">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
                   <input
@@ -648,7 +652,7 @@ export default function Home() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full max-w-md px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                     placeholder="example@company.com"
                   />
                 </div>
@@ -660,7 +664,7 @@ export default function Home() {
                     value={formData.targetMonth}
                     onChange={handleInputChange}
                     required
-                    className="w-full max-w-md px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                   />
                 </div>
                 <div>
@@ -671,7 +675,7 @@ export default function Home() {
                     value={formData.budget}
                     onChange={handleInputChange}
                     required
-                    className="w-full max-w-md px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                     placeholder="100000"
                     min="0"
                   />
