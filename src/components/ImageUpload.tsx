@@ -2,12 +2,13 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Camera, Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Camera, Upload, FileText, AlertCircle, CheckCircle, Eye, RotateCcw } from 'lucide-react';
 import { processImageWithOCR } from '@/lib/ocr';
-import { detectReceipt } from '@/lib/receipt-detection';
+import { detectReceipt, detectAndCropReceipt, generateReceiptPreview } from '@/lib/receipt-detection';
 import { compressImage } from '@/lib/image-utils';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { useExpenseStore } from '@/lib/store';
+import { saveImageData } from '@/lib/storage';
 
 interface ImageUploadProps {
   onOCRComplete?: (ocrResult: any) => void;
@@ -21,13 +22,13 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [ocrResult, setOcrResult] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string>('');
+  const [originalImage, setOriginalImage] = useState<File | null>(null);
   const currentLanguage = getCurrentLanguage();
   const { addExpense } = useExpenseStore();
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-
-    const file = acceptedFiles[0];
+  const processImage = async (file: File, userEmail?: string) => {
     setIsProcessing(true);
     setError('');
     setSuccess(false);
@@ -35,15 +36,29 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
     setOcrResult(null);
 
     try {
-      // ステップ1: 画像圧縮 (20%)
+      // ステップ1: レシート認識と切り出し (30%)
+      setProcessingStep('レシートを認識中...');
+      setProgress(30);
+      
+      let processedImage: string;
+      try {
+        const { croppedImage } = await detectAndCropReceipt(file);
+        processedImage = croppedImage;
+        setPreviewImage(croppedImage);
+        setShowPreview(true);
+      } catch (error) {
+        console.log('レシート認識に失敗、元画像を使用');
+        processedImage = await compressImage(file);
+      }
+      
+      // ステップ2: 画像圧縮 (50%)
+      setProgress(50);
       setProcessingStep('画像を処理中...');
-      setProgress(20);
       const compressedImage = await compressImage(file);
       
-      // ステップ2: レシート検出 (40%)
-      setProgress(40);
+      // ステップ3: レシート検出 (70%)
+      setProgress(70);
       setProcessingStep('レシートを検出中...');
-      // 圧縮された画像をFileに変換
       const compressedBlob = await fetch(compressedImage).then(r => r.blob());
       const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
       const isReceipt = await detectReceipt(compressedFile);
@@ -52,10 +67,16 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
         console.log('Receipt detection failed, using original image');
       }
 
-      // ステップ3: OCR処理 (80%)
-      setProgress(80);
+      // ステップ4: OCR処理 (90%)
+      setProgress(90);
       setProcessingStep('OCRで読み取り中...');
       const ocrResult = await processImageWithOCR(compressedFile);
+      
+      // 画像データを保存
+      if (userEmail) {
+        const fileName = `receipt_${Date.now()}_${file.name}`;
+        saveImageData(userEmail, processedImage, fileName);
+      }
       
       // OCR結果を保存
       setOcrResult(ocrResult);
@@ -79,7 +100,14 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
     } finally {
       setIsProcessing(false);
     }
-  }, [onOCRComplete, onComplete, currentLanguage]);
+  };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+    const file = acceptedFiles[0];
+    setOriginalImage(file);
+    await processImage(file);
+  }, [currentLanguage]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -89,23 +117,50 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
     multiple: false
   });
 
-  const handleCameraCapture = () => {
+  const handleCameraCapture = async () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,.png,.jpg,.jpeg,.pdf';
     input.capture = 'environment';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        onDrop([file]);
+        setOriginalImage(file);
+        
+        // レシート認識のプレビューを生成
+        try {
+          const preview = await generateReceiptPreview(file);
+          setPreviewImage(preview);
+          setShowPreview(true);
+        } catch (error) {
+          console.error('プレビュー生成エラー:', error);
+        }
+        
+        await processImage(file);
       }
     };
     input.click();
   };
 
+  const handleRetake = () => {
+    setShowPreview(false);
+    setPreviewImage('');
+    setOriginalImage(null);
+    setOcrResult(null);
+    setSuccess(false);
+    setError('');
+  };
+
+  const handleConfirmPreview = async () => {
+    if (originalImage) {
+      setShowPreview(false);
+      await processImage(originalImage);
+    }
+  };
+
   return (
     <div className="space-y-6 text-center">
-      {!isProcessing && !success && (
+      {!isProcessing && !success && !showPreview && (
         <div className="space-y-4">
           <div
             {...getRootProps()}
@@ -129,6 +184,39 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
               <Camera className="w-4 h-4" />
               <span>{t('imageUpload.cameraCapture', currentLanguage, 'カメラで撮影')}</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {showPreview && (
+        <div className="space-y-4">
+          <div className="bg-surface-800 rounded-lg p-4 border border-surface-700">
+            <h3 className="text-lg font-semibold text-white mb-4">レシート認識結果</h3>
+            <div className="relative">
+              <img 
+                src={previewImage} 
+                alt="Receipt Preview" 
+                className="max-w-full h-auto rounded-lg border border-surface-600"
+              />
+              <div className="absolute top-2 right-2 bg-black/50 rounded-full p-2">
+                <Eye className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <div className="flex justify-center space-x-4 mt-4">
+              <button
+                onClick={handleConfirmPreview}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                この画像で処理
+              </button>
+              <button
+                onClick={handleRetake}
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>再撮影</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
