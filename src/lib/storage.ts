@@ -1,266 +1,136 @@
-import { ExpenseData } from '@/types';
+import { ExpenseData, UserInfo } from '@/types';
 
-// サーバーサイドレンダリング対応のストレージ関数
-// すべての必要な関数を確実にエクスポート
+// ローカルストレージキー
+const EXPENSES_KEY = 'expenses';
+const USER_INFO_KEY = 'userInfo';
+const USER_IMAGES_KEY = 'userImages';
 
-// localStorageが利用可能かチェック
-const isLocalStorageAvailable = (): boolean => {
-  if (typeof window === 'undefined') return false;
+// 経費データの保存
+export const saveExpenses = (expenses: ExpenseData[]): void => {
   try {
-    const test = '__localStorage_test__';
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-// メールアドレスベースのキー生成
-const getUserKey = (email: string, dataType: string): string => {
-  return `user_${email}_${dataType}`;
-};
-
-// 同期イベントの発火
-const triggerSync = (email: string, dataType: string): void => {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('storage-sync', {
-      detail: { email, dataType }
-    }));
-  }
-};
-
-export const addExpenseToStorage = (expense: ExpenseData, userEmail?: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
-  try {
-    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
-    const current = JSON.parse(localStorage.getItem(key) || '[]');
-    current.push(expense);
-    localStorage.setItem(key, JSON.stringify(current));
-    
-    if (userEmail) {
-      triggerSync(userEmail, 'expenses');
-    }
+    localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
   } catch (error) {
-    console.error('経費データの追加エラー:', error);
+    console.error('Failed to save expenses:', error);
   }
 };
 
-export const updateExpenseInStorage = (expense: ExpenseData, userEmail?: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
+// 経費データの取得
+export const getExpenses = (): ExpenseData[] => {
   try {
-    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
-    const current = JSON.parse(localStorage.getItem(key) || '[]');
-    const updated = current.map((e: ExpenseData) => e.id === expense.id ? expense : e);
-    localStorage.setItem(key, JSON.stringify(updated));
-    
-    if (userEmail) {
-      triggerSync(userEmail, 'expenses');
-    }
+    const data = localStorage.getItem(EXPENSES_KEY);
+    return data ? JSON.parse(data) : [];
   } catch (error) {
-    console.error('経費データの更新エラー:', error);
-  }
-};
-
-export const deleteExpenseFromStorage = (id: string, userEmail?: string, date?: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
-  try {
-    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
-    const current = JSON.parse(localStorage.getItem(key) || '[]');
-    const filtered = current.filter((e: ExpenseData) => e.id !== id);
-    localStorage.setItem(key, JSON.stringify(filtered));
-    
-    if (userEmail) {
-      triggerSync(userEmail, 'expenses');
-    }
-  } catch (error) {
-    console.error('経費データの削除エラー:', error);
-  }
-};
-
-export const loadAllExpenses = (userEmail?: string): ExpenseData[] => {
-  if (!isLocalStorageAvailable()) return [];
-  
-  try {
-    const key = userEmail ? getUserKey(userEmail, 'expenses') : 'expenses';
-    const data = localStorage.getItem(key);
-    if (data) {
-      const expenses = JSON.parse(data);
-      return expenses.map((expense: ExpenseData) => ({
-        ...expense,
-        createdAt: new Date(expense.createdAt)
-      }));
-    }
-    return [];
-  } catch (error) {
-    console.error('全データの読み込みエラー:', error);
+    console.error('Failed to get expenses:', error);
     return [];
   }
 };
 
-export const loadMonthlyExpenses = (year: number, month: number, userEmail?: string): ExpenseData[] => {
-  if (!isLocalStorageAvailable()) return [];
-  
+// ユーザー情報の保存
+export const saveUserInfo = (userInfo: UserInfo): void => {
   try {
-    const allExpenses = loadAllExpenses(userEmail);
-    const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
-    return allExpenses.filter((expense: ExpenseData) => 
-      expense.date && expense.date.startsWith(yearMonth)
-    );
+    localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
   } catch (error) {
-    console.error('月別データの読み込みエラー:', error);
-    return [];
+    console.error('Failed to save user info:', error);
   }
 };
 
-export const getCurrentYearMonth = (): { year: number; month: number } => {
-  const now = new Date();
-  return {
-    year: now.getFullYear(),
-    month: now.getMonth() + 1
-  };
-};
-
-export const getYearMonthFromDate = (dateString: string): { year: number; month: number } => {
-  const date = new Date(dateString);
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1
-  };
-};
-
-export const saveSettings = (settings: any, userEmail?: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
+// ユーザー情報の取得
+export const getUserInfo = (): UserInfo | null => {
   try {
-    const key = userEmail ? getUserKey(userEmail, 'settings') : 'user_info';
-    localStorage.setItem(key, JSON.stringify(settings));
-    
-    if (userEmail) {
-      triggerSync(userEmail, 'settings');
-    }
-  } catch (error) {
-    console.error('設定の保存エラー:', error);
-  }
-};
-
-export const loadSettings = (userEmail?: string): any => {
-  if (!isLocalStorageAvailable()) return null;
-  
-  try {
-    const key = userEmail ? getUserKey(userEmail, 'settings') : 'user_info';
-    const data = localStorage.getItem(key);
+    const data = localStorage.getItem(USER_INFO_KEY);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('設定の読み込みエラー:', error);
+    console.error('Failed to get user info:', error);
     return null;
   }
 };
 
-// OCR結果の保存
-export const saveOCRResult = (ocrResult: any, userEmail?: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
+// メールアドレスでユーザーデータを取得
+export const loadUserDataByEmail = async (email: string): Promise<{ userInfo: UserInfo; expenses: ExpenseData[] } | null> => {
   try {
-    const key = userEmail ? getUserKey(userEmail, 'ocr_results') : 'ocr_results';
-    const current = JSON.parse(localStorage.getItem(key) || '[]');
-    current.push({
-      ...ocrResult,
-      timestamp: new Date().toISOString()
-    });
-    localStorage.setItem(key, JSON.stringify(current));
-    
-    if (userEmail) {
-      triggerSync(userEmail, 'ocr_results');
+    const userInfo = getUserInfo();
+    if (userInfo && userInfo.email === email) {
+      const expenses = getExpenses().filter(expense => expense.userEmail === email);
+      return { userInfo, expenses };
     }
+    return null;
   } catch (error) {
-    console.error('OCR結果の保存エラー:', error);
-  }
-};
-
-// 予算最適化結果の保存
-export const saveOptimizationResult = (result: any, userEmail?: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
-  try {
-    const key = userEmail ? getUserKey(userEmail, 'optimization_results') : 'optimization_results';
-    const current = JSON.parse(localStorage.getItem(key) || '[]');
-    current.push({
-      ...result,
-      timestamp: new Date().toISOString()
-    });
-    localStorage.setItem(key, JSON.stringify(current));
-    
-    if (userEmail) {
-      triggerSync(userEmail, 'optimization_results');
-    }
-  } catch (error) {
-    console.error('最適化結果の保存エラー:', error);
-  }
-};
-
-// ユーザー別データの完全削除
-export const clearUserData = (userEmail: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
-  try {
-    const dataTypes = ['expenses', 'settings', 'ocr_results', 'optimization_results'];
-    dataTypes.forEach(dataType => {
-      const key = getUserKey(userEmail, dataType);
-      localStorage.removeItem(key);
-    });
-    
-    triggerSync(userEmail, 'all');
-  } catch (error) {
-    console.error('ユーザーデータの削除エラー:', error);
-  }
-}; 
-
-// メールアドレスベースの自動復元機能を追加
-export const loadUserDataByEmail = async (email: string): Promise<any> => {
-  if (!isLocalStorageAvailable()) return null;
-  
-  try {
-    const settings = loadSettings(email);
-    const expenses = loadAllExpenses(email);
-    const ocrResults = JSON.parse(localStorage.getItem(getUserKey(email, 'ocr_results')) || '[]');
-    const optimizationResults = JSON.parse(localStorage.getItem(getUserKey(email, 'optimization_results')) || '[]');
-    
-    return {
-      settings,
-      expenses,
-      ocrResults,
-      optimizationResults
-    };
-  } catch (error) {
-    console.error('ユーザーデータの読み込みエラー:', error);
+    console.error('Failed to load user data by email:', error);
     return null;
   }
 };
 
-// メールアドレス変更時のデータ移行
-export const migrateUserData = (oldEmail: string, newEmail: string): void => {
-  if (!isLocalStorageAvailable()) return;
-  
+// 画像データの保存
+export const saveImageData = (email: string, imageData: string, fileName: string): void => {
   try {
-    const dataTypes = ['expenses', 'settings', 'ocr_results', 'optimization_results'];
+    const userImages = getUserImages(email);
+    userImages.push({
+      fileName,
+      imageData,
+      createdAt: new Date().toISOString()
+    });
     
-    dataTypes.forEach(dataType => {
-      const oldKey = getUserKey(oldEmail, dataType);
-      const newKey = getUserKey(newEmail, dataType);
-      const data = localStorage.getItem(oldKey);
-      
-      if (data) {
-        localStorage.setItem(newKey, data);
-        localStorage.removeItem(oldKey);
+    const allUserImages = getAllUserImages();
+    allUserImages[email] = userImages;
+    localStorage.setItem(USER_IMAGES_KEY, JSON.stringify(allUserImages));
+  } catch (error) {
+    console.error('Failed to save image data:', error);
+  }
+};
+
+// ユーザーの画像データを取得
+export const getUserImages = (email: string): Array<{ fileName: string; imageData: string; createdAt: string }> => {
+  try {
+    const allUserImages = getAllUserImages();
+    return allUserImages[email] || [];
+  } catch (error) {
+    console.error('Failed to get user images:', error);
+    return [];
+  }
+};
+
+// 全ユーザーの画像データを取得
+export const getAllUserImages = (): { [email: string]: Array<{ fileName: string; imageData: string; createdAt: string }> } => {
+  try {
+    const data = localStorage.getItem(USER_IMAGES_KEY);
+    return data ? JSON.parse(data) : {};
+  } catch (error) {
+    console.error('Failed to get all user images:', error);
+    return {};
+  }
+};
+
+// 画像データを削除
+export const deleteImageData = (email: string, fileName: string): void => {
+  try {
+    const userImages = getUserImages(email);
+    const filteredImages = userImages.filter(img => img.fileName !== fileName);
+    
+    const allUserImages = getAllUserImages();
+    allUserImages[email] = filteredImages;
+    localStorage.setItem(USER_IMAGES_KEY, JSON.stringify(allUserImages));
+  } catch (error) {
+    console.error('Failed to delete image data:', error);
+  }
+};
+
+// 経費データに画像URLを追加
+export const addImageToExpense = (expenseId: string, imageUrl: string, fileName: string): void => {
+  try {
+    const expenses = getExpenses();
+    const updatedExpenses = expenses.map(expense => {
+      if (expense.id === expenseId) {
+        return {
+          ...expense,
+          imageUrl,
+          imageFileName: fileName
+        };
       }
+      return expense;
     });
     
-    console.log(`データ移行完了: ${oldEmail} → ${newEmail}`);
+    saveExpenses(updatedExpenses);
   } catch (error) {
-    console.error('データ移行エラー:', error);
+    console.error('Failed to add image to expense:', error);
   }
 }; 
