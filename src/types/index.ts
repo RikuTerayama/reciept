@@ -19,11 +19,14 @@ export interface ExpenseData {
   createdAt: Date;
   updatedAt?: Date;
   imageData?: string;
+  imageUrl?: string; // Firebase Storage URL
+  imageFileName?: string; // 保存されたファイル名
   ocrText?: string;
   receiptNumber?: string;
   companyName?: string;
   rechargedToClient?: string; // N/Y
   gstVatApplicable?: string; // N/Y
+  userEmail?: string; // ユーザーメールアドレス
 }
 
 // 同期用の型定義
