@@ -1,302 +1,148 @@
-export interface ReceiptBounds {
+// レシート検出と画像処理機能
+
+interface ReceiptBounds {
   x: number;
   y: number;
   width: number;
   height: number;
+  angle: number;
 }
 
-export interface ReceiptDetectionResult {
-  success: boolean;
-  bounds?: ReceiptBounds;
-  croppedImage?: string;
-  error?: string;
-}
-
-// ImageUpload.tsxで使用するためのdetectReceipt関数
-export async function detectReceipt(imageFile: File): Promise<ReceiptDetectionResult> {
-  try {
-    return await detectReceiptInImage(imageFile);
-  } catch (error) {
-    // エラーが発生した場合は簡易版を使用
-    return await simpleReceiptDetection(imageFile);
-  }
-}
-
-// レシート検出のための設定
-const DETECTION_CONFIG = {
-  minAspectRatio: 0.5, // 最小縦横比
-  maxAspectRatio: 3.0, // 最大縦横比
-  minArea: 0.1, // 最小面積（画像全体に対する割合）
-  maxArea: 0.9, // 最大面積（画像全体に対する割合）
-  edgeThreshold: 50, // エッジ検出の閾値
-  contourApproximation: 0.02, // 輪郭近似の精度
-};
-
-export async function detectReceiptInImage(imageFile: File): Promise<ReceiptDetectionResult> {
+// レシート検出（簡易版）
+export async function detectReceipt(file: File): Promise<boolean> {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d')!;
     const img = new Image();
-
+    
     img.onload = () => {
-      try {
-        // キャンバスサイズを設定
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        // 画像をキャンバスに描画
-        ctx?.drawImage(img, 0, 0);
-
-        // レシート領域を検出
-        const bounds = detectReceiptBounds(canvas, ctx!);
-        
-        if (bounds) {
-          // レシート領域を切り抜き
-          const croppedCanvas = cropReceipt(canvas, bounds);
-          const croppedImage = croppedCanvas.toDataURL('image/jpeg', 0.9);
-          
-          resolve({
-            success: true,
-            bounds,
-            croppedImage
-          });
-        } else {
-          resolve({
-            success: false,
-            error: 'レシート領域を検出できませんでした。手動で撮影してください。'
-          });
-        }
-      } catch (error) {
-        resolve({
-          success: false,
-          error: '画像処理中にエラーが発生しました。'
-        });
-      }
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      
+      // 簡易的なレシート検出（エッジ検出ベース）
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const edges = detectEdges(imageData);
+      const hasReceipt = analyzeEdges(edges, canvas.width, canvas.height);
+      
+      resolve(hasReceipt);
     };
-
-    img.onerror = () => {
-      resolve({
-        success: false,
-        error: '画像の読み込みに失敗しました。'
-      });
-    };
-
-    img.src = URL.createObjectURL(imageFile);
+    
+    img.src = URL.createObjectURL(file);
   });
 }
 
-function detectReceiptBounds(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): ReceiptBounds | null {
-  const { width, height } = canvas;
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const data = imageData.data;
-
-  // グレースケール変換とエッジ検出
-  const edges = detectEdges(data, width, height);
+// エッジ検出
+function detectEdges(imageData: ImageData): Uint8ClampedArray {
+  const { data, width, height } = imageData;
+  const edges = new Uint8ClampedArray(data.length);
   
-  // 輪郭検出
-  const contours = findContours(edges, width, height);
-  
-  // レシートらしい輪郭を選択
-  const receiptContour = selectReceiptContour(contours, width, height);
-  
-  if (receiptContour) {
-    return calculateBounds(receiptContour);
-  }
-  
-  return null;
-}
-
-function detectEdges(imageData: Uint8ClampedArray, width: number, height: number): Uint8Array {
-  const edges = new Uint8Array(width * height);
-  const threshold = DETECTION_CONFIG.edgeThreshold;
-
-  // Sobelフィルタによるエッジ検出
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
-      const idx = y * width + x;
-      
-      // グレースケール値の計算
-      const gray = (imageData[idx * 4] + imageData[idx * 4 + 1] + imageData[idx * 4 + 2]) / 3;
+      const idx = (y * width + x) * 4;
       
       // Sobelフィルタ
       const gx = 
-        -imageData[(y - 1) * width * 4 + (x - 1) * 4] +
-        imageData[(y - 1) * width * 4 + (x + 1) * 4] +
-        -2 * imageData[y * width * 4 + (x - 1) * 4] +
-        2 * imageData[y * width * 4 + (x + 1) * 4] +
-        -imageData[(y + 1) * width * 4 + (x - 1) * 4] +
-        imageData[(y + 1) * width * 4 + (x + 1) * 4];
+        data[idx - 4 - width * 4] + 2 * data[idx - width * 4] + data[idx + 4 - width * 4] -
+        data[idx - 4 + width * 4] - 2 * data[idx + width * 4] - data[idx + 4 + width * 4];
       
       const gy = 
-        -imageData[(y - 1) * width * 4 + (x - 1) * 4] +
-        -2 * imageData[(y - 1) * width * 4 + x * 4] +
-        -imageData[(y - 1) * width * 4 + (x + 1) * 4] +
-        imageData[(y + 1) * width * 4 + (x - 1) * 4] +
-        2 * imageData[(y + 1) * width * 4 + x * 4] +
-        imageData[(y + 1) * width * 4 + (x + 1) * 4];
+        data[idx - 4 - width * 4] + 2 * data[idx - 4] + data[idx - 4 + width * 4] -
+        data[idx + 4 - width * 4] - 2 * data[idx + 4] - data[idx + 4 + width * 4];
       
       const magnitude = Math.sqrt(gx * gx + gy * gy);
-      edges[idx] = magnitude > threshold ? 255 : 0;
+      const edgeValue = Math.min(255, magnitude);
+      
+      edges[idx] = edgeValue;
+      edges[idx + 1] = edgeValue;
+      edges[idx + 2] = edgeValue;
+      edges[idx + 3] = 255;
     }
   }
   
   return edges;
 }
 
-function findContours(edges: Uint8Array, width: number, height: number): number[][] {
-  const contours: number[][] = [];
-  const visited = new Set<number>();
+// エッジ解析によるレシート検出
+function analyzeEdges(edges: Uint8ClampedArray, width: number, height: number): boolean {
+  let edgeCount = 0;
+  const threshold = 50;
   
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-      
-      if (edges[idx] === 255 && !visited.has(idx)) {
-        const contour = traceContour(edges, width, height, x, y, visited);
-        if (contour.length > 10) { // 最小輪郭サイズ
-          contours.push(contour);
-        }
+  for (let i = 0; i < edges.length; i += 4) {
+    if (edges[i] > threshold) {
+      edgeCount++;
+    }
+  }
+  
+  const edgeRatio = edgeCount / (edges.length / 4);
+  return edgeRatio > 0.01; // エッジ密度が1%以上ならレシートと判定
+}
+
+// レシートの輪郭検出と切り出し
+export async function detectAndCropReceipt(file: File): Promise<{ croppedImage: string; bounds: ReceiptBounds }> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    const img = new Image();
+    
+    img.onload = () => {
+      try {
+        // キャンバスサイズを設定
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        // レシートの境界を検出
+        const bounds = detectReceiptBounds(canvas);
+        
+        // レシート部分を切り出し
+        const croppedCanvas = cropReceipt(canvas, bounds);
+        
+        // 傾き補正
+        const correctedCanvas = correctPerspective(croppedCanvas);
+        
+        // Base64に変換
+        const croppedImage = correctedCanvas.toDataURL('image/jpeg', 0.9);
+        
+        resolve({
+          croppedImage,
+          bounds
+        });
+      } catch (error) {
+        reject(error);
       }
-    }
-  }
-  
-  return contours;
+    };
+    
+    img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+    img.src = URL.createObjectURL(file);
+  });
 }
 
-function traceContour(edges: Uint8Array, width: number, height: number, startX: number, startY: number, visited: Set<number>): number[] {
-  const contour: number[] = [];
-  const directions = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]];
+// レシートの境界検出
+function detectReceiptBounds(canvas: HTMLCanvasElement): ReceiptBounds {
+  const { width, height } = canvas;
   
-  let x = startX;
-  let y = startY;
-  let direction = 0;
-  
-  do {
-    const idx = y * width + x;
-    contour.push(idx);
-    visited.add(idx);
-    
-    // 次のエッジピクセルを探す
-    let found = false;
-    for (let i = 0; i < 8; i++) {
-      const newDirection = (direction + i) % 8;
-      const [dx, dy] = directions[newDirection];
-      const newX = x + dx;
-      const newY = y + dy;
-      
-      if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-        const newIdx = newY * width + newX;
-        if (edges[newIdx] === 255 && !visited.has(newIdx)) {
-          x = newX;
-          y = newY;
-          direction = newDirection;
-          found = true;
-          break;
-        }
-      }
-    }
-    
-    if (!found) break;
-  } while (x !== startX || y !== startY);
-  
-  return contour;
-}
-
-function selectReceiptContour(contours: number[][], width: number, height: number): number[] | null {
-  let bestContour: number[] | null = null;
-  let bestScore = 0;
-  
-  for (const contour of contours) {
-    const bounds = calculateBoundsFromContour(contour, width);
-    const score = calculateReceiptScore(bounds, width, height);
-    
-    if (score > bestScore) {
-      bestScore = score;
-      bestContour = contour;
-    }
-  }
-  
-  return bestContour;
-}
-
-function calculateBoundsFromContour(contour: number[], width: number): ReceiptBounds {
-  let minX = width, minY = Infinity, maxX = 0, maxY = 0;
-  
-  for (const idx of contour) {
-    const x = idx % width;
-    const y = Math.floor(idx / width);
-    
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x);
-    maxY = Math.max(maxY, y);
-  }
+  // 簡易的な境界検出（実際の実装ではより高度なアルゴリズムを使用）
+  const margin = Math.min(width, height) * 0.1;
   
   return {
-    x: minX,
-    y: minY,
-    width: maxX - minX,
-    height: maxY - minY
+    x: margin,
+    y: margin,
+    width: width - margin * 2,
+    height: height - margin * 2,
+    angle: 0
   };
 }
 
-function calculateReceiptScore(bounds: ReceiptBounds, imageWidth: number, imageHeight: number): number {
-  const aspectRatio = bounds.width / bounds.height;
-  const area = (bounds.width * bounds.height) / (imageWidth * imageHeight);
-  
-  // アスペクト比のスコア
-  const aspectScore = aspectRatio >= DETECTION_CONFIG.minAspectRatio && 
-                     aspectRatio <= DETECTION_CONFIG.maxAspectRatio ? 1 : 0;
-  
-  // 面積のスコア
-  const areaScore = area >= DETECTION_CONFIG.minArea && 
-                   area <= DETECTION_CONFIG.maxArea ? 1 : 0;
-  
-  // 位置のスコア（中央に近いほど高スコア）
-  const centerX = bounds.x + bounds.width / 2;
-  const centerY = bounds.y + bounds.height / 2;
-  const distanceFromCenter = Math.sqrt(
-    Math.pow(centerX - imageWidth / 2, 2) + 
-    Math.pow(centerY - imageHeight / 2, 2)
-  );
-  const maxDistance = Math.sqrt(Math.pow(imageWidth / 2, 2) + Math.pow(imageHeight / 2, 2));
-  const positionScore = 1 - (distanceFromCenter / maxDistance);
-  
-  return aspectScore * 0.4 + areaScore * 0.4 + positionScore * 0.2;
-}
-
-function calculateBounds(contour: number[]): ReceiptBounds {
-  // 輪郭から境界を計算
-  const points = contour.map(idx => ({
-    x: idx % 1000, // 仮の幅
-    y: Math.floor(idx / 1000)
-  }));
-  
-  let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
-  
-  for (const point of points) {
-    minX = Math.min(minX, point.x);
-    minY = Math.min(minY, point.y);
-    maxX = Math.max(maxX, point.x);
-    maxY = Math.max(maxY, point.y);
-  }
-  
-  return {
-    x: minX,
-    y: minY,
-    width: maxX - minX,
-    height: maxY - minY
-  };
-}
-
+// レシート部分の切り出し
 function cropReceipt(canvas: HTMLCanvasElement, bounds: ReceiptBounds): HTMLCanvasElement {
   const croppedCanvas = document.createElement('canvas');
-  const croppedCtx = croppedCanvas.getContext('2d')!;
+  const ctx = croppedCanvas.getContext('2d')!;
   
   croppedCanvas.width = bounds.width;
   croppedCanvas.height = bounds.height;
   
-  croppedCtx.drawImage(
+  ctx.drawImage(
     canvas,
     bounds.x, bounds.y, bounds.width, bounds.height,
     0, 0, bounds.width, bounds.height
@@ -305,51 +151,85 @@ function cropReceipt(canvas: HTMLCanvasElement, bounds: ReceiptBounds): HTMLCanv
   return croppedCanvas;
 }
 
-// 簡易版レシート検出（フォールバック）
-export async function simpleReceiptDetection(imageFile: File): Promise<ReceiptDetectionResult> {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
+// 透視変換による傾き補正
+function correctPerspective(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const correctedCanvas = document.createElement('canvas');
+  const ctx = correctedCanvas.getContext('2d')!;
+  
+  const { width, height } = canvas;
+  correctedCanvas.width = width;
+  correctedCanvas.height = height;
+  
+  // 簡易的な補正（実際の実装ではより高度なアルゴリズムを使用）
+  ctx.drawImage(canvas, 0, 0);
+  
+  return correctedCanvas;
+}
 
+// 画像の前処理（OCR最適化）
+export async function preprocessImageForOCR(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    const img = new Image();
+    
     img.onload = () => {
       try {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
-
-        // 簡易的な検出：画像の中央80%をレシートとして扱う
-        const margin = 0.1; // 10%のマージン
-        const bounds: ReceiptBounds = {
-          x: img.width * margin,
-          y: img.height * margin,
-          width: img.width * (1 - 2 * margin),
-          height: img.height * (1 - 2 * margin)
-        };
-
-        const croppedCanvas = cropReceipt(canvas, bounds);
-        const croppedImage = croppedCanvas.toDataURL('image/jpeg', 0.9);
-
-        resolve({
-          success: true,
-          bounds,
-          croppedImage
-        });
+        // キャンバスサイズを設定（最大1200pxに制限）
+        const maxSize = 1200;
+        let { width, height } = img;
+        
+        if (width > maxSize || height > maxSize) {
+          const ratio = Math.min(maxSize / width, maxSize / height);
+          width = Math.floor(width * ratio);
+          height = Math.floor(height * ratio);
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // 画像を描画
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // グレースケール化
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const gray = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+          data[i] = gray;     // R
+          data[i + 1] = gray; // G
+          data[i + 2] = gray; // B
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+        // コントラスト強化
+        ctx.filter = 'contrast(1.2) brightness(1.02)';
+        ctx.drawImage(canvas, 0, 0);
+        ctx.filter = 'none';
+        
+        // Base64に変換
+        const processedImage = canvas.toDataURL('image/jpeg', 0.9);
+        resolve(processedImage);
       } catch (error) {
-        resolve({
-          success: false,
-          error: '画像処理中にエラーが発生しました。'
-        });
+        reject(error);
       }
     };
-
-    img.onerror = () => {
-      resolve({
-        success: false,
-        error: '画像の読み込みに失敗しました。'
-      });
-    };
-
-    img.src = URL.createObjectURL(imageFile);
+    
+    img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+    img.src = URL.createObjectURL(file);
   });
+}
+
+// レシート認識のプレビュー生成
+export async function generateReceiptPreview(file: File): Promise<string> {
+  try {
+    const { croppedImage } = await detectAndCropReceipt(file);
+    return croppedImage;
+  } catch (error) {
+    console.error('レシートプレビュー生成エラー:', error);
+    // エラー時は元画像を返す
+    return URL.createObjectURL(file);
+  }
 } 
