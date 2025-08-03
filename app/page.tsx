@@ -62,25 +62,59 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { expenses, addExpense, updateExpense, deleteExpense } = useExpenseStore();
 
-  // クライアントサイド判定
+  // クライアントサイド判定と初期化
   useEffect(() => {
+    console.log('Home component mounting...');
     setIsClient(true);
+    
+    // 初期化処理
+    const initializeApp = async () => {
+      try {
+        console.log('Initializing app...');
+        
+        // ローカルストレージからユーザー情報を読み込み
+        const savedUserInfo = localStorage.getItem('userInfo');
+        if (savedUserInfo) {
+          const parsed = JSON.parse(savedUserInfo);
+          setUserInfo(parsed);
+          setFormData({
+            email: parsed.email || '',
+            targetMonth: parsed.targetMonth || '',
+            budget: parsed.budget || 100000
+          });
+        }
+        
+        console.log('App initialization complete');
+      } catch (error) {
+        console.error('App initialization error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initializeApp();
   }, []);
 
   // 認証状態の監視とデータ同期
   useEffect(() => {
     if (!isClient) return;
 
+    console.log('Setting up auth state listener...');
+    
     const unsubscribe = onAuthStateChange((user) => {
+      console.log('Auth state changed:', user ? 'logged in' : 'logged out');
+      
       if (user) {
         setUser(user);
         
         // 非同期処理を別関数で実行
         const handleUserData = async () => {
           try {
+            console.log('Restoring user data...');
             // 初回ログイン時のデータ復元
             const { userData, expenses: cloudExpenses } = await restoreUserData(user.uid);
             
@@ -105,6 +139,7 @@ export default function Home() {
             // ユーザーデータの同期
             await syncUserData(user.uid, userData);
             
+            console.log('User data restored successfully');
           } catch (error) {
             console.error('Error restoring user data:', error);
             // エラー時はローカルデータを使用
@@ -123,6 +158,7 @@ export default function Home() {
         setUserInfo(null);
         // ログアウト時にデータをクリア
         clearAllData();
+        console.log('User logged out, data cleared');
       }
     });
 
@@ -133,6 +169,8 @@ export default function Home() {
   useEffect(() => {
     if (!isClient || user) return;
 
+    console.log('Loading local user data...');
+    
     try {
       const savedUserInfo = localStorage.getItem('userInfo');
       if (savedUserInfo) {
@@ -143,6 +181,7 @@ export default function Home() {
           targetMonth: parsed.targetMonth || '',
           budget: parsed.budget || 100000
         });
+        console.log('Local user data loaded');
       }
     } catch (error) {
       console.error('Failed to load user info:', error);
@@ -316,8 +355,9 @@ export default function Home() {
         { key: 'budgetOptimizer', label: t('navigation.budgetOptimizer', currentLanguage, '予算最適化'), action: handleOptimizer },
   ];
 
-  // クライアントサイドでない場合はローディング表示
-  if (!isClient) {
+  // ローディング状態の表示
+  if (isLoading || !isClient) {
+    console.log('Rendering loading state...');
     return (
       <div className="min-h-screen bg-surface-950 text-surface-100 flex items-center justify-center">
         <div className="text-center">
@@ -327,6 +367,8 @@ export default function Home() {
       </div>
     );
   }
+
+  console.log('Rendering main app...', { userInfo, user, isClient });
 
   return (
     <SWRConfig
