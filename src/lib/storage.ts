@@ -25,6 +25,91 @@ export const getExpenses = (): ExpenseData[] => {
   }
 };
 
+// 経費データを追加
+export const addExpenseToStorage = (expense: ExpenseData, userEmail?: string): void => {
+  try {
+    const expenses = getExpenses();
+    const newExpense = {
+      ...expense,
+      userEmail: userEmail || expense.userEmail
+    };
+    expenses.push(newExpense);
+    saveExpenses(expenses);
+  } catch (error) {
+    console.error('Failed to add expense:', error);
+  }
+};
+
+// 経費データを更新
+export const updateExpenseInStorage = (expense: ExpenseData, userEmail?: string): void => {
+  try {
+    const expenses = getExpenses();
+    const updatedExpenses = expenses.map(exp => 
+      exp.id === expense.id ? { ...expense, userEmail: userEmail || expense.userEmail } : exp
+    );
+    saveExpenses(updatedExpenses);
+  } catch (error) {
+    console.error('Failed to update expense:', error);
+  }
+};
+
+// 経費データを削除
+export const deleteExpenseFromStorage = (id: string, userEmail?: string, date?: string): void => {
+  try {
+    const expenses = getExpenses();
+    const filteredExpenses = expenses.filter(exp => exp.id !== id);
+    saveExpenses(filteredExpenses);
+  } catch (error) {
+    console.error('Failed to delete expense:', error);
+  }
+};
+
+// 全経費データを読み込み
+export const loadAllExpenses = (userEmail?: string): ExpenseData[] => {
+  try {
+    const expenses = getExpenses();
+    if (userEmail) {
+      return expenses.filter(exp => exp.userEmail === userEmail);
+    }
+    return expenses;
+  } catch (error) {
+    console.error('Failed to load all expenses:', error);
+    return [];
+  }
+};
+
+// 月別経費データを読み込み
+export const loadMonthlyExpenses = (year: number, month: number, userEmail?: string): ExpenseData[] => {
+  try {
+    const allExpenses = loadAllExpenses(userEmail);
+    const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
+    return allExpenses.filter(expense => 
+      expense.date && expense.date.startsWith(yearMonth)
+    );
+  } catch (error) {
+    console.error('Failed to load monthly expenses:', error);
+    return [];
+  }
+};
+
+// 現在の年月を取得
+export const getCurrentYearMonth = (): { year: number; month: number } => {
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1
+  };
+};
+
+// 日付から年月を取得
+export const getYearMonthFromDate = (dateString: string): { year: number; month: number } => {
+  const date = new Date(dateString);
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1
+  };
+};
+
 // ユーザー情報の保存
 export const saveUserInfo = (userInfo: UserInfo): void => {
   try {
