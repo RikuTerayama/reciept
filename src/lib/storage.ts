@@ -5,13 +5,85 @@ const EXPENSES_KEY = 'expenses';
 const USER_INFO_KEY = 'userInfo';
 const USER_IMAGES_KEY = 'userImages';
 
-// 現在の年月を取得
+// 現在の年月を取得 (YYYY-MM形式)
 export const getCurrentYearMonth = (): { year: number; month: number } => {
   const now = new Date();
   return {
     year: now.getFullYear(),
     month: now.getMonth() + 1
   };
+};
+
+// 経費データを追加 (仮実装)
+export const addExpenseToStorage = (expense: ExpenseData, userEmail?: string): void => {
+  console.log('addExpenseToStorage called:', { expense, userEmail });
+  try {
+    const expenses = getExpenses();
+    const newExpense = {
+      ...expense,
+      userEmail: userEmail || expense.userEmail
+    };
+    expenses.push(newExpense);
+    saveExpenses(expenses);
+  } catch (error) {
+    console.error('Failed to add expense:', error);
+  }
+};
+
+// 経費データを更新 (仮実装)
+export const updateExpenseInStorage = (expense: ExpenseData, userEmail?: string): void => {
+  console.log('updateExpenseInStorage called:', { expense, userEmail });
+  try {
+    const expenses = getExpenses();
+    const updatedExpenses = expenses.map(exp => 
+      exp.id === expense.id ? { ...expense, userEmail: userEmail || expense.userEmail } : exp
+    );
+    saveExpenses(updatedExpenses);
+  } catch (error) {
+    console.error('Failed to update expense:', error);
+  }
+};
+
+// 経費データを削除 (仮実装)
+export const deleteExpenseFromStorage = (id: string, userEmail?: string, date?: string): void => {
+  console.log('deleteExpenseFromStorage called:', { id, userEmail, date });
+  try {
+    const expenses = getExpenses();
+    const filteredExpenses = expenses.filter(exp => exp.id !== id);
+    saveExpenses(filteredExpenses);
+  } catch (error) {
+    console.error('Failed to delete expense:', error);
+  }
+};
+
+// 全経費データを読み込み (モック実装)
+export const loadAllExpenses = (userEmail?: string): ExpenseData[] => {
+  console.log('loadAllExpenses called:', { userEmail });
+  try {
+    const expenses = getExpenses();
+    if (userEmail) {
+      return expenses.filter(exp => exp.userEmail === userEmail);
+    }
+    return expenses;
+  } catch (error) {
+    console.error('Failed to load all expenses:', error);
+    return [];
+  }
+};
+
+// 月別経費データを読み込み (モック実装)
+export const loadMonthlyExpenses = (year: number, month: number, userEmail?: string): ExpenseData[] => {
+  console.log('loadMonthlyExpenses called:', { year, month, userEmail });
+  try {
+    const allExpenses = loadAllExpenses(userEmail);
+    const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
+    return allExpenses.filter(expense => 
+      expense.date && expense.date.startsWith(yearMonth)
+    );
+  } catch (error) {
+    console.error('Failed to load monthly expenses:', error);
+    return [];
+  }
 };
 
 // 経費データの保存
@@ -30,73 +102,6 @@ export const getExpenses = (): ExpenseData[] => {
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('Failed to get expenses:', error);
-    return [];
-  }
-};
-
-// 経費データを追加
-export const addExpenseToStorage = (expense: ExpenseData, userEmail?: string): void => {
-  try {
-    const expenses = getExpenses();
-    const newExpense = {
-      ...expense,
-      userEmail: userEmail || expense.userEmail
-    };
-    expenses.push(newExpense);
-    saveExpenses(expenses);
-  } catch (error) {
-    console.error('Failed to add expense:', error);
-  }
-};
-
-// 経費データを更新
-export const updateExpenseInStorage = (expense: ExpenseData, userEmail?: string): void => {
-  try {
-    const expenses = getExpenses();
-    const updatedExpenses = expenses.map(exp => 
-      exp.id === expense.id ? { ...expense, userEmail: userEmail || expense.userEmail } : exp
-    );
-    saveExpenses(updatedExpenses);
-  } catch (error) {
-    console.error('Failed to update expense:', error);
-  }
-};
-
-// 経費データを削除
-export const deleteExpenseFromStorage = (id: string, userEmail?: string, date?: string): void => {
-  try {
-    const expenses = getExpenses();
-    const filteredExpenses = expenses.filter(exp => exp.id !== id);
-    saveExpenses(filteredExpenses);
-  } catch (error) {
-    console.error('Failed to delete expense:', error);
-  }
-};
-
-// 全経費データを読み込み
-export const loadAllExpenses = (userEmail?: string): ExpenseData[] => {
-  try {
-    const expenses = getExpenses();
-    if (userEmail) {
-      return expenses.filter(exp => exp.userEmail === userEmail);
-    }
-    return expenses;
-  } catch (error) {
-    console.error('Failed to load all expenses:', error);
-    return [];
-  }
-};
-
-// 月別経費データを読み込み
-export const loadMonthlyExpenses = (year: number, month: number, userEmail?: string): ExpenseData[] => {
-  try {
-    const allExpenses = loadAllExpenses(userEmail);
-    const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
-    return allExpenses.filter(expense => 
-      expense.date && expense.date.startsWith(yearMonth)
-    );
-  } catch (error) {
-    console.error('Failed to load monthly expenses:', error);
     return [];
   }
 };
