@@ -35,6 +35,8 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     conversionRate: 1,
     conversionDate: new Date().toISOString(),
     createdAt: new Date(),
+    rechargedToClient: 'N',
+    gstVatApplicable: 'N',
     ...initialData
   });
 
@@ -85,11 +87,21 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
+    // 先頭0削除処理
+    let processedValue = value;
+    if (name === 'totalAmount' || name === 'taxRate' || name === 'participantFromClient' || name === 'participantFromCompany') {
+      // 数値フィールドの場合、先頭0を削除
+      if (value.startsWith('0') && value.length > 1 && value[1] !== '.') {
+        processedValue = value.replace(/^0+/, '');
+        if (processedValue === '') processedValue = '0';
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: name === 'totalAmount' || name === 'taxRate' || name === 'participantFromClient' || name === 'participantFromCompany' 
-        ? Number(value) || 0 
-        : value
+        ? Number(processedValue) || 0 
+        : processedValue
     }));
 
     // エラーをクリア
@@ -371,6 +383,43 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               </option>
             ))}
           </select>
+        </div>
+
+        {/* 新しい項目 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Recharged to client? */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-surface-300">
+              Recharged to client?
+            </label>
+            <select
+              name="rechargedToClient"
+              value={formData.rechargedToClient}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            >
+              <option value="N">N</option>
+              <option value="Y">Y</option>
+            </select>
+          </div>
+
+          {/* GST/VAT applicable */}
+          <div>
+            <label className="block text-sm font-medium mb-2 text-surface-300">
+              GST/VAT applicable
+            </label>
+            <select
+              name="gstVatApplicable"
+              value={formData.gstVatApplicable}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            >
+              <option value="N">N</option>
+              <option value="Y">Y</option>
+            </select>
+          </div>
         </div>
 
         {/* 通貨換算情報表示 */}
