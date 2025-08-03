@@ -413,6 +413,15 @@ export default function Home() {
                   src="/Expenscan_new_logo.png" 
                   alt="Expenscan Logo" 
                   className="h-8 w-auto object-contain"
+                  onError={(e) => {
+                    console.error('Logo image failed to load');
+                    // フォールバック: テキストロゴ
+                    e.currentTarget.style.display = 'none';
+                    const textLogo = document.createElement('div');
+                    textLogo.className = 'flex items-center space-x-2';
+                    textLogo.innerHTML = '<span class="text-xl font-bold text-white">Expens</span><span class="text-xl font-bold text-cyan-400">can</span>';
+                    e.currentTarget.parentNode?.appendChild(textLogo);
+                  }}
                 />
               </div>
             </div>
@@ -507,13 +516,13 @@ export default function Home() {
                       item.action();
                       setShowMobileMenu(false);
                     }}
-                    className="px-3 py-2 text-sm font-medium text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 text-left"
+                    className="px-3 py-2 text-sm font-medium text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 text-center"
                   >
                     {item.label}
                   </button>
                 ))}
                 {/* モバイル: 言語切り替え */}
-                <div className="px-3 py-2">
+                <div className="px-3 py-2 flex justify-center">
                   <LanguageSwitcher 
                     currentLanguage={currentLanguage} 
                     onLanguageChange={setCurrentLanguage} 
@@ -708,7 +717,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-xl font-semibold text-white">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
+                              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -716,16 +725,19 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <ImageUpload 
-              onOCRComplete={() => {
-                setShowUploadModal(false);
-                setShowDataInputModal(true);
-              }}
-              onComplete={() => {
-                setShowUploadModal(false);
-                setShowDataInputModal(true);
-              }}
-            />
+            <div className="text-center">
+              <ImageUpload 
+                onOCRComplete={(ocrResult) => {
+                  console.log('OCR Result:', ocrResult);
+                  setShowUploadModal(false);
+                  setShowDataInputModal(true);
+                }}
+                onComplete={() => {
+                  setShowUploadModal(false);
+                  setShowDataInputModal(true);
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -768,15 +780,18 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-xl font-semibold text-white">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h2>
+              <div className="flex-1"></div>
+                              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h2>
               <button
                 onClick={() => setShowDataInputModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <ExpenseForm onSave={handleDataInputSave} />
+            <div className="text-center">
+              <ExpenseForm onSave={handleDataInputSave} />
+            </div>
           </div>
         </div>
       )}
@@ -791,15 +806,18 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-xl font-semibold text-white">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
+              <div className="flex-1"></div>
+                              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
               <button
                 onClick={() => setShowExpenseListModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <ExpenseList />
+            <div className="text-center">
+              <ExpenseList />
+            </div>
           </div>
         </div>
       )}
@@ -916,6 +934,15 @@ export default function Home() {
                 src="/Expenscan_new_logo.png" 
                 alt="Expenscan Logo" 
                 className="h-6 w-auto object-contain"
+                onError={(e) => {
+                  console.error('Footer logo image failed to load');
+                  // フォールバック: テキストロゴ
+                  e.currentTarget.style.display = 'none';
+                  const textLogo = document.createElement('div');
+                  textLogo.className = 'flex items-center space-x-2';
+                  textLogo.innerHTML = '<span class="text-lg font-bold text-white">Expens</span><span class="text-lg font-bold text-cyan-400">can</span>';
+                  e.currentTarget.parentNode?.appendChild(textLogo);
+                }}
               />
               <div className="text-sm text-surface-400">
                 © 2025 Expenscan. All rights reserved. Developed by Riku Terayama
@@ -933,6 +960,15 @@ export default function Home() {
                 src="/Expenscan_new_logo.png" 
                 alt="Expenscan Logo" 
                 className="h-5 w-auto object-contain"
+                onError={(e) => {
+                  console.error('Mobile footer logo image failed to load');
+                  // フォールバック: テキストロゴ
+                  e.currentTarget.style.display = 'none';
+                  const textLogo = document.createElement('div');
+                  textLogo.className = 'flex items-center space-x-2 justify-center';
+                  textLogo.innerHTML = '<span class="text-base font-bold text-white">Expens</span><span class="text-base font-bold text-cyan-400">can</span>';
+                  e.currentTarget.parentNode?.appendChild(textLogo);
+                }}
               />
             </div>
             <div>v{APP_VERSION}</div>
