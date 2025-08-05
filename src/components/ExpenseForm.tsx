@@ -24,7 +24,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     totalAmount: 0,
     category: '',
     description: '',
-    taxRate: 0,
+    taxRate: 10, // デフォルト税率を10%に設定
     participantFromClient: 0,
     participantFromCompany: 0,
     isQualified: 'Qualified invoice/receipt',
@@ -172,15 +172,6 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          経費データ入力
-        </h2>
-        <p className="text-surface-400">
-          領収書の情報を入力してください
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 領収書日付 */}
@@ -321,7 +312,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               className={`w-full px-4 py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
                 errors.taxRate ? 'border-red-500' : 'border-surface-600'
               }`}
-              placeholder="0.0"
+              placeholder="10.0"
             />
             {errors.taxRate && <p className="text-red-400 text-sm mt-1">{errors.taxRate}</p>}
           </div>
