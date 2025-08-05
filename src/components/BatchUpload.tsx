@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { processImageWithOCR } from '@/lib/ocr';
-import { detectReceipt } from '@/lib/receipt-detection';
+import { detectAndCropReceipt } from '@/lib/receipt-detection';
 import { compressImages, preprocessImageForOCR } from '@/lib/image-utils';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { useExpenseStore } from '@/lib/store';
@@ -38,9 +38,9 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
       // ステップ2: レシート検出
       const compressedBlob = await fetch(processedImage).then(r => r.blob());
       const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
-      const isReceipt = await detectReceipt(compressedFile);
+      const receiptResult = await detectAndCropReceipt(compressedFile);
       
-      if (!isReceipt) {
+      if (!receiptResult.success) {
         console.log('Receipt detection failed for:', file.name);
       }
 
@@ -151,7 +151,9 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
             <p className="text-sm text-white">
               {isDragActive ? t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択') : t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択')}
             </p>
-            <p className="text-xs text-gray-300 mt-2">サポートされている形式：JPG / PNG / PDF</p>
+            <p className="text-xs text-gray-300 mt-2 text-center">
+              {t('batchUpload.supportedFormats', currentLanguage, 'サポートされている形式：JPG / PNG / PDF')}
+            </p>
           </div>
 
           {files.length > 0 && (
