@@ -142,16 +142,16 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
         <div className="space-y-4">
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+            className={`border-2 border-dashed rounded-lg p-6 md:p-8 text-center cursor-pointer transition-colors ${
               isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
             }`}
           >
             <input {...getInputProps()} />
-            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-sm text-white">
+            <Upload className="mx-auto h-10 w-10 md:h-12 md:w-12 text-gray-400 mb-4" />
+            <p className="text-xs md:text-sm text-white leading-relaxed">
               {isDragActive ? t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択') : t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択')}
             </p>
-            <p className="text-xs text-gray-300 mt-2 text-center">
+            <p className="text-xs text-gray-300 mt-2 text-center leading-relaxed">
               {t('batchUpload.supportedFormats', currentLanguage, 'サポートされている形式：JPG / PNG / PDF')}
             </p>
           </div>
@@ -159,20 +159,20 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
           {files.length > 0 && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-base md:text-lg font-semibold text-white">
                   {t('batchUpload.processingStatus', currentLanguage, '処理状況')}: {files.length} ファイル
                 </h3>
                 <div className="flex space-x-2">
                   <button
                     onClick={processAllFiles}
                     disabled={pendingCount === 0}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
                   >
                     {t('batchUpload.startProcessing', currentLanguage, '処理開始')}
                   </button>
                   <button
                     onClick={clearAll}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    className="px-3 py-2 md:px-4 md:py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-xs md:text-sm"
                   >
                     {t('batchUpload.clearAll', currentLanguage, 'すべてクリア')}
                   </button>
@@ -185,7 +185,7 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
                     <div className="flex items-center space-x-3 flex-1">
                       <FileText className="w-5 h-5 text-gray-400" />
                       <div className="flex-1">
-                        <p className="text-sm text-white">{processingFile.file.name}</p>
+                        <p className="text-xs md:text-sm text-white">{processingFile.file.name}</p>
                         <div className="flex items-center space-x-2 mt-1">
                           {processingFile.status === 'pending' && (
                             <span className="text-xs text-gray-400">待機中</span>
