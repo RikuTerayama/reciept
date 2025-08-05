@@ -550,7 +550,7 @@ export default function Home() {
             {userInfo ? (
               <div className="space-y-8">
                 {/* クイックアクション */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <button
                     onClick={handleSingleUpload}
                     className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
@@ -559,10 +559,10 @@ export default function Home() {
                       <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-primary-500 transition-colors">
                         <Camera className="w-6 h-6 text-white" />
                       </div>
-                                      <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h3>
-                <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロードしてOCR処理')}</p>
-        </div>
-                </button>
+                      <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h3>
+                      <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロードしてOCR処理')}</p>
+                    </div>
+                  </button>
 
                   <button
                     onClick={handleBatchUpload}
@@ -572,10 +572,10 @@ export default function Home() {
                       <div className="w-12 h-12 bg-secondary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-secondary-500 transition-colors">
                         <FolderOpen className="w-6 h-6 text-white" />
                       </div>
-                                      <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h3>
-                <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理')}</p>
-              </div>
-                </button>
+                      <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h3>
+                      <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理')}</p>
+                    </div>
+                  </button>
 
                   <button
                     onClick={handleDataInput}
@@ -585,10 +585,10 @@ export default function Home() {
                       <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-accent-500 transition-colors">
                         <Edit3 className="w-6 h-6 text-white" />
                       </div>
-                                      <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h3>
-                <p className="text-sm text-surface-400">{t('navigation.dataInputDesc', currentLanguage, '経費情報を手動で入力・編集')}</p>
-              </div>
-                </button>
+                      <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h3>
+                      <p className="text-sm text-surface-400">{t('navigation.dataInputDesc', currentLanguage, '経費情報を手動で入力・編集')}</p>
+                    </div>
+                  </button>
 
                   <button
                     onClick={handleExpenseList}
@@ -598,11 +598,24 @@ export default function Home() {
                       <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-green-500 transition-colors">
                         <List className="w-6 h-6 text-white" />
                       </div>
-                                      <h3 className="font-medium text-white mb-1">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h3>
-                <p className="text-sm text-surface-400">{t('navigation.expenseListDesc', currentLanguage, '登録済み経費の一覧表示と管理')}</p>
-              </div>
-                </button>
-              </div>
+                      <h3 className="font-medium text-white mb-1">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h3>
+                      <p className="text-sm text-surface-400">{t('navigation.expenseListDesc', currentLanguage, '登録済み経費の一覧表示と管理')}</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={handleOptimizer}
+                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
+                  >
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-indigo-500 transition-colors">
+                        <BarChart3 className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-medium text-white mb-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h3>
+                      <p className="text-sm text-surface-400">{t('navigation.budgetOptimizerDesc', currentLanguage, '指定された予算に最も近い経費の組み合わせを自動提案')}</p>
+                    </div>
+                  </button>
+                </div>
 
                 {/* 統計情報 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -962,7 +975,7 @@ export default function Home() {
               </div>
             </div>
             <div className="text-sm text-surface-400">
-                              {t('common.version', currentLanguage, 'バージョン')}: {APP_VERSION}
+              {t('common.version', currentLanguage, 'バージョン')}: {APP_VERSION}
             </div>
           </div>
           
