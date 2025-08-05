@@ -114,7 +114,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
                 {t('imageUpload.title', currentLanguage, 'レシート画像をアップロード')}
               </h3>
               <p className="text-surface-400 mb-4">
-                {t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します。レシート自動検出機能により、背景を除去して精度を向上させます。')}
+                {t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -139,7 +139,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             
             <div className="text-sm text-surface-400">
               <p className="font-medium mb-2">{t('imageUpload.supportedFormats', currentLanguage, 'サポートされている形式')}</p>
-              <p>{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。レシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
+              <p>{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
             </div>
           </div>
         )}
