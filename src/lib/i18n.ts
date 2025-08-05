@@ -127,6 +127,7 @@ export interface Translations {
     clearAll: string;
     startProcessing: string;
     processingStatus: string;
+    supportedFormats: string;
   };
 
   // データ入力
@@ -467,6 +468,7 @@ const translations: Record<Language, Translations> = {
       clearAll: 'すべてクリア',
       startProcessing: '処理開始',
       processingStatus: '処理状況',
+      supportedFormats: 'サポートされている形式：JPG / PNG / PDF',
     },
     dataInput: {
       title: 'データ入力',
@@ -781,6 +783,7 @@ const translations: Record<Language, Translations> = {
       clearAll: 'Clear All',
       startProcessing: 'Start Processing',
       processingStatus: 'Processing Status',
+      supportedFormats: 'Supported formats: JPG / PNG / PDF',
     },
     dataInput: {
       title: 'Data Input',
