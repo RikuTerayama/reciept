@@ -161,6 +161,9 @@ export interface Translations {
     participantPlaceholder: string;
     totalAmount: string;
     selectCategory: string;
+    receiptDate: string;
+    cancel: string;
+    saving: string;
     categories: {
       transport: string;
       food: string;
@@ -500,6 +503,9 @@ const translations: Record<Language, Translations> = {
       participantPlaceholder: '参加人数を入力してください',
       totalAmount: '合計金額',
       selectCategory: 'カテゴリを選択',
+      receiptDate: '領収書日付',
+      cancel: 'キャンセル',
+      saving: '保存中...',
       categories: {
         transport: '交通費',
         food: '食費',
@@ -815,6 +821,9 @@ const translations: Record<Language, Translations> = {
       participantPlaceholder: 'Enter number of participants',
       totalAmount: 'Total Amount',
       selectCategory: 'Select Category',
+      receiptDate: 'Receipt Date',
+      cancel: 'Cancel',
+      saving: 'Saving...',
       categories: {
         transport: 'Transportation',
         food: 'Food',
