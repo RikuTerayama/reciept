@@ -116,13 +116,12 @@ export const BUDGET_OPTIONS: BudgetOption[] = [
 
 // 認証関連の型定義
 export interface UserInfo {
-  uid: string;
+  uid?: string;
   email: string;
   targetMonth: string;
   budget: number;
-  currency: string;
-  createdAt: Date;
-  updatedAt: Date;
+  currency?: string;
+  office?: string;
 }
 
 export interface AuthState {
