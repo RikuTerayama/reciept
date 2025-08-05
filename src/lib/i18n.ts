@@ -59,6 +59,7 @@ export interface Translations {
     expenseList: string;
     expenseListDesc: string;
     budgetOptimizer: string;
+    budgetOptimizerDesc: string;
     menu: string;
   };
 
@@ -149,6 +150,8 @@ export interface Translations {
     // 経費フォーム
   expenseForm: {
     description: string;
+    rechargedToClient: string;
+    gstVatApplicable: string;
   };
 
   // 経費リスト
@@ -379,6 +382,7 @@ const translations: Record<Language, Translations> = {
       expenseList: '経費リスト',
       expenseListDesc: '登録済み経費の一覧表示と管理',
       budgetOptimizer: '予算最適化',
+      budgetOptimizerDesc: '指定された予算に最も近い経費の組み合わせを自動提案',
       menu: 'メニュー',
     },
     welcome: {
@@ -459,6 +463,8 @@ const translations: Record<Language, Translations> = {
     },
     expenseForm: {
       description: '経費情報を手動で入力・編集します。OCR結果の確認や新規データの入力に使用できます。',
+      rechargedToClient: 'クライアント請求有無',
+      gstVatApplicable: 'GST/VAT適用有無',
     },
     expenseList: {
       title: '経費リスト',
@@ -667,6 +673,7 @@ const translations: Record<Language, Translations> = {
       expenseList: 'Expense List',
       expenseListDesc: 'View and manage registered expenses',
       budgetOptimizer: 'Budget Optimizer',
+      budgetOptimizerDesc: 'Automatically suggest expense combinations closest to specified budgets',
       menu: 'Menu',
     },
     welcome: {
@@ -747,6 +754,8 @@ const translations: Record<Language, Translations> = {
     },
     expenseForm: {
       description: 'Manually input and edit expense information. Used for reviewing OCR results or entering new data.',
+      rechargedToClient: 'Recharged to Client',
+      gstVatApplicable: 'GST/VAT Applicable',
     },
     expenseList: {
       title: 'Expense List',
