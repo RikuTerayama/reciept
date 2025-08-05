@@ -1,235 +1,320 @@
-// レシート検出と画像処理機能
+/**
+ * レシート自動検出機能
+ * OpenCV.jsを使用してレシート領域を検出し、自動トリミングを行う
+ */
 
-interface ReceiptBounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  angle: number;
+export interface ReceiptDetectionResult {
+  success: boolean;
+  croppedImage?: HTMLCanvasElement;
+  originalImage?: HTMLCanvasElement;
+  error?: string;
 }
 
-// レシート検出（簡易版）
-export async function detectReceipt(file: File): Promise<boolean> {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    const img = new Image();
-    
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      
-      // 簡易的なレシート検出（エッジ検出ベース）
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const edges = detectEdges(imageData);
-      const hasReceipt = analyzeEdges(edges, canvas.width, canvas.height);
-      
-      resolve(hasReceipt);
-    };
-    
-    img.src = URL.createObjectURL(file);
-  });
-}
+// OpenCV.jsの読み込み
+let opencvLoaded = false;
+let opencvPromise: Promise<void> | null = null;
 
-// エッジ検出
-function detectEdges(imageData: ImageData): Uint8ClampedArray {
-  const { data, width, height } = imageData;
-  const edges = new Uint8ClampedArray(data.length);
-  
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = (y * width + x) * 4;
-      
-      // Sobelフィルタ
-      const gx = 
-        data[idx - 4 - width * 4] + 2 * data[idx - width * 4] + data[idx + 4 - width * 4] -
-        data[idx - 4 + width * 4] - 2 * data[idx + width * 4] - data[idx + 4 + width * 4];
-      
-      const gy = 
-        data[idx - 4 - width * 4] + 2 * data[idx - 4] + data[idx - 4 + width * 4] -
-        data[idx + 4 - width * 4] - 2 * data[idx + 4] - data[idx + 4 + width * 4];
-      
-      const magnitude = Math.sqrt(gx * gx + gy * gy);
-      const edgeValue = Math.min(255, magnitude);
-      
-      edges[idx] = edgeValue;
-      edges[idx + 1] = edgeValue;
-      edges[idx + 2] = edgeValue;
-      edges[idx + 3] = 255;
-    }
+function loadOpenCV(): Promise<void> {
+  if (opencvLoaded) {
+    return Promise.resolve();
   }
   
-  return edges;
-}
-
-// エッジ解析によるレシート検出
-function analyzeEdges(edges: Uint8ClampedArray, width: number, height: number): boolean {
-  let edgeCount = 0;
-  const threshold = 50;
-  
-  for (let i = 0; i < edges.length; i += 4) {
-    if (edges[i] > threshold) {
-      edgeCount++;
-    }
+  if (opencvPromise) {
+    return opencvPromise;
   }
-  
-  const edgeRatio = edgeCount / (edges.length / 4);
-  return edgeRatio > 0.01; // エッジ密度が1%以上ならレシートと判定
-}
 
-// レシートの輪郭検出と切り出し
-export async function detectAndCropReceipt(file: File): Promise<{ croppedImage: string; bounds: ReceiptBounds }> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    const img = new Image();
-    
-    img.onload = () => {
-      try {
-        // キャンバスサイズを設定
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        
-        // レシートの境界を検出
-        const bounds = detectReceiptBounds(canvas);
-        
-        // レシート部分を切り出し
-        const croppedCanvas = cropReceipt(canvas, bounds);
-        
-        // 傾き補正
-        const correctedCanvas = correctPerspective(croppedCanvas);
-        
-        // Base64に変換
-        const croppedImage = correctedCanvas.toDataURL('image/jpeg', 0.9);
-        
-        resolve({
-          croppedImage,
-          bounds
-        });
-      } catch (error) {
-        reject(error);
-      }
-    };
-    
-    img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-// レシートの境界検出
-function detectReceiptBounds(canvas: HTMLCanvasElement): ReceiptBounds {
-  const { width, height } = canvas;
-  
-  // 簡易的な境界検出（実際の実装ではより高度なアルゴリズムを使用）
-  const margin = Math.min(width, height) * 0.1;
-  
-  return {
-    x: margin,
-    y: margin,
-    width: width - margin * 2,
-    height: height - margin * 2,
-    angle: 0
-  };
-}
-
-// レシート部分の切り出し
-function cropReceipt(canvas: HTMLCanvasElement, bounds: ReceiptBounds): HTMLCanvasElement {
-  const croppedCanvas = document.createElement('canvas');
-  const ctx = croppedCanvas.getContext('2d')!;
-  
-  croppedCanvas.width = bounds.width;
-  croppedCanvas.height = bounds.height;
-  
-  ctx.drawImage(
-    canvas,
-    bounds.x, bounds.y, bounds.width, bounds.height,
-    0, 0, bounds.width, bounds.height
-  );
-  
-  return croppedCanvas;
-}
-
-// 透視変換による傾き補正
-function correctPerspective(canvas: HTMLCanvasElement): HTMLCanvasElement {
-  const correctedCanvas = document.createElement('canvas');
-  const ctx = correctedCanvas.getContext('2d')!;
-  
-  const { width, height } = canvas;
-  correctedCanvas.width = width;
-  correctedCanvas.height = height;
-  
-  // 簡易的な補正（実際の実装ではより高度なアルゴリズムを使用）
-  ctx.drawImage(canvas, 0, 0);
-  
-  return correctedCanvas;
-}
-
-// 画像の前処理（OCR最適化）
-export async function preprocessImageForOCR(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    const img = new Image();
-    
-    img.onload = () => {
-      try {
-        // キャンバスサイズを設定（最大1200pxに制限）
-        const maxSize = 1200;
-        let { width, height } = img;
-        
-        if (width > maxSize || height > maxSize) {
-          const ratio = Math.min(maxSize / width, maxSize / height);
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
+  opencvPromise = new Promise((resolve, reject) => {
+    // OpenCV.jsの動的読み込み
+    const script = document.createElement('script');
+    script.src = 'https://docs.opencv.org/4.8.0/opencv.js';
+    script.async = true;
+    script.onload = () => {
+      // OpenCVが読み込まれるまで待機
+      const checkOpenCV = () => {
+        if (typeof (window as any).cv !== 'undefined') {
+          opencvLoaded = true;
+          resolve();
+        } else {
+          setTimeout(checkOpenCV, 100);
         }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        // 画像を描画
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // グレースケール化
-        const imageData = ctx.getImageData(0, 0, width, height);
-        const data = imageData.data;
-        
-        for (let i = 0; i < data.length; i += 4) {
-          const gray = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-          data[i] = gray;     // R
-          data[i + 1] = gray; // G
-          data[i + 2] = gray; // B
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
-        
-        // コントラスト強化
-        ctx.filter = 'contrast(1.2) brightness(1.02)';
-        ctx.drawImage(canvas, 0, 0);
-        ctx.filter = 'none';
-        
-        // Base64に変換
-        const processedImage = canvas.toDataURL('image/jpeg', 0.9);
-        resolve(processedImage);
-      } catch (error) {
-        reject(error);
-      }
+      };
+      checkOpenCV();
     };
-    
-    img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
-    img.src = URL.createObjectURL(file);
+    script.onerror = () => {
+      reject(new Error('OpenCV.jsの読み込みに失敗しました'));
+    };
+    document.head.appendChild(script);
   });
+
+  return opencvPromise;
 }
 
-// レシート認識のプレビュー生成
-export async function generateReceiptPreview(file: File): Promise<string> {
+/**
+ * レシート領域を検出して自動トリミング
+ */
+export async function detectAndCropReceipt(file: File): Promise<ReceiptDetectionResult> {
   try {
-    const { croppedImage } = await detectAndCropReceipt(file);
-    return croppedImage;
+    await loadOpenCV();
+    const cv = (window as any).cv;
+
+    // 画像を読み込み
+    const image = await loadImage(file);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    
+    // 画像サイズを制限（処理速度向上のため）
+    const maxSize = 1200;
+    let { width, height } = image;
+    
+    if (width > maxSize || height > maxSize) {
+      const ratio = Math.min(maxSize / width, maxSize / height);
+      width = Math.floor(width * ratio);
+      height = Math.floor(height * ratio);
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(image, 0, 0, width, height);
+
+    // OpenCV用のMatを作成
+    const src = cv.imread(canvas);
+    const gray = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+
+    // ノイズ除去
+    const blurred = new cv.Mat();
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+
+    // エッジ検出
+    const edges = new cv.Mat();
+    cv.Canny(blurred, edges, 50, 150);
+
+    // 輪郭検出
+    const contours = new cv.MatVector();
+    const hierarchy = new cv.Mat();
+    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    // 最大の輪郭を探す（レシートの境界と仮定）
+    let maxArea = 0;
+    let bestContour = null;
+
+    for (let i = 0; i < contours.size(); i++) {
+      const contour = contours.get(i);
+      const area = cv.contourArea(contour);
+      
+      if (area > maxArea && area > width * height * 0.1) { // 最小面積の閾値
+        maxArea = area;
+        bestContour = contour;
+      }
+    }
+
+    if (!bestContour) {
+      // 輪郭が見つからない場合は元画像を返す
+      src.delete();
+      gray.delete();
+      blurred.delete();
+      edges.delete();
+      contours.delete();
+      hierarchy.delete();
+      
+      return {
+        success: false,
+        originalImage: canvas,
+        error: 'レシートの境界を検出できませんでした'
+      };
+    }
+
+    // 輪郭を近似して四角形を取得
+    const epsilon = 0.02 * cv.arcLength(bestContour, true);
+    const approx = new cv.Mat();
+    cv.approxPolyDP(bestContour, approx, epsilon, true);
+
+    // 4つの頂点を持つ四角形かチェック
+    if (approx.rows !== 4) {
+      src.delete();
+      gray.delete();
+      blurred.delete();
+      edges.delete();
+      contours.delete();
+      hierarchy.delete();
+      approx.delete();
+      
+      return {
+        success: false,
+        originalImage: canvas,
+        error: 'レシートの形状を検出できませんでした'
+      };
+    }
+
+    // 頂点を時計回りにソート
+    const points = [];
+    for (let i = 0; i < 4; i++) {
+      points.push({
+        x: approx.data32S[i * 2],
+        y: approx.data32S[i * 2 + 1]
+      });
+    }
+
+    // 左上、右上、右下、左下の順にソート
+    points.sort((a, b) => {
+      if (a.y !== b.y) return a.y - b.y;
+      return a.x - b.x;
+    });
+
+    // 左上と右上を比較して、より左側を左上に
+    if (points[0].x > points[1].x) {
+      [points[0], points[1]] = [points[1], points[0]];
+    }
+
+    // 左下と右下を比較して、より左側を左下に
+    if (points[2].x > points[3].x) {
+      [points[2], points[3]] = [points[3], points[2]];
+    }
+
+    // 透視変換のための変換行列を計算
+    const srcPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
+      points[0].x, points[0].y,
+      points[1].x, points[1].y,
+      points[2].x, points[2].y,
+      points[3].x, points[3].y
+    ]);
+
+    // 出力サイズを計算
+    const width1 = Math.sqrt(Math.pow(points[1].x - points[0].x, 2) + Math.pow(points[1].y - points[0].y, 2));
+    const width2 = Math.sqrt(Math.pow(points[3].x - points[2].x, 2) + Math.pow(points[3].y - points[2].y, 2));
+    const height1 = Math.sqrt(Math.pow(points[2].x - points[0].x, 2) + Math.pow(points[2].y - points[0].y, 2));
+    const height2 = Math.sqrt(Math.pow(points[3].x - points[1].x, 2) + Math.pow(points[3].y - points[1].y, 2));
+
+    const maxWidth = Math.max(width1, width2);
+    const maxHeight = Math.max(height1, height2);
+
+    const dstPoints = cv.matFromArray(4, 1, cv.CV_32FC2, [
+      0, 0,
+      maxWidth, 0,
+      0, maxHeight,
+      maxWidth, maxHeight
+    ]);
+
+    // 透視変換行列を計算
+    const transformMatrix = cv.getPerspectiveTransform(srcPoints, dstPoints);
+
+    // 透視変換を実行
+    const warped = new cv.Mat();
+    cv.warpPerspective(src, warped, transformMatrix, new cv.Size(maxWidth, maxHeight));
+
+    // 結果をキャンバスに描画
+    const resultCanvas = document.createElement('canvas');
+    resultCanvas.width = maxWidth;
+    resultCanvas.height = maxHeight;
+    cv.imshow(resultCanvas, warped);
+
+    // メモリ解放
+    src.delete();
+    gray.delete();
+    blurred.delete();
+    edges.delete();
+    contours.delete();
+    hierarchy.delete();
+    approx.delete();
+    srcPoints.delete();
+    dstPoints.delete();
+    transformMatrix.delete();
+    warped.delete();
+
+    return {
+      success: true,
+      croppedImage: resultCanvas,
+      originalImage: canvas
+    };
+
   } catch (error) {
-    console.error('レシートプレビュー生成エラー:', error);
+    console.error('レシート検出エラー:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'レシート検出に失敗しました'
+    };
+  }
+}
+
+/**
+ * 画像ファイルをImageオブジェクトに読み込み
+ */
+function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/**
+ * 画像の前処理（グレースケール化・コントラスト調整）
+ */
+export async function preprocessImageForOCR(file: File): Promise<HTMLCanvasElement> {
+  try {
+    await loadOpenCV();
+    const cv = (window as any).cv;
+
+    const image = await loadImage(file);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    
+    // 画像サイズを制限
+    const maxSize = 1200;
+    let { width, height } = image;
+    
+    if (width > maxSize || height > maxSize) {
+      const ratio = Math.min(maxSize / width, maxSize / height);
+      width = Math.floor(width * ratio);
+      height = Math.floor(height * ratio);
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(image, 0, 0, width, height);
+
+    // OpenCV用のMatを作成
+    const src = cv.imread(canvas);
+    const gray = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+
+    // ノイズ除去
+    const denoised = new cv.Mat();
+    cv.medianBlur(gray, denoised, 3);
+
+    // コントラスト強化
+    const enhanced = new cv.Mat();
+    cv.convertScaleAbs(denoised, enhanced, 1.2, 10);
+
+    // 二値化
+    const binary = new cv.Mat();
+    cv.adaptiveThreshold(enhanced, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2);
+
+    // 結果をキャンバスに描画
+    const resultCanvas = document.createElement('canvas');
+    resultCanvas.width = width;
+    resultCanvas.height = height;
+    cv.imshow(resultCanvas, binary);
+
+    // メモリ解放
+    src.delete();
+    gray.delete();
+    denoised.delete();
+    enhanced.delete();
+    binary.delete();
+
+    return resultCanvas;
+
+  } catch (error) {
+    console.error('画像前処理エラー:', error);
     // エラー時は元画像を返す
-    return URL.createObjectURL(file);
+    const image = await loadImage(file);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = image.width;
+    canvas.height = image.height;
+    ctx.drawImage(image, 0, 0);
+    return canvas;
   }
 } 
