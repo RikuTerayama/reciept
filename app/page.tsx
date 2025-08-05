@@ -681,7 +681,6 @@ export default function Home() {
               <div className="max-w-2xl mx-auto">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold mb-4 text-white">{t('welcome.title', currentLanguage, 'Welcome')}</h2>
-                  <p className="text-lg text-surface-400">{t('welcome.subtitle', currentLanguage, 'Expenscan')}</p>
                 </div>
                 
                 <div className="bg-surface-800 rounded-lg p-8 border border-surface-700 mx-auto">
