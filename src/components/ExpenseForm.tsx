@@ -80,7 +80,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
       }));
     } catch (error) {
       console.error('Currency conversion error:', error);
-      setErrors(prev => ({ ...prev, currency: '通貨換算に失敗しました' }));
+      setErrors(prev => ({ ...prev, currency: currentLanguage === 'en' ? 'Currency conversion failed' : '通貨換算に失敗しました' }));
     } finally {
       setIsConverting(false);
     }
@@ -110,23 +110,23 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     const newErrors: Record<string, string> = {};
 
     if (!formData.receiptDate) {
-      newErrors.receiptDate = '領収書日付を入力してください';
+      newErrors.receiptDate = t('dataInput.validation.required', currentLanguage, '領収書日付を入力してください');
     }
 
     if (!formData.totalAmount || formData.totalAmount <= 0) {
-      newErrors.totalAmount = '有効な金額を入力してください';
+      newErrors.totalAmount = t('dataInput.validation.invalidAmount', currentLanguage, '有効な金額を入力してください');
     }
 
     if (!formData.category) {
-      newErrors.category = 'カテゴリを選択してください';
+      newErrors.category = t('dataInput.validation.required', currentLanguage, 'カテゴリを選択してください');
     }
 
     if (!formData.description) {
-      newErrors.description = '説明を入力してください';
+      newErrors.description = t('dataInput.validation.required', currentLanguage, '説明を入力してください');
     }
 
     if (formData.taxRate < 0 || formData.taxRate > 100) {
-      newErrors.taxRate = '税率は0-100の範囲で入力してください';
+      newErrors.taxRate = t('dataInput.validation.invalidTaxRate', currentLanguage, '税率は0-100の範囲で入力してください');
     }
 
     setErrors(newErrors);
@@ -157,7 +157,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
       await onSave(expenseData);
     } catch (error: any) {
       console.error('Save error:', error);
-      setErrors(prev => ({ ...prev, general: error.message || '保存に失敗しました' }));
+      setErrors(prev => ({ ...prev, general: error.message || (currentLanguage === 'en' ? 'Save failed' : '保存に失敗しました') }));
     } finally {
       setIsLoading(false);
     }
@@ -177,7 +177,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* 領収書日付 */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              領収書日付 *
+              {t('dataInput.receiptDate', currentLanguage, '領収書日付')} *
             </label>
             <input
               type="date"
@@ -196,7 +196,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* 金額 */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              金額 *
+              {t('dataInput.amount', currentLanguage, '金額')} *
             </label>
             <div className="relative">
               <input
@@ -225,7 +225,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* 通貨 */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              通貨 *
+              {t('dataInput.currency', currentLanguage, '通貨')} *
             </label>
             <select
               name="currency"
@@ -251,7 +251,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* カテゴリ */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              カテゴリ *
+              {t('dataInput.category', currentLanguage, 'カテゴリ')} *
             </label>
             <select
               name="category"
@@ -277,7 +277,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         {/* 説明 */}
         <div>
           <label className="block text-sm font-medium mb-2 text-surface-300">
-            説明 *
+            {t('dataInput.descriptionField', currentLanguage, '説明')} *
           </label>
           <input
             type="text"
@@ -289,7 +289,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             className={`w-full px-4 py-3 bg-surface-700 border rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
               errors.description ? 'border-red-500' : 'border-surface-600'
             }`}
-            placeholder="経費の詳細を入力"
+            placeholder={t('dataInput.descriptionPlaceholder', currentLanguage, '経費の詳細を入力')}
           />
           {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description}</p>}
         </div>
@@ -298,7 +298,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* 税率 */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              税率 (%)
+              {t('dataInput.taxRate', currentLanguage, '税率')} (%)
             </label>
             <input
               type="number"
@@ -320,7 +320,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* クライアント参加人数 */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              クライアント参加人数
+              {t('dataInput.participantFromClient', currentLanguage, 'クライアント参加人数')}
             </label>
             <input
               type="number"
@@ -337,7 +337,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* 会社参加人数 */}
           <div>
             <label className="block text-sm font-medium mb-2 text-surface-300">
-              会社参加人数
+              {t('dataInput.participantFromCompany', currentLanguage, '会社参加人数')}
             </label>
             <input
               type="number"
@@ -371,7 +371,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         {/* 適格区分 */}
         <div>
           <label className="block text-sm font-medium mb-2 text-surface-300">
-            適格区分
+            {t('dataInput.isQualified', currentLanguage, '適格区分')}
           </label>
           <select
             name="isQualified"
@@ -432,9 +432,9 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               <span className="text-blue-400">
                 {formData.originalAmount} {formData.originalCurrency} = {formData.convertedAmount} {formData.baseCurrency}
               </span>
-              <span className="text-blue-300">
-                レート: {formData.conversionRate}
-              </span>
+                          <span className="text-blue-300">
+              Rate: {formData.conversionRate}
+            </span>
             </div>
           </div>
         )}
@@ -443,7 +443,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         {ratesError && (
           <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4">
             <p className="text-yellow-400 text-sm">
-              為替レートの取得に失敗しました。固定レートを使用します。
+              {currentLanguage === 'en' ? 'Failed to fetch exchange rates. Using fixed rates.' : '為替レートの取得に失敗しました。固定レートを使用します。'}
             </p>
           </div>
         )}
@@ -463,7 +463,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onClick={onCancel}
               className="flex-1 px-6 py-3 bg-surface-700 text-surface-300 rounded-lg hover:bg-surface-600 transition-colors duration-200 font-medium"
             >
-              キャンセル
+              {t('dataInput.cancel', currentLanguage, 'キャンセル')}
             </button>
           )}
           <button
@@ -471,7 +471,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             disabled={isLoading || ratesLoading}
             className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? '保存中...' : '保存'}
+            {isLoading ? t('dataInput.saving', currentLanguage, '保存中...') : t('dataInput.save', currentLanguage, '保存')}
           </button>
         </div>
       </form>
