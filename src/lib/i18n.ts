@@ -68,6 +68,29 @@ export interface Translations {
     title: string;
     subtitle: string;
     description: string;
+    officeSelection: string;
+    offices: {
+      singapore: string;
+      japan: string;
+      shanghai: string;
+      hongkong: string;
+      taiwan: string;
+      indonesiaJakarta: string;
+      indonesiaSurabaya: string;
+      malaysia: string;
+      philippines: string;
+      thailand: string;
+      vietnam: string;
+      indiaBangalore: string;
+      indiaGurgaon: string;
+      indiaMumbai: string;
+      indiaNewDelhi: string;
+      uae: string;
+      canada: string;
+      usaNewYork: string;
+      netherlands: string;
+      france: string;
+    };
   };
 
   // 画像アップロード
@@ -389,6 +412,29 @@ const translations: Record<Language, Translations> = {
       title: 'Welcome',
       subtitle: 'Expenscan',
       description: 'OCR技術による自動抽出・管理',
+      officeSelection: 'オフィス選択',
+      offices: {
+        singapore: 'シンガポール',
+        japan: '日本',
+        shanghai: '上海',
+        hongkong: '香港',
+        taiwan: '台湾',
+        indonesiaJakarta: 'インドネシア - ジャカルタ',
+        indonesiaSurabaya: 'インドネシア - スラバヤ',
+        malaysia: 'マレーシア',
+        philippines: 'フィリピン',
+        thailand: 'タイ',
+        vietnam: 'ベトナム',
+        indiaBangalore: 'インド - バンガロール',
+        indiaGurgaon: 'インド - グルガオン',
+        indiaMumbai: 'インド - ムンバイ',
+        indiaNewDelhi: 'インド - ニューデリー',
+        uae: 'アラブ首長国連邦',
+        canada: 'カナダ',
+        usaNewYork: 'アメリカ合衆国 - ニューヨーク',
+        netherlands: 'オランダ',
+        france: 'フランス',
+      },
     },
     imageUpload: {
       title: 'レシート画像をアップロード',
@@ -680,6 +726,29 @@ const translations: Record<Language, Translations> = {
       title: 'Welcome',
       subtitle: 'Expenscan',
       description: 'Automatic extraction and management with OCR technology',
+      officeSelection: 'Office Selection',
+      offices: {
+        singapore: 'Singapore',
+        japan: 'Japan',
+        shanghai: 'Shanghai',
+        hongkong: 'Hong Kong',
+        taiwan: 'Taiwan',
+        indonesiaJakarta: 'Indonesia - Jakarta',
+        indonesiaSurabaya: 'Indonesia - Surabaya',
+        malaysia: 'Malaysia',
+        philippines: 'Philippines',
+        thailand: 'Thailand',
+        vietnam: 'Vietnam',
+        indiaBangalore: 'India - Bangalore',
+        indiaGurgaon: 'India - Gurgaon',
+        indiaMumbai: 'India - Mumbai',
+        indiaNewDelhi: 'India - New Delhi',
+        uae: 'United Arab Emirates',
+        canada: 'Canada',
+        usaNewYork: 'United States - New York',
+        netherlands: 'Netherlands',
+        france: 'France',
+      },
     },
     imageUpload: {
       title: 'Upload Receipt Image',
