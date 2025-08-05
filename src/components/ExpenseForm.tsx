@@ -355,7 +355,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         {/* Company Name */}
         <div>
           <label className="block text-sm font-medium mb-2 text-surface-300">
-            Company Name
+            {t('dataInput.companyName', currentLanguage, '会社名')}
           </label>
           <input
             type="text"
@@ -364,7 +364,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-            placeholder="Company Name"
+            placeholder={t('dataInput.companyNamePlaceholder', currentLanguage, '会社名を入力してください')}
           />
         </div>
 
