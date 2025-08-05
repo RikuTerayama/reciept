@@ -92,8 +92,8 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
           <div className="space-y-4">
             <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto" />
             <div>
-              <p className="text-lg font-medium text-white">{processingStep}</p>
-              <p className="text-sm text-surface-400 mt-2">
+              <p className="text-lg md:text-lg text-base font-medium text-white">{processingStep}</p>
+              <p className="text-sm md:text-sm text-xs text-surface-400 mt-2">
                 {t('imageUpload.processing', currentLanguage, '処理中です。しばらくお待ちください...')}
               </p>
             </div>
@@ -110,10 +110,10 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             </div>
             
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl md:text-xl text-lg font-semibold text-white mb-2">
                 {t('imageUpload.title', currentLanguage, 'レシート画像をアップロード')}
               </h3>
-              <p className="text-surface-400 mb-4">
+              <p className="text-surface-400 mb-4 text-sm md:text-base leading-relaxed">
                 {t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}
               </p>
               
@@ -124,22 +124,22 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
                     e.stopPropagation();
                     handleCameraCapture();
                   }}
-                  className="px-6 py-3 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2"
+                  className="px-6 py-3 md:px-6 md:py-3 px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 text-sm md:text-base"
                 >
                   <Camera className="w-5 h-5" />
                   <span>{t('imageUpload.cameraCapture', currentLanguage, 'カメラで撮影')}</span>
                 </button>
                 
-                <button className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2">
+                <button className="px-6 py-3 md:px-6 md:py-3 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 text-sm md:text-base">
                   <Upload className="w-5 h-5" />
                   <span>{t('imageUpload.selectImage', currentLanguage, '画像を選択')}</span>
                 </button>
               </div>
             </div>
             
-            <div className="text-sm text-surface-400">
+            <div className="text-sm md:text-sm text-xs text-surface-400">
               <p className="font-medium mb-2">{t('imageUpload.supportedFormats', currentLanguage, 'サポートされている形式')}</p>
-              <p>{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
+              <p className="leading-relaxed">{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
             </div>
           </div>
         )}
@@ -150,8 +150,8 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center space-x-3">
           <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
           <div>
-            <p className="text-red-400 font-medium">{t('imageUpload.error', currentLanguage, 'エラーが発生しました')}</p>
-            <p className="text-red-300 text-sm">{error}</p>
+            <p className="text-red-400 font-medium text-sm md:text-base">{t('imageUpload.error', currentLanguage, 'エラーが発生しました')}</p>
+            <p className="text-red-300 text-xs md:text-sm">{error}</p>
           </div>
         </div>
       )}
@@ -160,12 +160,12 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       {previewImage && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-lg font-semibold text-white">
+            <h4 className="text-lg md:text-lg text-base font-semibold text-white">
               {t('imageUpload.uploadComplete', currentLanguage, 'アップロード完了')}
             </h4>
             <div className="flex items-center space-x-2 text-green-400">
               <CheckCircle className="w-5 h-5" />
-              <span className="text-sm">{t('imageUpload.processingComplete', currentLanguage, '処理完了')}</span>
+              <span className="text-xs md:text-sm">{t('imageUpload.processingComplete', currentLanguage, '処理完了')}</span>
             </div>
           </div>
           
