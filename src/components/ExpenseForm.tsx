@@ -171,12 +171,12 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6">
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* 領収書日付 */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.receiptDate', currentLanguage, '領収書日付')} *
             </label>
             <input
@@ -186,16 +186,16 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               required
-              className={`w-full px-4 py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+              className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                 errors.receiptDate ? 'border-red-500' : 'border-surface-600'
               }`}
             />
-            {errors.receiptDate && <p className="text-red-400 text-sm mt-1">{errors.receiptDate}</p>}
+            {errors.receiptDate && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.receiptDate}</p>}
           </div>
 
           {/* 金額 */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.amount', currentLanguage, '金額')} *
             </label>
             <div className="relative">
@@ -208,7 +208,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
                 required
                 step="0.01"
                 min="0"
-                className={`w-full px-4 py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                   errors.totalAmount ? 'border-red-500' : 'border-surface-600'
                 }`}
                 placeholder="0.00"
@@ -219,12 +219,12 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
                 </div>
               )}
             </div>
-            {errors.totalAmount && <p className="text-red-400 text-sm mt-1">{errors.totalAmount}</p>}
+            {errors.totalAmount && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.totalAmount}</p>}
           </div>
 
           {/* 通貨 */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.currency', currentLanguage, '通貨')} *
             </label>
             <select
@@ -232,7 +232,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               value={formData.currency}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             >
               <option value="JPY">日本円（JPY）</option>
               <option value="USD">米ドル（USD）</option>
@@ -245,12 +245,12 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               <option value="CAD">カナダドル（CAD）</option>
               <option value="CHF">スイスフラン（CHF）</option>
             </select>
-            {errors.currency && <p className="text-red-400 text-sm mt-1">{errors.currency}</p>}
+            {errors.currency && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.currency}</p>}
           </div>
 
           {/* カテゴリ */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.category', currentLanguage, 'カテゴリ')} *
             </label>
             <select
@@ -259,7 +259,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               required
-              className={`w-full px-4 py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+              className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                 errors.category ? 'border-red-500' : 'border-surface-600'
               }`}
             >
@@ -270,13 +270,13 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
                 </option>
               ))}
             </select>
-            {errors.category && <p className="text-red-400 text-sm mt-1">{errors.category}</p>}
+            {errors.category && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.category}</p>}
           </div>
         </div>
 
         {/* 説明 */}
         <div>
-          <label className="block text-sm font-medium mb-2 text-surface-300">
+          <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
             {t('dataInput.descriptionField', currentLanguage, '説明')} *
           </label>
           <input
@@ -286,18 +286,18 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             required
-            className={`w-full px-4 py-3 bg-surface-700 border rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+            className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
               errors.description ? 'border-red-500' : 'border-surface-600'
             }`}
             placeholder={t('dataInput.descriptionPlaceholder', currentLanguage, '経費の詳細を入力')}
           />
-          {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description}</p>}
+          {errors.description && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.description}</p>}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* 税率 */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.taxRate', currentLanguage, '税率')} (%)
             </label>
             <input
@@ -309,17 +309,17 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               min="0"
               max="100"
               step="0.1"
-              className={`w-full px-4 py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+              className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                 errors.taxRate ? 'border-red-500' : 'border-surface-600'
               }`}
               placeholder="10.0"
             />
-            {errors.taxRate && <p className="text-red-400 text-sm mt-1">{errors.taxRate}</p>}
+            {errors.taxRate && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.taxRate}</p>}
           </div>
 
           {/* クライアント参加人数 */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.participantFromClient', currentLanguage, 'クライアント参加人数')}
             </label>
             <input
@@ -329,14 +329,14 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               min="0"
-              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
               placeholder="0"
             />
           </div>
 
           {/* 会社参加人数 */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.participantFromCompany', currentLanguage, '会社参加人数')}
             </label>
             <input
@@ -346,7 +346,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               min="0"
-              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
               placeholder="0"
             />
           </div>
@@ -354,7 +354,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
 
         {/* Company Name */}
         <div>
-          <label className="block text-sm font-medium mb-2 text-surface-300">
+          <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
             {t('dataInput.companyName', currentLanguage, '会社名')}
           </label>
           <input
@@ -363,14 +363,14 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             value={formData.companyName}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             placeholder={t('dataInput.companyNamePlaceholder', currentLanguage, '会社名を入力してください')}
           />
         </div>
 
         {/* 適格区分 */}
         <div>
-          <label className="block text-sm font-medium mb-2 text-surface-300">
+          <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
             {t('dataInput.isQualified', currentLanguage, '適格区分')}
           </label>
           <select
@@ -378,7 +378,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             value={formData.isQualified}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
           >
             {QUALIFICATION_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -389,10 +389,10 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         </div>
 
         {/* 新しい項目 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Recharged to client? */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('expenseForm.rechargedToClient', currentLanguage, 'クライアント請求有無')}
             </label>
             <select
@@ -400,7 +400,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               value={formData.rechargedToClient}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             >
               <option value="N">N</option>
               <option value="Y">Y</option>
@@ -409,7 +409,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
 
           {/* GST/VAT applicable */}
           <div>
-            <label className="block text-sm font-medium mb-2 text-surface-300">
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('expenseForm.gstVatApplicable', currentLanguage, 'GST/VAT適用有無')}
             </label>
             <select
@@ -417,7 +417,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               value={formData.gstVatApplicable}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             >
               <option value="N">N</option>
               <option value="Y">Y</option>
@@ -425,16 +425,16 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           </div>
         </div>
 
-        {/* 通貨換算情報表示 */}
+                {/* 通貨換算情報表示 */}
         {formData.currency !== baseCurrency && formData.convertedAmount > 0 && (
           <div className="bg-blue-500/10 border border-blue-500 rounded-lg p-4">
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs md:text-sm">
               <span className="text-blue-400">
                 {formData.originalAmount} {formData.originalCurrency} = {formData.convertedAmount} {formData.baseCurrency}
               </span>
-                          <span className="text-blue-300">
-              Rate: {formData.conversionRate}
-            </span>
+              <span className="text-blue-300">
+                Rate: {formData.conversionRate}
+              </span>
             </div>
           </div>
         )}
@@ -442,7 +442,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         {/* 為替レートエラー */}
         {ratesError && (
           <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4">
-            <p className="text-yellow-400 text-sm">
+            <p className="text-yellow-400 text-xs md:text-sm">
               {currentLanguage === 'en' ? 'Failed to fetch exchange rates. Using fixed rates.' : '為替レートの取得に失敗しました。固定レートを使用します。'}
             </p>
           </div>
@@ -451,17 +451,17 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         {/* 一般エラー */}
         {errors.general && (
           <div className="bg-red-500/10 border border-red-500 rounded-lg p-4">
-            <p className="text-red-400 text-sm">{errors.general}</p>
+            <p className="text-red-400 text-xs md:text-sm">{errors.general}</p>
           </div>
         )}
 
         {/* ボタン */}
-        <div className="flex space-x-4 pt-6">
+        <div className="flex space-x-4 pt-4 md:pt-6">
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-6 py-3 bg-surface-700 text-surface-300 rounded-lg hover:bg-surface-600 transition-colors duration-200 font-medium"
+              className="flex-1 px-4 py-2 md:px-6 md:py-3 bg-surface-700 text-surface-300 rounded-lg hover:bg-surface-600 transition-colors duration-200 font-medium text-sm md:text-base"
             >
               {t('dataInput.cancel', currentLanguage, 'キャンセル')}
             </button>
@@ -469,7 +469,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           <button
             type="submit"
             disabled={isLoading || ratesLoading}
-            className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 md:px-6 md:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
           >
             {isLoading ? t('dataInput.saving', currentLanguage, '保存中...') : t('dataInput.save', currentLanguage, '保存')}
           </button>
