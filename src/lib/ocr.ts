@@ -1,5 +1,6 @@
 import Tesseract from 'tesseract.js';
 import { OCRResult } from '@/types';
+import { preprocessImageForOCR } from './receipt-detection';
 
 // Web Workerを使用したOCR処理
 let ocrWorker: Worker | null = null;
@@ -68,8 +69,11 @@ export async function processImageWithOCR(file: File): Promise<OCRResult> {
 
 export async function extractTextFromImage(file: File): Promise<OCRResult> {
   try {
+    // 画像前処理を実行
+    const preprocessedCanvas = await preprocessImageForOCR(file);
+    
     // Web Workerを使用したOCR処理
-    const text = await processWithWorker(file);
+    const text = await processWithWorker(preprocessedCanvas);
     
     console.log('OCR抽出テキスト:', text);
 
@@ -87,7 +91,7 @@ export async function extractTextFromImage(file: File): Promise<OCRResult> {
 }
 
 // Web Workerを使用したOCR処理
-async function processWithWorker(file: File): Promise<string> {
+async function processWithWorker(canvas: HTMLCanvasElement): Promise<string> {
   return new Promise((resolve, reject) => {
     const worker = getOCRWorker();
     const id = Date.now().toString();
@@ -111,15 +115,21 @@ async function processWithWorker(file: File): Promise<string> {
     };
     
     worker.addEventListener('message', handleMessage);
-    worker.postMessage({ file, id });
+    
+    // キャンバスをBlobに変換してWorkerに送信
+    canvas.toBlob((blob) => {
+      if (blob) {
+        worker.postMessage({ blob, id });
+      } else {
+        reject(new Error('キャンバスの変換に失敗しました'));
+      }
+    }, 'image/jpeg', 0.9);
   });
 }
 
 // 最適化された同期処理（フォールバック用）
-async function processWithTesseract(file: File): Promise<string> {
-  const preprocessedCanvas = await preprocessImage(file);
-  
-  const result = await Tesseract.recognize(preprocessedCanvas, 'jpn+eng', {
+async function processWithTesseract(canvas: HTMLCanvasElement): Promise<string> {
+  const result = await Tesseract.recognize(canvas, 'jpn+eng', {
     logger: (m: any) => console.log(m),
     tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン年月日時分秒円¥￥,./\\-:：',
     tessedit_pageseg_mode: (Tesseract as any).PSM.SINGLE_BLOCK,
