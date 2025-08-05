@@ -57,21 +57,21 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* 設定セクション */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-gray-800 rounded-lg p-4 md:p-6">
         {!hideTitle && (
-          <h3 className="text-lg font-semibold mb-4 text-center">{t('budgetOptimizer.title', currentLanguage, '予算最適化')}</h3>
+          <h3 className="text-base md:text-lg font-semibold mb-4 text-center">{t('budgetOptimizer.title', currentLanguage, '予算最適化')}</h3>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2 text-center">{t('budgetOptimizer.targetBudget', currentLanguage, '目標予算')}</label>
+            <label className="block text-xs md:text-sm font-medium mb-2 text-center">{t('budgetOptimizer.targetBudget', currentLanguage, '目標予算')}</label>
             <input
               type="number"
               value={targetBudget}
               onChange={(e) => setTargetBudget(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center text-sm"
               min="0"
               step="1000"
             />
@@ -81,26 +81,26 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
             <button
               onClick={handleOptimize}
               disabled={isOptimizing || expenses.length === 0}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
               {isOptimizing ? t('common.loading', currentLanguage, '処理中...') : t('budgetOptimizer.optimize', currentLanguage, '最適化実行')}
             </button>
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-gray-400 text-center">
+        <div className="mt-4 text-xs md:text-sm text-gray-400 text-center">
           {t('budgetOptimizer.availableExpenses', currentLanguage, '利用可能な経費')}: {expenses.length} {t('common.items', currentLanguage, '件')}
         </div>
       </div>
 
       {/* 結果セクション */}
       {optimizationResult && (
-        <div className="bg-gray-800 rounded-lg p-6">
+        <div className="bg-gray-800 rounded-lg p-4 md:p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-center">{t('budgetOptimizer.results', currentLanguage, '最適化結果')}</h3>
+            <h3 className="text-base md:text-lg font-semibold text-center">{t('budgetOptimizer.results', currentLanguage, '最適化結果')}</h3>
             <button
               onClick={handleExport}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="px-3 py-2 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm md:text-base"
             >
               {t('common.export', currentLanguage, 'エクスポート')}
             </button>
@@ -108,40 +108,40 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-gray-700 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-400">
+              <div className="text-xl md:text-2xl font-bold text-blue-400">
                 ¥{optimizationResult.totalAmount.toLocaleString()}
               </div>
-              <div className="text-sm text-gray-400">{t('budgetOptimizer.totalAmount', currentLanguage, '総金額')}</div>
+              <div className="text-xs md:text-sm text-gray-400">{t('budgetOptimizer.totalAmount', currentLanguage, '総金額')}</div>
             </div>
             
             <div className="bg-gray-700 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-xl md:text-2xl font-bold text-green-400">
                 ¥{(targetBudget - optimizationResult.totalAmount).toLocaleString()}
               </div>
-              <div className="text-sm text-gray-400">{t('budgetOptimizer.difference', currentLanguage, '予算差額')}</div>
+              <div className="text-xs md:text-sm text-gray-400">{t('budgetOptimizer.difference', currentLanguage, '予算差額')}</div>
             </div>
             
             <div className="bg-gray-700 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400">
+              <div className="text-xl md:text-2xl font-bold text-purple-400">
                 {optimizationResult.selectedExpenses.length}
               </div>
-              <div className="text-sm text-gray-400">{t('budgetOptimizer.selectedExpenses', currentLanguage, '選択された経費')}</div>
+              <div className="text-xs md:text-sm text-gray-400">{t('budgetOptimizer.selectedExpenses', currentLanguage, '選択された経費')}</div>
             </div>
           </div>
 
           {/* 選択された経費一覧 */}
           <div className="space-y-2">
-            <h4 className="font-medium text-center">{t('budgetOptimizer.selectedExpenses', currentLanguage, '選択された経費')}</h4>
+            <h4 className="font-medium text-center text-sm md:text-base">{t('budgetOptimizer.selectedExpenses', currentLanguage, '選択された経費')}</h4>
             <div className="max-h-64 overflow-y-auto space-y-2">
               {optimizationResult.selectedExpenses.map((expense: any) => (
                 <div key={expense.id} className="bg-gray-700 rounded-lg p-3 flex justify-between items-center">
                   <div className="flex-1 text-left">
-                    <div className="font-medium">{expense.date}</div>
-                    <div className="text-sm text-gray-400">{expense.category}</div>
+                    <div className="font-medium text-sm md:text-base">{expense.date}</div>
+                    <div className="text-xs md:text-sm text-gray-400">{expense.category}</div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="font-medium">¥{expense.totalAmount.toLocaleString()}</div>
-                    <div className="text-sm text-gray-400">{expense.currency}</div>
+                    <div className="font-medium text-sm md:text-base">¥{expense.totalAmount.toLocaleString()}</div>
+                    <div className="text-xs md:text-sm text-gray-400">{expense.currency}</div>
                   </div>
                 </div>
               ))}
@@ -151,22 +151,22 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
       )}
 
       {/* 統計情報 */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4 text-center">{t('statistics.title', currentLanguage, '統計情報')}</h3>
+      <div className="bg-gray-800 rounded-lg p-4 md:p-6">
+        <h3 className="text-base md:text-lg font-semibold mb-4 text-center">{t('statistics.title', currentLanguage, '統計情報')}</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-400">
+            <div className="text-xl md:text-2xl font-bold text-blue-400">
               {expenses.length}
             </div>
-            <div className="text-sm text-gray-400">{t('statistics.registeredExpenses', currentLanguage, '登録済み経費')}</div>
+            <div className="text-xs md:text-sm text-gray-400">{t('statistics.registeredExpenses', currentLanguage, '登録済み経費')}</div>
           </div>
           
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">
+            <div className="text-xl md:text-2xl font-bold text-green-400">
               ¥{expenses.reduce((sum, expense) => sum + expense.totalAmount, 0).toLocaleString()}
             </div>
-            <div className="text-sm text-gray-400">{t('statistics.totalAmount', currentLanguage, '総金額')}</div>
+            <div className="text-xs md:text-sm text-gray-400">{t('statistics.totalAmount', currentLanguage, '総金額')}</div>
           </div>
         </div>
       </div>
