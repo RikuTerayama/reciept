@@ -416,13 +416,20 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* 左: ロゴ */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  // ホームページに戻る処理
+                  window.location.reload();
+                }}
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
+                title="ホームに戻る"
+              >
                 <img 
                   src="/Expenscan_new_logo.png" 
                   alt="Expenscan Logo" 
-                  className="h-8 w-auto object-contain max-w-full"
-                  style={{ maxHeight: '32px' }}
+                  className="h-8 w-auto object-contain max-w-full sm:h-10"
+                  style={{ maxHeight: '40px' }}
                   onError={(e) => {
                     console.error('Logo image failed to load');
                     // フォールバック: テキストロゴ
@@ -436,7 +443,7 @@ export default function Home() {
                     console.log('Logo loaded successfully');
                   }}
                 />
-              </div>
+              </button>
             </div>
 
             {/* 中央: ナビゲーション（デスクトップ） */}
@@ -997,21 +1004,30 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* デスクトップ表示 */}
           <div className="hidden md:flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <img 
-                src="/Expenscan_new_logo.png" 
-                alt="Expenscan Logo" 
-                className="h-6 w-auto object-contain"
-                onError={(e) => {
-                  console.error('Footer logo image failed to load');
-                  // フォールバック: テキストロゴ
-                  e.currentTarget.style.display = 'none';
-                  const textLogo = document.createElement('div');
-                  textLogo.className = 'flex items-center space-x-2';
-                  textLogo.innerHTML = '<span class="text-lg font-bold text-white">Expens</span><span class="text-lg font-bold text-cyan-400">can</span>';
-                  e.currentTarget.parentNode?.appendChild(textLogo);
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  // ホームページに戻る処理
+                  window.location.reload();
                 }}
-              />
+                className="flex items-center hover:opacity-80 transition-opacity duration-200"
+                title="ホームに戻る"
+              >
+                <img 
+                  src="/Expenscan_new_logo.png" 
+                  alt="Expenscan Logo" 
+                  className="h-6 w-auto object-contain"
+                  onError={(e) => {
+                    console.error('Footer logo image failed to load');
+                    // フォールバック: テキストロゴ
+                    e.currentTarget.style.display = 'none';
+                    const textLogo = document.createElement('div');
+                    textLogo.className = 'flex items-center space-x-2';
+                    textLogo.innerHTML = '<span class="text-lg font-bold text-white">Expens</span><span class="text-lg font-bold text-cyan-400">can</span>';
+                    e.currentTarget.parentNode?.appendChild(textLogo);
+                  }}
+                />
+              </button>
               <div className="text-sm text-surface-400">
                 © 2025 Expenscan. All rights reserved. Developed by Riku Terayama
               </div>
@@ -1024,20 +1040,29 @@ export default function Home() {
           {/* モバイル表示 */}
           <div className="md:hidden text-center text-sm text-surface-400 space-y-2 py-2">
             <div className="flex justify-center">
-              <img 
-                src="/Expenscan_new_logo.png" 
-                alt="Expenscan Logo" 
-                className="h-5 w-auto object-contain"
-                onError={(e) => {
-                  console.error('Mobile footer logo image failed to load');
-                  // フォールバック: テキストロゴ
-                  e.currentTarget.style.display = 'none';
-                  const textLogo = document.createElement('div');
-                  textLogo.className = 'flex items-center space-x-2 justify-center';
-                  textLogo.innerHTML = '<span class="text-base font-bold text-white">Expens</span><span class="text-base font-bold text-cyan-400">can</span>';
-                  e.currentTarget.parentNode?.appendChild(textLogo);
+              <button
+                onClick={() => {
+                  // ホームページに戻る処理
+                  window.location.reload();
                 }}
-              />
+                className="flex items-center hover:opacity-80 transition-opacity duration-200"
+                title="ホームに戻る"
+              >
+                <img 
+                  src="/Expenscan_new_logo.png" 
+                  alt="Expenscan Logo" 
+                  className="h-5 w-auto object-contain"
+                  onError={(e) => {
+                    console.error('Mobile footer logo image failed to load');
+                    // フォールバック: テキストロゴ
+                    e.currentTarget.style.display = 'none';
+                    const textLogo = document.createElement('div');
+                    textLogo.className = 'flex items-center space-x-2 justify-center';
+                    textLogo.innerHTML = '<span class="text-base font-bold text-white">Expens</span><span class="text-base font-bold text-cyan-400">can</span>';
+                    e.currentTarget.parentNode?.appendChild(textLogo);
+                  }}
+                />
+              </button>
             </div>
             <div>v{APP_VERSION}</div>
             <div>© 2025 Expenscan. All rights reserved.</div>
