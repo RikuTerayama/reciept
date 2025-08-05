@@ -20,14 +20,25 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
   const [error, setError] = useState('');
   const currentLanguage = getCurrentLanguage();
 
+  // デバッグ用：t関数の状態を確認
+  console.log('AuthForm - currentLanguage:', currentLanguage);
+  console.log('AuthForm - t function:', typeof t);
+  console.log('AuthForm - t function test:', t('common.email', currentLanguage, 'メールアドレス'));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      console.log('AuthForm - Starting authentication process...');
+      console.log('AuthForm - Mode:', mode);
+      console.log('AuthForm - Email:', email);
+      console.log('AuthForm - Current language:', currentLanguage);
+
       if (mode === 'register') {
         // 新規登録
+        console.log('AuthForm - Attempting user registration...');
         const userData = {
           email,
           targetMonth,
@@ -35,15 +46,32 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
           currency: 'JPY'
         };
         
+        console.log('AuthForm - User data:', userData);
         const userInfo = await registerUser(email, password, userData);
+        console.log('AuthForm - Registration successful:', userInfo);
         onSuccess(userInfo);
       } else {
         // ログイン
+        console.log('AuthForm - Attempting user login...');
         const userInfo = await loginUser(email, password);
+        console.log('AuthForm - Login successful:', userInfo);
         onSuccess(userInfo);
       }
     } catch (error: any) {
-      setError(error.message || t('auth.error', currentLanguage, '認証に失敗しました'));
+      console.error('AuthForm - Authentication error:', error);
+      console.error('AuthForm - Error message:', error.message);
+      console.error('AuthForm - Error stack:', error.stack);
+      
+      // エラーメッセージの生成
+      let errorMessage = '認証に失敗しました';
+      try {
+        errorMessage = error.message || t('auth.error', currentLanguage, '認証に失敗しました');
+      } catch (translationError) {
+        console.error('AuthForm - Translation error:', translationError);
+        errorMessage = error.message || '認証に失敗しました';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
