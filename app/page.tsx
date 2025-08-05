@@ -46,7 +46,8 @@ export default function Home() {
   const [formData, setFormData] = useState({
     email: '',
     targetMonth: '',
-    budget: 100000
+    budget: 100000,
+    office: 'japan' // デフォルトで日本を選択
   });
   
   // 認証状態
@@ -85,7 +86,8 @@ export default function Home() {
           setFormData({
             email: parsed.email || '',
             targetMonth: parsed.targetMonth || '',
-            budget: parsed.budget || 100000
+            budget: parsed.budget || 100000,
+            office: parsed.office || 'japan'
           });
         }
         
@@ -129,7 +131,8 @@ export default function Home() {
             setFormData({
               email: userData.email || '',
               targetMonth: userData.targetMonth || '',
-              budget: userData.budget || 100000
+              budget: userData.budget || 100000,
+              office: userData.office || 'japan'
             });
 
             // クラウドデータをローカルストアに反映
@@ -180,7 +183,8 @@ export default function Home() {
         setFormData({
           email: parsed.email || '',
           targetMonth: parsed.targetMonth || '',
-          budget: parsed.budget || 100000
+          budget: parsed.budget || 100000,
+          office: parsed.office || 'japan'
         });
         console.log('Local user data loaded');
       }
@@ -201,7 +205,8 @@ export default function Home() {
           setFormData({
             email: parsed.email || '',
             targetMonth: parsed.targetMonth || '',
-            budget: parsed.budget || 100000
+            budget: parsed.budget || 100000,
+            office: parsed.office || 'japan'
           });
         } catch (error) {
           console.error('Failed to parse storage change:', error);
@@ -219,7 +224,8 @@ export default function Home() {
             setFormData({
               email: userData.settings.email || '',
               targetMonth: userData.settings.targetMonth || '',
-              budget: userData.settings.budget || 100000
+              budget: userData.settings.budget || 100000,
+              office: userData.settings.office || 'japan'
             });
           }
         } catch (error) {
@@ -267,14 +273,15 @@ export default function Home() {
     if (!isClient) return;
     
     if (!formData.email || !formData.targetMonth || formData.budget <= 0) {
-              alert(t('dataInput.validation.required', currentLanguage, 'この項目は必須です'));
+      alert(t('dataInput.validation.required', currentLanguage, 'この項目は必須です'));
       return;
     }
     
     const userData = {
       email: formData.email,
       targetMonth: formData.targetMonth,
-      budget: formData.budget
+      budget: formData.budget,
+      office: formData.office
     };
     
     try {
@@ -288,7 +295,7 @@ export default function Home() {
       }));
     } catch (error) {
       console.error('Failed to save settings:', error);
-              alert(t('common.error', currentLanguage, 'エラーが発生しました'));
+      alert(t('common.error', currentLanguage, 'エラーが発生しました'));
     }
   };
 
@@ -340,7 +347,8 @@ export default function Home() {
         setFormData({
           email: '',
           targetMonth: '',
-          budget: 100000
+          budget: 100000,
+          office: 'japan'
         });
       } catch (error) {
         console.error('Failed to reset data:', error);
@@ -472,7 +480,8 @@ export default function Home() {
                         setFormData({
                           email: '',
                           targetMonth: '',
-                          budget: 100000
+                          budget: 100000,
+                          office: 'japan'
                         });
                         // SWRキャッシュクリア
                         if (typeof window !== 'undefined') {
@@ -670,59 +679,90 @@ export default function Home() {
             ) : (
               // 設定画面
               <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-                                  <h2 className="text-3xl font-bold mb-4 text-white">{t('welcome.title', currentLanguage, 'Welcome')}</h2>
-                <p className="text-lg text-surface-400">{t('welcome.description', currentLanguage, 'OCR技術による自動抽出・管理')}</p>
-            </div>
-            
+                <div className="text-center mb-8">
+                  <h2 className="text-3xl font-bold mb-4 text-white">{t('welcome.title', currentLanguage, 'Welcome')}</h2>
+                  <p className="text-lg text-surface-400">{t('welcome.subtitle', currentLanguage, 'Expenscan')}</p>
+                </div>
+                
                 <div className="bg-surface-800 rounded-lg p-8 border border-surface-700 mx-auto">
                   <h3 className="text-xl font-semibold mb-6 text-center text-white">{t('common.settings', currentLanguage, '設定')}</h3>
               
                   <div className="space-y-6 max-w-md mx-auto">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                    placeholder="example@company.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.targetMonth', currentLanguage, '対象月')} *</label>
-                  <input
-                    type="month"
-                    name="targetMonth"
-                    value={formData.targetMonth}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.budget', currentLanguage, '予算')} *</label>
-                  <input
-                    type="number"
-                    name="budget"
-                    value={formData.budget}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                    placeholder="100000"
-                    min="0"
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                        placeholder="example@company.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.targetMonth', currentLanguage, '対象月')} *</label>
+                      <input
+                        type="month"
+                        name="targetMonth"
+                        value={formData.targetMonth}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.budget', currentLanguage, '予算')} *</label>
+                      <input
+                        type="number"
+                        name="budget"
+                        value={formData.budget}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                        placeholder="100000"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('welcome.officeSelection', currentLanguage, 'オフィス選択')} *</label>
+                      <select
+                        name="office"
+                        value={formData.office}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                      >
+                        <option value="singapore">{t('welcome.offices.singapore', currentLanguage, 'シンガポール')}</option>
+                        <option value="japan">{t('welcome.offices.japan', currentLanguage, '日本')}</option>
+                        <option value="shanghai">{t('welcome.offices.shanghai', currentLanguage, '上海')}</option>
+                        <option value="hongkong">{t('welcome.offices.hongkong', currentLanguage, '香港')}</option>
+                        <option value="taiwan">{t('welcome.offices.taiwan', currentLanguage, '台湾')}</option>
+                        <option value="indonesiaJakarta">{t('welcome.offices.indonesiaJakarta', currentLanguage, 'インドネシア - ジャカルタ')}</option>
+                        <option value="indonesiaSurabaya">{t('welcome.offices.indonesiaSurabaya', currentLanguage, 'インドネシア - スラバヤ')}</option>
+                        <option value="malaysia">{t('welcome.offices.malaysia', currentLanguage, 'マレーシア')}</option>
+                        <option value="philippines">{t('welcome.offices.philippines', currentLanguage, 'フィリピン')}</option>
+                        <option value="thailand">{t('welcome.offices.thailand', currentLanguage, 'タイ')}</option>
+                        <option value="vietnam">{t('welcome.offices.vietnam', currentLanguage, 'ベトナム')}</option>
+                        <option value="indiaBangalore">{t('welcome.offices.indiaBangalore', currentLanguage, 'インド - バンガロール')}</option>
+                        <option value="indiaGurgaon">{t('welcome.offices.indiaGurgaon', currentLanguage, 'インド - グルガオン')}</option>
+                        <option value="indiaMumbai">{t('welcome.offices.indiaMumbai', currentLanguage, 'インド - ムンバイ')}</option>
+                        <option value="indiaNewDelhi">{t('welcome.offices.indiaNewDelhi', currentLanguage, 'インド - ニューデリー')}</option>
+                        <option value="uae">{t('welcome.offices.uae', currentLanguage, 'アラブ首長国連邦')}</option>
+                        <option value="canada">{t('welcome.offices.canada', currentLanguage, 'カナダ')}</option>
+                        <option value="usaNewYork">{t('welcome.offices.usaNewYork', currentLanguage, 'アメリカ合衆国 - ニューヨーク')}</option>
+                        <option value="netherlands">{t('welcome.offices.netherlands', currentLanguage, 'オランダ')}</option>
+                        <option value="france">{t('welcome.offices.france', currentLanguage, 'フランス')}</option>
+                      </select>
+                    </div>
                     <div className="pt-4">
-                <button
-                  type="button"
-                  onClick={handleSaveSettings}
+                      <button
+                        type="button"
+                        onClick={handleSaveSettings}
                         className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium"
-                >
+                      >
                         {t('common.save', currentLanguage, '保存')}
-                </button>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -743,10 +783,11 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
+              <div className="flex-1"></div>
+              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -778,10 +819,11 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-xl font-semibold text-white">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
+              <div className="flex-1"></div>
+              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
               <button
                 onClick={() => setShowBatchUploadModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -807,7 +849,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-xl font-semibold text-white text-center flex-1">経費データ入力</h2>
+              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h2>
               <button
                 onClick={() => setShowDataInputModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
@@ -833,7 +875,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex-1"></div>
-                              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
+              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.expenseList', currentLanguage, '経費リスト')} {expenses.length}{t('common.items', currentLanguage, '件')} {t('expenseList.description', currentLanguage, 'の登録された経費データの一覧と管理')}</h2>
               <button
                 onClick={() => setShowExpenseListModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
@@ -858,10 +900,11 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-xl font-semibold text-white">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
+              <div className="flex-1"></div>
+              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
               <button
                 onClick={() => setShowOptimizerModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
               >
                 <X className="w-5 h-5" />
               </button>
