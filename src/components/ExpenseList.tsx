@@ -141,26 +141,26 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
   const qualifiedCount = allExpenses.filter(exp => exp.isQualified?.includes('Qualified')).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* ヘッダー */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
-          <h2 className="text-2xl font-bold text-white">{t('expenseList.title')}</h2>
-          <p className="text-surface-400">
+          <h2 className="text-xl md:text-2xl font-bold text-white">{t('expenseList.title')}</h2>
+          <p className="text-surface-400 text-sm md:text-base">
             {allExpenses.length}{t('common.items')}の{t('expenseList.description')}
           </p>
         </div>
         
         {/* 統計情報 */}
-        <div className="flex space-x-4 text-sm">
+        <div className="flex space-x-4 text-xs md:text-sm">
           <div className="text-center">
-            <div className="text-lg font-semibold text-white">
+            <div className="text-base md:text-lg font-semibold text-white">
               ¥{totalAmount.toLocaleString()}
             </div>
             <div className="text-surface-400">{t('stats.totalAmount')}</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-semibold text-white">
+            <div className="text-base md:text-lg font-semibold text-white">
               {qualifiedCount}
             </div>
             <div className="text-surface-400">{t('stats.qualifiedExpenses')}</div>
@@ -177,7 +177,7 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
             placeholder={t('expenseList.searchPlaceholder') || '経費を検索...'}
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
           />
         </div>
         
@@ -188,7 +188,7 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
             setSortBy(field);
             setSortOrder(order);
           }}
-          className="px-4 py-2 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="px-3 py-2 md:px-4 md:py-2 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
         >
           <option value="date-desc">{t('expenseList.sort.dateDesc') || '日付（新しい順）'}</option>
           <option value="date-asc">{t('expenseList.sort.dateAsc') || '日付（古い順）'}</option>
@@ -203,7 +203,7 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
       {isLoading && (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="text-surface-400 mt-2">{t('common.loading')}</p>
+          <p className="text-surface-400 mt-2 text-sm md:text-base">{t('common.loading')}</p>
         </div>
       )}
 
@@ -212,11 +212,11 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
         <>
           {paginatedExpenses.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-surface-400 mb-4">
+              <div className="text-surface-400 mb-4 text-sm md:text-base">
                 {searchTerm ? (t('expenseList.noSearchResults') || '検索条件に一致する経費が見つかりません') : (t('expenseList.noExpenses') || '経費データがありません')}
               </div>
               {!searchTerm && (
-                <p className="text-sm text-surface-500">
+                <p className="text-xs md:text-sm text-surface-500">
                   {t('expenseList.addFirstExpense') || '画像アップロードまたは手動入力で経費を追加してください'}
                 </p>
               )}
