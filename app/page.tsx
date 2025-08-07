@@ -956,7 +956,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-white">
-                {authMode === 'login' ? 'ログイン' : '新規登録'}
+                {authMode === 'login' ? t('auth.login', currentLanguage, 'ログイン') : t('auth.register', currentLanguage, '新規登録')}
               </h2>
               <button
                 onClick={() => setShowAuthModal(false)}
@@ -978,7 +978,8 @@ export default function Home() {
                 setFormData({
                   email: userInfo.email || '',
                   targetMonth: userInfo.targetMonth || '',
-                  budget: userInfo.budget || 100000
+                  budget: userInfo.budget || 100000,
+                  office: userInfo.office || 'japan'
                 });
                 setShowAuthModal(false);
               }}
@@ -990,8 +991,8 @@ export default function Home() {
                 className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
               >
                 {authMode === 'login' 
-                  ? 'アカウントをお持ちでない方はこちら' 
-                  : '既にアカウントをお持ちの方はこちら'
+                  ? t('auth.noAccount', currentLanguage, 'アカウントをお持ちでない方はこちら')
+                  : t('auth.hasAccount', currentLanguage, '既にアカウントをお持ちの方はこちら')
                 }
               </button>
             </div>
