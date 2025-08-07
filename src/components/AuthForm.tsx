@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { UserInfo } from '@/types';
 import { registerUser, loginUser } from '@/lib/auth-service';
-import { getCurrentLanguage, t } from '@/lib/i18n';
+import { getCurrentLanguage, t, Language } from '@/lib/i18n';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -20,10 +20,15 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
   const [error, setError] = useState('');
   const currentLanguage = getCurrentLanguage();
 
-  // デバッグ用：t関数の状態を確認
-  console.log('AuthForm - currentLanguage:', currentLanguage);
-  console.log('AuthForm - t function:', typeof t);
-  console.log('AuthForm - t function test:', t('common.email', currentLanguage, 'メールアドレス'));
+  // t関数の安全性を確保
+  const safeT = (key: string, lang: Language = currentLanguage, defaultValue?: string): string => {
+    try {
+      return t(key, lang, defaultValue);
+    } catch (error) {
+      console.warn('Translation error:', error);
+      return defaultValue || key;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +81,7 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
       // エラーメッセージの生成
       let errorMessage = '認証に失敗しました';
       try {
-        errorMessage = error.message || t('auth.error', currentLanguage, '認証に失敗しました');
+        errorMessage = error.message || safeT('auth.error', currentLanguage, '認証に失敗しました');
       } catch (translationError) {
         console.error('AuthForm - Translation error:', translationError);
         errorMessage = error.message || '認証に失敗しました';
@@ -98,7 +103,7 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
       
       <div className="w-full max-w-full">
         <label className="block text-sm font-medium mb-2 text-surface-300">
-          {t('common.email', currentLanguage, 'メールアドレス')}
+          {safeT('common.email', currentLanguage, 'メールアドレス')}
         </label>
         <input
           type="email"
@@ -112,7 +117,7 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
       
       <div className="w-full max-w-full">
         <label className="block text-sm font-medium mb-2 text-surface-300">
-          {t('common.password', currentLanguage, 'パスワード')}
+          {safeT('common.password', currentLanguage, 'パスワード')}
         </label>
         <input
           type="password"
@@ -120,7 +125,7 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
           onChange={(e) => setPassword(e.target.value)}
           required
           className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-          placeholder={t('auth.passwordPlaceholder', currentLanguage, 'パスワードを入力')}
+          placeholder={safeT('auth.passwordPlaceholder', currentLanguage, 'パスワードを入力')}
           minLength={6}
         />
       </div>
@@ -128,9 +133,9 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
       {mode === 'register' && (
         <>
           <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2 text-surface-300">
-              {t('common.targetMonth', currentLanguage, '対象月')} *
-            </label>
+                    <label className="block text-sm font-medium mb-2 text-surface-300">
+          {safeT('common.targetMonth', currentLanguage, '対象月')} *
+        </label>
             <input
               type="month"
               value={targetMonth}
@@ -142,9 +147,9 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
           </div>
 
           <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2 text-surface-300">
-              {t('common.budget', currentLanguage, '予算')} *
-            </label>
+                    <label className="block text-sm font-medium mb-2 text-surface-300">
+          {safeT('common.budget', currentLanguage, '予算')} *
+        </label>
             <input
               type="number"
               value={budget}
@@ -164,14 +169,14 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
           disabled={loading}
           className="w-full sm:flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? t('common.processing', currentLanguage, '処理中...') : mode === 'login' ? t('auth.login', currentLanguage, 'ログイン') : t('auth.register', currentLanguage, '新規登録')}
+          {loading ? safeT('common.processing', currentLanguage, '処理中...') : mode === 'login' ? safeT('auth.login', currentLanguage, 'ログイン') : safeT('auth.register', currentLanguage, '新規登録')}
         </button>
         <button
           type="button"
           onClick={onCancel}
           className="w-full sm:w-auto px-6 py-3 bg-surface-700 text-surface-300 rounded-lg hover:bg-surface-600 transition-colors duration-200 font-medium"
         >
-          {t('common.cancel', currentLanguage, 'キャンセル')}
+          {safeT('common.cancel', currentLanguage, 'キャンセル')}
         </button>
       </div>
     </form>
