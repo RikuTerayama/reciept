@@ -57,7 +57,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
       id: 'upload' as TabType,
       label: t('navigation.singleUpload', currentLanguage, '単一アップロード'),
       icon: Receipt,
-      description: t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します'),
+      description: '',
       color: 'from-blue-500 to-cyan-500'
     },
     {
@@ -373,7 +373,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="space-y-6">
               <div className="text-center">
                               <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">{t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します')}</p>
+
               </div>
               <EnhancedImageUpload onOCRComplete={handleOCRComplete} />
             </div>
