@@ -1019,19 +1019,33 @@ export const setLanguage = (language: Language): void => {
 
 // 翻訳を取得
 export const t = (key: string, language: Language = getCurrentLanguage(), defaultValue?: string): string => {
-  const keys = key.split('.');
-  let value: Translations | string | Record<string, any> = translations[language];
-  
-  for (const k of keys) {
-    if (value && typeof value === 'object' && k in value) {
-      value = (value as Record<string, any>)[k];
-    } else {
-      console.warn(`Translation key not found: ${key}`);
+  try {
+    // languageがundefinedの場合はデフォルト言語を使用
+    const currentLang = language || getCurrentLanguage();
+    
+    // translationsオブジェクトが存在しない場合の対策
+    if (!translations || !translations[currentLang]) {
+      console.warn(`Translation not found for language: ${currentLang}, key: ${key}`);
       return defaultValue || key;
     }
+    
+    const keys = key.split('.');
+    let value: Translations | string | Record<string, any> = translations[currentLang];
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = (value as Record<string, any>)[k];
+      } else {
+        console.warn(`Translation key not found: ${key} in language: ${currentLang}`);
+        return defaultValue || key;
+      }
+    }
+    
+    return typeof value === 'string' ? value : (defaultValue || key);
+  } catch (error) {
+    console.error('Translation error:', error, 'key:', key, 'language:', language);
+    return defaultValue || key;
   }
-  
-  return typeof value === 'string' ? value : (defaultValue || key);
 };
 
 // 翻訳オブジェクトを取得
