@@ -446,7 +446,7 @@ const translations: Record<Language, Translations> = {
     },
     imageUpload: {
       title: 'レシート画像をアップロード',
-      description: 'OCR技術を使用して画像から経費情報を自動抽出します。レシート自動検出機能により、背景を除去して精度を向上させます。',
+      description: '',
       dragDropText: 'ドラッグ&ドロップまたはクリックして画像を選択',
       cameraCapture: 'カメラで撮影',
       selectImage: '画像を選択',
@@ -459,7 +459,7 @@ const translations: Record<Language, Translations> = {
       uploadComplete: 'アップロード完了',
       moveToDataInput: '画像が正常に処理されました。データ入力画面に移動してください。',
       supportedFormats: 'サポートされている形式',
-      receiptDetectionDescription: 'JPEG, PNG, GIF, BMP形式の画像ファイル。レシート自動検出機能により、背景を除去して精度を向上させます。',
+      receiptDetectionDescription: 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。',
       error: 'エラーが発生しました。',
       receiptDetectionFailed: 'レシート検出に失敗しました。元画像を使用します。',
       usingOriginalImage: 'レシート検出に失敗しました。元画像を使用します。',
