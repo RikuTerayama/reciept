@@ -129,9 +129,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
               <h3 className="text-xl font-semibold text-white mb-2">
                 {t('imageUpload.title', currentLanguage, 'レシート画像をアップロード')}
               </h3>
-              <p className="text-surface-400 mb-4">
-                {t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します。レシート自動検出機能により、背景を除去して精度を向上させます。')}
-              </p>
+
               
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -155,7 +153,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
             
             <div className="text-sm text-surface-400">
               <p className="font-medium mb-2">{t('imageUpload.supportedFormats', currentLanguage, 'サポートされている形式')}</p>
-              <p>{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。レシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
+              <p className="whitespace-pre-line">{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
             </div>
           </div>
         )}
