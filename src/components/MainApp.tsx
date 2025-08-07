@@ -55,40 +55,40 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
   const tabs = useMemo(() => [
     {
       id: 'upload' as TabType,
-      label: t('navigation.singleUpload', undefined, '単一アップロード'),
+      label: t('navigation.singleUpload', currentLanguage, '単一アップロード'),
       icon: Receipt,
-      description: t('imageUpload.description', undefined, 'OCR技術を使用して画像から経費情報を自動抽出します'),
+      description: t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します'),
       color: 'from-blue-500 to-cyan-500'
     },
     {
       id: 'batch' as TabType,
-      label: t('navigation.batchUpload', undefined, '一括アップロード'),
+      label: t('navigation.batchUpload', currentLanguage, '一括アップロード'),
       icon: Upload,
-      description: t('batchUpload.description', undefined, '複数のレシート画像を同時にアップロードして一括処理できます'),
+      description: t('batchUpload.description', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理できます'),
       color: 'from-green-500 to-emerald-500'
     },
     {
       id: 'form' as TabType,
-      label: t('navigation.dataEntry', undefined, 'データ入力'),
+      label: t('navigation.dataEntry', currentLanguage, 'データ入力'),
       icon: FileText,
-      description: t('expenseForm.description', undefined, '経費情報を手動で入力・編集します'),
+      description: t('expenseForm.description', currentLanguage, '経費情報を手動で入力・編集します'),
       color: 'from-purple-500 to-pink-500'
     },
     {
       id: 'list' as TabType,
-      label: t('navigation.expenseList', undefined, '経費リスト'),
+      label: t('navigation.expenseList', currentLanguage, '経費リスト'),
       icon: List,
-      description: t('expenseList.description', undefined, '登録された経費データの一覧と管理'),
+      description: t('expenseList.description', currentLanguage, '登録された経費データの一覧と管理'),
       color: 'from-orange-500 to-red-500'
     },
     {
       id: 'optimizer' as TabType,
-      label: t('navigation.budgetOptimizer', undefined, '予算最適化'),
+      label: t('navigation.budgetOptimizer', currentLanguage, '予算最適化'),
       icon: Calculator,
-      description: t('budgetOptimizer.description', undefined, '自動的に指定された予算に最も近い経費の組み合わせを提案します'),
+      description: t('budgetOptimizer.description', currentLanguage, '自動的に指定された予算に最も近い経費の組み合わせを提案します'),
       color: 'from-indigo-500 to-purple-500'
     }
-  ], []);
+  ], [currentLanguage]);
 
   // デバッグ用：ローカルストレージリセット
   const resetLocalStorage = useCallback(() => {
@@ -179,7 +179,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="flex items-center space-x-4">
               <ExpenscanLogo size="medium" />
               <h1 className="text-xl font-semibold text-white hidden sm:block">
-                {t('header.title', undefined, 'Expenscan')}
+                {t('header.title', currentLanguage, 'Expenscan')}
               </h1>
             </div>
 
@@ -267,7 +267,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="flex items-center justify-between p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/90 to-gray-900/90">
               <div className="flex items-center space-x-3">
                 <ExpenscanLogo size="small" />
-                <h2 className="text-lg font-semibold text-white">{t('navigation.menu', undefined, 'メニュー')}</h2>
+                <h2 className="text-lg font-semibold text-white">{t('navigation.menu', currentLanguage, 'メニュー')}</h2>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -333,28 +333,28 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-blue-300 transition-colors duration-300">{expenses.length}</div>
-              <div className="stat-label relative z-10">{t('statistics.registeredExpenses', undefined, '登録済み経費')}</div>
+                              <div className="stat-label relative z-10">{t('statistics.registeredExpenses', currentLanguage, '登録済み経費')}</div>
             </div>
           </div>
           <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-green-300 transition-colors duration-300">¥{totalAmount.toLocaleString()}</div>
-              <div className="stat-label relative z-10">{t('statistics.totalAmount', undefined, '総金額')}</div>
+                              <div className="stat-label relative z-10">{t('statistics.totalAmount', currentLanguage, '総金額')}</div>
             </div>
           </div>
           <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-purple-300 transition-colors duration-300">¥{userInfo.budget.toLocaleString()}</div>
-              <div className="stat-label relative z-10">{t('statistics.myBudget', undefined, '私の予算')}</div>
+                              <div className="stat-label relative z-10">{t('statistics.myBudget', currentLanguage, '私の予算')}</div>
             </div>
           </div>
           <div className="stat-card group hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="stat-number relative z-10 group-hover:text-orange-300 transition-colors duration-300">¥{(userInfo.budget - totalAmount).toLocaleString()}</div>
-              <div className="stat-label relative z-10">{t('statistics.budgetDifference')}</div>
+                              <div className="stat-label relative z-10">{t('statistics.budgetDifference', currentLanguage, '予算差額')}</div>
             </div>
           </div>
         </div>
@@ -372,8 +372,8 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
           {activeTab === 'upload' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.singleUpload')}</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto">{t('imageUpload.description')}</p>
+                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('imageUpload.description', currentLanguage, 'OCR技術を使用して画像から経費情報を自動抽出します')}</p>
               </div>
               <EnhancedImageUpload onOCRComplete={handleOCRComplete} />
             </div>
@@ -382,8 +382,8 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
           {activeTab === 'batch' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.batchUpload')}</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto">{t('batchUpload.description')}</p>
+                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('batchUpload.description', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理できます')}</p>
               </div>
               <BatchUpload />
             </div>
@@ -392,8 +392,8 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
           {activeTab === 'form' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.dataEntry')}</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto">{t('expenseForm.description')}</p>
+                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.dataEntry', currentLanguage, 'データ入力')}</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('expenseForm.description', currentLanguage, '経費情報を手動で入力・編集します')}</p>
               </div>
               <ExpenseForm onSave={(data) => {
                 addExpense(data);
@@ -405,8 +405,8 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
           {activeTab === 'list' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.expenseList')}</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto">{t('expenseList.description')}</p>
+                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('expenseList.description', currentLanguage, '登録された経費データの一覧と管理')}</p>
               </div>
               
               {/* 選択された経費のアクション */}
@@ -473,8 +473,8 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
           {activeTab === 'optimizer' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.budgetOptimizer')}</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto">{t('budgetOptimizer.description')}</p>
+                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('budgetOptimizer.description', currentLanguage, '自動的に指定された予算に最も近い経費の組み合わせを提案します')}</p>
               </div>
               <BudgetOptimizer />
             </div>
