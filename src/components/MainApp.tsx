@@ -404,9 +404,8 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
 
           {activeTab === 'list' && (
             <div className="space-y-6">
-              <div className="text-center">
-                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">{t('expenseList.description', currentLanguage, '登録された経費データの一覧と管理')}</p>
+                            <div className="text-center">
+                <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
               </div>
               
               {/* 選択された経費のアクション */}
