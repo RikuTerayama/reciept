@@ -38,6 +38,7 @@ interface UserData {
   targetMonth: string;
   budget: number;
   currency?: string;
+  office?: string;
 }
 
 export default function Home() {
@@ -973,7 +974,8 @@ export default function Home() {
                   email: userInfo.email,
                   targetMonth: userInfo.targetMonth,
                   budget: userInfo.budget,
-                  currency: userInfo.currency
+                  currency: userInfo.currency,
+                  office: userInfo.office
                 });
                 setFormData({
                   email: userInfo.email || '',
