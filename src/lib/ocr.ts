@@ -4,12 +4,20 @@ import { preprocessImageForOCR } from './receipt-detection';
 
 // Web Workerを使用したOCR処理
 let ocrWorker: Worker | null = null;
+let fallbackWorker: Worker | null = null;
 
 function getOCRWorker(): Worker {
   if (!ocrWorker) {
     ocrWorker = new Worker('/ocr-worker.js');
   }
   return ocrWorker;
+}
+
+function getFallbackWorker(): Worker {
+  if (!fallbackWorker) {
+    fallbackWorker = new Worker('/ocr-worker-fallback.js');
+  }
+  return fallbackWorker;
 }
 
 // 画像前処理関数（最適化版）
@@ -20,8 +28,8 @@ async function preprocessImage(file: File): Promise<HTMLCanvasElement> {
     const img = new Image();
     
     img.onload = () => {
-      // キャンバスサイズを設定（最大1200pxに制限して処理速度を向上）
-      const maxSize = 1200;
+      // キャンバスサイズを設定（最大1600pxに制限して処理速度を向上）
+      const maxSize = 1600;
       let { width, height } = img;
       
       if (width > maxSize || height > maxSize) {
@@ -69,29 +77,97 @@ export async function processImageWithOCR(file: File): Promise<OCRResult> {
 
 export async function extractTextFromImage(file: File): Promise<OCRResult> {
   try {
-    // 画像前処理を実行
+    // 高度な画像前処理を実行
     const preprocessedCanvas = await preprocessImageForOCR(file);
     
-    // Web Workerを使用したOCR処理
-    const text = await processWithWorker(preprocessedCanvas);
+    // 複数のOCRエンジンで処理
+    let text = '';
+    let confidence = 0;
     
-    console.log('OCR抽出テキスト:', text);
+    // 1. メインOCRエンジン（高速）
+    try {
+      console.log('メインOCRエンジンで処理中...');
+      const mainResult = await processWithWorker(preprocessedCanvas);
+      text = mainResult.text;
+      confidence = mainResult.confidence || 0;
+      
+      if (confidence > 70) {
+        console.log('メインOCR成功（信頼度:', confidence, '%）');
+      } else {
+        throw new Error('信頼度が低いため、フォールバックエンジンを使用');
+      }
+    } catch (error) {
+      console.log('メインOCR失敗、フォールバックエンジンを使用:', error);
+      
+      // 2. フォールバックOCRエンジン（高精度）
+      try {
+        console.log('フォールバックOCRエンジンで処理中...');
+        const fallbackResult = await processWithFallbackWorker(preprocessedCanvas);
+        text = fallbackResult.text;
+        confidence = fallbackResult.confidence || 0;
+        console.log('フォールバックOCR成功（信頼度:', confidence, '%）');
+      } catch (fallbackError) {
+        console.log('フォールバックOCR失敗、同期処理を使用:', fallbackError);
+        
+        // 3. 同期処理（最終手段）
+        console.log('同期OCR処理中...');
+        text = await processWithTesseract(preprocessedCanvas);
+        confidence = 50; // 同期処理の信頼度は低めに設定
+        console.log('同期OCR完了');
+      }
+    }
 
-    return {
-      date: extractDate(text),
-      totalAmount: extractTotalAmount(text),
-      taxRate: extractTaxRate(text),
-      isQualified: checkQualifiedInvoice(text),
-      text: text
+    console.log('OCR抽出テキスト:', text);
+    console.log('信頼度:', confidence, '%');
+
+    // 結果の後処理と検証
+    const processedText = postProcessText(text);
+    
+    const result = {
+      date: extractDate(processedText),
+      totalAmount: extractTotalAmount(processedText),
+      taxRate: extractTaxRate(processedText),
+      isQualified: checkQualifiedInvoice(processedText),
+      text: processedText,
+      confidence: confidence,
+      category: extractCategory(processedText),
+      description: extractDescription(processedText),
+      receiptNumber: extractReceiptNumber(processedText),
+      companyName: extractCompanyName(processedText)
     };
+
+    // 結果の妥当性チェック
+    const validationErrors = validateOCRResult(result);
+    if (validationErrors.length > 0) {
+      console.warn('OCR結果の警告:', validationErrors);
+    }
+
+    return result;
   } catch (error) {
     console.error('OCR処理エラー:', error);
     throw new Error('画像の処理中にエラーが発生しました');
   }
 }
 
-// Web Workerを使用したOCR処理
-async function processWithWorker(canvas: HTMLCanvasElement): Promise<string> {
+// テキスト後処理
+function postProcessText(text: string): string {
+  return text
+    // 全角数字を半角に変換
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+    // 全角英字を半角に変換
+    .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+    // 全角記号を半角に変換
+    .replace(/[（]/g, '(').replace(/[）]/g, ')')
+    .replace(/[「]/g, '"').replace(/[」]/g, '"')
+    .replace(/[、]/g, ',').replace(/[。]/g, '.')
+    // 複数の空白を単一の空白に
+    .replace(/\s+/g, ' ')
+    // 行頭行末の空白を除去
+    .trim();
+}
+
+// Web Workerを使用したOCR処理（メインエンジン）
+async function processWithWorker(canvas: HTMLCanvasElement): Promise<{ text: string; confidence: number }> {
   return new Promise((resolve, reject) => {
     const worker = getOCRWorker();
     const id = Date.now().toString();
@@ -102,7 +178,10 @@ async function processWithWorker(canvas: HTMLCanvasElement): Promise<string> {
       switch (e.data.type) {
         case 'complete':
           worker.removeEventListener('message', handleMessage);
-          resolve(e.data.result);
+          resolve({
+            text: e.data.result.text,
+            confidence: e.data.result.confidence || 0
+          });
           break;
         case 'error':
           worker.removeEventListener('message', handleMessage);
@@ -124,6 +203,44 @@ async function processWithWorker(canvas: HTMLCanvasElement): Promise<string> {
         reject(new Error('キャンバスの変換に失敗しました'));
       }
     }, 'image/jpeg', 0.9);
+  });
+}
+
+// Web Workerを使用したOCR処理（フォールバックエンジン）
+async function processWithFallbackWorker(canvas: HTMLCanvasElement): Promise<{ text: string; confidence: number }> {
+  return new Promise((resolve, reject) => {
+    const worker = getFallbackWorker();
+    const id = Date.now().toString();
+    
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data.id !== id) return;
+      
+      switch (e.data.type) {
+        case 'complete':
+          worker.removeEventListener('message', handleMessage);
+          resolve({
+            text: e.data.result.text,
+            confidence: e.data.result.confidence || 0
+          });
+          break;
+        case 'error':
+          worker.removeEventListener('message', handleMessage);
+          reject(new Error(e.data.error));
+          break;
+        case 'progress':
+          break;
+      }
+    };
+    
+    worker.addEventListener('message', handleMessage);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        worker.postMessage({ blob, id });
+      } else {
+        reject(new Error('キャンバスの変換に失敗しました'));
+      }
+    }, 'image/jpeg', 0.95);
   });
 }
 
@@ -590,4 +707,86 @@ export function validateOCRResult(result: OCRResult): string[] {
   }
 
   return errors;
+} 
+
+// 新しい抽出関数の追加
+function extractCategory(text: string): string {
+  const normalizedText = text.toLowerCase();
+  
+  // カテゴリパターンの定義
+  const categoryPatterns = [
+    { pattern: /(?:交通費|transportation|交通|電車|バス|タクシー)/gi, category: '交通費' },
+    { pattern: /(?:飲食費|food|dining|レストラン|カフェ|居酒屋)/gi, category: '飲食費' },
+    { pattern: /(?:宿泊費|hotel|宿泊|ホテル|旅館)/gi, category: '宿泊費' },
+    { pattern: /(?:通信費|communication|電話|インターネット|通信)/gi, category: '通信費' },
+    { pattern: /(?:事務用品|office|supplies|文具|文房具)/gi, category: '事務用品' },
+    { pattern: /(?:会議費|meeting|会議|セミナー)/gi, category: '会議費' },
+    { pattern: /(?:広告費|advertising|広告|宣伝)/gi, category: '広告費' },
+    { pattern: /(?:保険料|insurance|保険)/gi, category: '保険料' },
+    { pattern: /(?:光熱費|utility|電気|ガス|水道)/gi, category: '光熱費' },
+    { pattern: /(?:消耗品|consumables|消耗)/gi, category: '消耗品' }
+  ];
+
+  for (const { pattern, category } of categoryPatterns) {
+    if (pattern.test(normalizedText)) {
+      return category;
+    }
+  }
+
+  return 'その他';
+}
+
+function extractDescription(text: string): string {
+  // 商品名やサービス名を抽出
+  const lines = text.split('\n').filter(line => line.trim().length > 0);
+  
+  // 金額以外の行を探す
+  for (const line of lines) {
+    const cleanLine = line.trim();
+    // 金額のみの行は除外
+    if (!/^[¥￥]?[\d,]+$/.test(cleanLine) && 
+        !/^[\d,]+円$/.test(cleanLine) &&
+        cleanLine.length > 2) {
+      return cleanLine.substring(0, 50); // 最大50文字
+    }
+  }
+  
+  return '';
+}
+
+function extractReceiptNumber(text: string): string {
+  // レシート番号のパターン
+  const receiptPatterns = [
+    /(?:レシート|receipt|番号)[\s:：]*([A-Z0-9\-]+)/gi,
+    /(?:伝票|伝票番号)[\s:：]*([A-Z0-9\-]+)/gi,
+    /(?:No\.|番号)[\s:：]*([A-Z0-9\-]+)/gi,
+    /([A-Z]{2,}\d{6,})/g, // 一般的なレシート番号パターン
+  ];
+
+  for (const pattern of receiptPatterns) {
+    const matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      return matches[1] || matches[0];
+    }
+  }
+
+  return '';
+}
+
+function extractCompanyName(text: string): string {
+  // 会社名のパターン
+  const companyPatterns = [
+    /(?:株式会社|有限会社|合同会社|LLC|Inc\.|Corp\.)\s*([^\n\r]+)/gi,
+    /([^\n\r]{2,20}(?:株式会社|有限会社|合同会社))/gi,
+    /(?:店舗|店名)[\s:：]*([^\n\r]+)/gi,
+  ];
+
+  for (const pattern of companyPatterns) {
+    const matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      return matches[1] || matches[0];
+    }
+  }
+
+  return '';
 } 
