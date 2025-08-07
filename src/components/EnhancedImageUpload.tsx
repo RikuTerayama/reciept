@@ -60,7 +60,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
       setProcessingStep(t('imageUpload.ocrProcessing', currentLanguage, 'OCR処理中...'));
       const ocrResult = await processImageWithOCR(file);
 
-      setProcessingStep(t('imageUpload.processingComplete', currentLanguage, '処理完了！'));
+      setProcessingStep(t('imageUpload.processingComplete', currentLanguage, 'OCR処理完了！'));
       setStatus('success');
       
       // 結果を親コンポーネントに渡す
@@ -68,7 +68,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
 
     } catch (error) {
       console.error('Image processing error:', error);
-      setError(error instanceof Error ? error.message : '画像処理に失敗しました');
+      setError(error instanceof Error ? error.message : 'OCR処理中にエラーが発生しました。もう一度お試しください。');
       setStatus('error');
     } finally {
       setProcessingStep('');
@@ -78,11 +78,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-      'image/gif': ['.gif'],
-      'image/bmp': ['.bmp'],
-      'image/webp': ['.webp']
+      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
     },
     multiple: false,
     disabled: status === 'processing'
@@ -115,7 +111,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
             <div>
               <p className="text-lg font-medium text-white">{processingStep}</p>
               <p className="text-sm text-surface-400 mt-2">
-                {t('imageUpload.processing', currentLanguage, '処理中です。しばらくお待ちください...')}
+                {t('imageUpload.processing', currentLanguage, '画像を処理中です。しばらくお待ちください...')}
               </p>
             </div>
           </div>
@@ -165,11 +161,11 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
       </div>
 
       {/* エラー表示 */}
-      {error && (
+      {error && status === 'error' && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center space-x-3">
           <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
           <div>
-            <p className="text-red-400 font-medium">{t('imageUpload.error', currentLanguage, 'エラーが発生しました')}</p>
+            <p className="text-red-400 font-medium">{t('imageUpload.error', currentLanguage, 'OCR処理エラー')}</p>
             <p className="text-red-300 text-sm">{error}</p>
           </div>
         </div>
@@ -216,7 +212,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
             <CheckCircle className="w-5 h-5 text-green-400" />
             <div>
               <p className="text-green-400 font-medium">
-                {t('imageUpload.uploadComplete', currentLanguage, 'アップロード完了')}
+                {t('imageUpload.uploadComplete', currentLanguage, 'OCR処理完了')}
               </p>
               <p className="text-green-300 text-sm">
                 {t('imageUpload.moveToDataInput', currentLanguage, 'OCR処理が完了しました。データ入力画面に移動します。')}
