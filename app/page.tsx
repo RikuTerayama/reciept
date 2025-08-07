@@ -786,12 +786,12 @@ export default function Home() {
           onClick={() => setShowUploadModal(false)}
         >
           <div 
-            className="bg-surface-900 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in"
+            className="bg-surface-900 rounded-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-4xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
