@@ -40,6 +40,8 @@ export interface Translations {
     register: string;
     error: string;
     passwordPlaceholder: string;
+    noAccount: string;
+    hasAccount: string;
   };
 
   // ヘッダー
@@ -394,6 +396,8 @@ const translations: Record<Language, Translations> = {
       register: '新規登録',
       error: '認証エラーが発生しました',
       passwordPlaceholder: 'パスワードを入力してください',
+      noAccount: 'アカウントをお持ちでない方はこちら',
+      hasAccount: '既にアカウントをお持ちの方はこちら',
     },
     header: {
       title: 'Expenscan',
@@ -712,6 +716,8 @@ const translations: Record<Language, Translations> = {
       register: 'Register',
       error: 'Authentication error occurred',
       passwordPlaceholder: 'Enter password',
+      noAccount: 'Don\'t have an account? Click here',
+      hasAccount: 'Already have an account? Click here',
     },
     header: {
       title: 'Expenscan',
