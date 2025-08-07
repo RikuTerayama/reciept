@@ -43,18 +43,29 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
           email,
           targetMonth,
           budget,
-          currency: 'JPY'
+          currency: 'JPY',
+          office: 'japan' // デフォルトで日本を設定
         };
         
         console.log('AuthForm - User data:', userData);
         const userInfo = await registerUser(email, password, userData);
         console.log('AuthForm - Registration successful:', userInfo);
+        
+        // ローカルストレージにユーザー情報を保存
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        console.log('AuthForm - User info saved to localStorage');
+        
         onSuccess(userInfo);
       } else {
         // ログイン
         console.log('AuthForm - Attempting user login...');
         const userInfo = await loginUser(email, password);
         console.log('AuthForm - Login successful:', userInfo);
+        
+        // ローカルストレージにユーザー情報を保存
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        console.log('AuthForm - User info saved to localStorage');
+        
         onSuccess(userInfo);
       }
     } catch (error: any) {
