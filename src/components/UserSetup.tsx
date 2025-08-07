@@ -84,8 +84,8 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
       <div className="bg-gray-800 rounded-lg p-6">
         <h3 className="text-2xl font-semibold mb-6">{t('common.settings', currentLanguage, '設定')}</h3>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
+        <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-full">
+          <div className="w-full max-w-full">
             <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
             <input
               type="email"
@@ -101,7 +101,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 
-          <div>
+          <div className="w-full max-w-full">
             <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage, '対象月')} *</label>
             <input
               type="month"
@@ -109,14 +109,15 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               value={formData.targetMonth}
               onChange={handleInputChange}
               required
-              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+              className={`w-full max-w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
                 errors.targetMonth ? 'border-red-500' : 'border-gray-600'
               }`}
+              style={{ minWidth: '0', width: '100%' }}
             />
             {errors.targetMonth && <p className="text-red-500 text-sm mt-1">{errors.targetMonth}</p>}
           </div>
 
-          <div>
+          <div className="w-full max-w-full">
             <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage, '予算')} *</label>
             <input
               type="number"
@@ -133,7 +134,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
             {errors.budget && <p className="text-red-500 text-sm mt-1">{errors.budget}</p>}
           </div>
 
-          <div>
+          <div className="w-full max-w-full">
             <label className="block text-sm font-medium mb-2">{t('dataInput.currency', currentLanguage, '通貨')} *</label>
             <select
               name="currency"
