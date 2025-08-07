@@ -827,7 +827,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
               <button
                 onClick={() => setShowBatchUploadModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
@@ -856,7 +856,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h2>
               <button
                 onClick={() => setShowDataInputModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
@@ -882,7 +882,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.expenseList', currentLanguage, '経費リスト')} {expenses.length}{t('common.items', currentLanguage, '件')} {t('expenseList.description', currentLanguage, 'の登録された経費データの一覧と管理')}</h2>
+              <h2 className="text-base sm:text-xl font-semibold text-white text-center flex-1 break-keep">{t('navigation.expenseList', currentLanguage, '経費リスト')} {expenses.length}{t('common.items', currentLanguage, '件')} {t('expenseList.description', currentLanguage, 'の登録された経費データの一覧と管理')}</h2>
               <button
                 onClick={() => setShowExpenseListModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
@@ -908,7 +908,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-xl font-semibold text-white text-center flex-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
               <button
                 onClick={() => setShowOptimizerModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
@@ -932,7 +932,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-xl font-semibold text-white">{t('common.settings', currentLanguage, '設定')}</h2>
+                              <h2 className="text-lg sm:text-xl font-semibold text-white">{t('common.settings', currentLanguage, '設定')}</h2>
               <button
                 onClick={() => setShowSettingsModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
@@ -956,7 +956,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
                 {authMode === 'login' ? t('auth.login', currentLanguage, 'ログイン') : t('auth.register', currentLanguage, '新規登録')}
               </h2>
               <button
