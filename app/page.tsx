@@ -913,7 +913,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-base sm:text-xl font-semibold text-white text-center flex-1 break-keep">{t('navigation.expenseList', currentLanguage, '経費リスト')} {expenses.length}{t('common.items', currentLanguage, '件')} {t('expenseList.description', currentLanguage, 'の登録された経費データの一覧と管理')}</h2>
+              <h2 className="text-base sm:text-xl font-semibold text-white text-center flex-1 break-keep">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
               <button
                 onClick={() => setShowExpenseListModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
