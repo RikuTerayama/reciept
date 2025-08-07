@@ -145,10 +145,9 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
       {/* ヘッダー */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-white">{t('expenseList.title')}</h2>
-          <p className="text-surface-400 text-sm md:text-base">
-            {allExpenses.length}{t('common.items')}の{t('expenseList.description')}
-          </p>
+          <h2 className="text-lg md:text-xl font-semibold text-center text-white">
+            {allExpenses.length}{t('common.items')} {t('expenseList.description')}
+          </h2>
         </div>
         
         {/* 統計情報 */}
