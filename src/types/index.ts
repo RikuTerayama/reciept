@@ -43,8 +43,10 @@ export interface OCRResult {
   category?: string;
   description?: string;
   text: string;
+  confidence?: number; // OCR信頼度
   imageData?: string; // Base64画像データ
   receiptNumber?: string; // レシート番号
+  companyName?: string; // 会社名
 }
 
 export interface BudgetOption {
