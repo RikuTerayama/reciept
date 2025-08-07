@@ -89,14 +89,14 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-full">
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
           <p className="text-red-400 text-sm">{error}</p>
         </div>
       )}
       
-      <div>
+      <div className="w-full max-w-full">
         <label className="block text-sm font-medium mb-2 text-surface-300">
           {t('common.email', currentLanguage, 'メールアドレス')}
         </label>
@@ -110,7 +110,7 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
         />
       </div>
       
-      <div>
+      <div className="w-full max-w-full">
         <label className="block text-sm font-medium mb-2 text-surface-300">
           {t('common.password', currentLanguage, 'パスワード')}
         </label>
@@ -127,7 +127,7 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
 
       {mode === 'register' && (
         <>
-          <div>
+          <div className="w-full max-w-full">
             <label className="block text-sm font-medium mb-2 text-surface-300">
               {t('common.targetMonth', currentLanguage, '対象月')} *
             </label>
@@ -136,11 +136,12 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
               value={targetMonth}
               onChange={(e) => setTargetMonth(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              className="w-full max-w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              style={{ minWidth: '0', width: '100%' }}
             />
           </div>
 
-          <div>
+          <div className="w-full max-w-full">
             <label className="block text-sm font-medium mb-2 text-surface-300">
               {t('common.budget', currentLanguage, '予算')} *
             </label>
@@ -157,18 +158,18 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
         </>
       )}
       
-      <div className="flex space-x-3 pt-4">
+      <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-4">
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? t('common.processing', currentLanguage, '処理中...') : mode === 'login' ? t('auth.login', currentLanguage, 'ログイン') : t('auth.register', currentLanguage, '新規登録')}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3 bg-surface-700 text-surface-300 rounded-lg hover:bg-surface-600 transition-colors duration-200 font-medium"
+          className="w-full sm:w-auto px-6 py-3 bg-surface-700 text-surface-300 rounded-lg hover:bg-surface-600 transition-colors duration-200 font-medium"
         >
           {t('common.cancel', currentLanguage, 'キャンセル')}
         </button>
