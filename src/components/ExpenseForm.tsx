@@ -42,6 +42,14 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     ...initialData
   });
 
+  // 数値フィールドの表示値を管理する状態
+  const [displayValues, setDisplayValues] = useState({
+    totalAmount: initialData?.totalAmount?.toString() || '',
+    taxRate: initialData?.taxRate?.toString() || '10',
+    participantFromClient: initialData?.participantFromClient?.toString() || '',
+    participantFromCompany: initialData?.participantFromCompany?.toString() || ''
+  });
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
@@ -89,21 +97,33 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    // 先頭0削除処理
-    let processedValue = value;
+    // 数値フィールドの先頭0削除処理
     if (name === 'totalAmount' || name === 'taxRate' || name === 'participantFromClient' || name === 'participantFromCompany') {
-      // 数値フィールドの場合、先頭0を削除
-      if (value.startsWith('0') && value.length > 1 && value[1] !== '.') {
-        processedValue = value.replace(/^0+/, '');
-        if (processedValue === '') processedValue = '0';
+      let processedValue = value;
+      
+      // 先頭の0を削除（ただし、0単体や小数点の前の0は保持）
+      if (value.startsWith('0') && value.length > 1) {
+        // 小数点が含まれている場合は、小数点の前の0のみを削除
+        if (value.includes('.')) {
+          const parts = value.split('.');
+          const integerPart = parts[0].replace(/^0+/, '') || '0';
+          processedValue = integerPart + '.' + parts[1];
+        } else {
+          // 小数点が含まれていない場合は、先頭の0を削除
+          processedValue = value.replace(/^0+/, '') || '0';
+        }
       }
+      
+      // 表示値を更新
+      setDisplayValues(prev => ({ ...prev, [name]: processedValue }));
+      
       // 数値として処理
       const numValue = parseFloat(processedValue) || 0;
       setFormData(prev => ({ ...prev, [name]: numValue }));
       return;
     }
     
-    setFormData(prev => ({ ...prev, [name]: processedValue }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const validateForm = (): boolean => {
@@ -170,6 +190,27 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     }
   };
 
+  const handleNumberFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    if (name === 'totalAmount' || name === 'taxRate' || name === 'participantFromClient' || name === 'participantFromCompany') {
+      // フォーカス時に0の場合は空にする
+      if (displayValues[name as keyof typeof displayValues] === '0') {
+        setDisplayValues(prev => ({ ...prev, [name]: '' }));
+      }
+    }
+  };
+
+  const handleNumberBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    if (name === 'totalAmount' || name === 'taxRate' || name === 'participantFromClient' || name === 'participantFromCompany') {
+      // フォーカスが外れた時に空の場合は0にする
+      if (displayValues[name as keyof typeof displayValues] === '') {
+        setDisplayValues(prev => ({ ...prev, [name]: '0' }));
+        setFormData(prev => ({ ...prev, [name]: 0 }));
+      }
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
@@ -202,9 +243,11 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               <input
                 type="number"
                 name="totalAmount"
-                value={formData.totalAmount}
+                value={displayValues.totalAmount}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
+                onFocus={handleNumberFocus}
+                onBlur={handleNumberBlur}
                 required
                 step="0.01"
                 min="0"
@@ -303,9 +346,11 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             <input
               type="number"
               name="taxRate"
-              value={formData.taxRate}
+              value={displayValues.taxRate}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
+              onFocus={handleNumberFocus}
+              onBlur={handleNumberBlur}
               min="0"
               max="100"
               step="0.1"
@@ -325,9 +370,11 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             <input
               type="number"
               name="participantFromClient"
-              value={formData.participantFromClient}
+              value={displayValues.participantFromClient}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
+              onFocus={handleNumberFocus}
+              onBlur={handleNumberBlur}
               min="0"
               className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
               placeholder="0"
@@ -342,9 +389,11 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             <input
               type="number"
               name="participantFromCompany"
-              value={formData.participantFromCompany}
+              value={displayValues.participantFromCompany}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
+              onFocus={handleNumberFocus}
+              onBlur={handleNumberBlur}
               min="0"
               className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
               placeholder="0"
