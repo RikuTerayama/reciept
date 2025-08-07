@@ -13,7 +13,7 @@ interface EnhancedImageUploadProps {
 }
 
 export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUploadProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [processingStep, setProcessingStep] = useState<string>('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [receiptDetectionResult, setReceiptDetectionResult] = useState<any>(null);
@@ -24,7 +24,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
     if (acceptedFiles.length === 0) return;
 
     const file = acceptedFiles[0];
-    setIsProcessing(true);
+    setStatus('processing');
     setError(null);
     setProcessingStep(t('imageUpload.processing', currentLanguage, '画像を処理中...'));
 
@@ -61,6 +61,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
       const ocrResult = await processImageWithOCR(file);
 
       setProcessingStep(t('imageUpload.processingComplete', currentLanguage, '処理完了！'));
+      setStatus('success');
       
       // 結果を親コンポーネントに渡す
       onOCRComplete(ocrResult);
@@ -68,8 +69,8 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
     } catch (error) {
       console.error('Image processing error:', error);
       setError(error instanceof Error ? error.message : '画像処理に失敗しました');
+      setStatus('error');
     } finally {
-      setIsProcessing(false);
       setProcessingStep('');
     }
   }, [onOCRComplete, currentLanguage]);
@@ -77,10 +78,14 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp']
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif'],
+      'image/bmp': ['.bmp'],
+      'image/webp': ['.webp']
     },
     multiple: false,
-    disabled: isProcessing
+    disabled: status === 'processing'
   });
 
   const handleCameraCapture = () => {
@@ -99,12 +104,12 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
             ? 'border-primary-500 bg-primary-500/10' 
             : 'border-surface-600 hover:border-primary-500 hover:bg-surface-800/50'
           }
-          ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
+          ${status === 'processing' ? 'opacity-50 cursor-not-allowed' : ''}
         `}
       >
         <input {...getInputProps()} />
         
-        {isProcessing ? (
+        {status === 'processing' ? (
           <div className="space-y-4">
             <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto" />
             <div>
@@ -205,7 +210,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
       )}
 
       {/* 処理完了メッセージ */}
-      {!isProcessing && previewImage && (
+      {status === 'success' && previewImage && (
         <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <CheckCircle className="w-5 h-5 text-green-400" />
@@ -214,7 +219,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
                 {t('imageUpload.uploadComplete', currentLanguage, 'アップロード完了')}
               </p>
               <p className="text-green-300 text-sm">
-                {t('imageUpload.moveToDataInput', currentLanguage, '画像が正常に処理されました。データ入力画面に移動してください。')}
+                {t('imageUpload.moveToDataInput', currentLanguage, 'OCR処理が完了しました。データ入力画面に移動します。')}
               </p>
             </div>
           </div>
