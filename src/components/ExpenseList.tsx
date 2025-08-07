@@ -145,8 +145,8 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
       {/* ヘッダー */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
-          <h2 className="text-lg md:text-xl font-semibold text-center text-white">
-            {allExpenses.length}{t('common.items')} {t('expenseList.description')}
+          <h2 className="text-xl md:text-2xl font-semibold text-center text-white">
+            {t('expenseList.title')}
           </h2>
         </div>
         
@@ -163,6 +163,12 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
               {qualifiedCount}
             </div>
             <div className="text-surface-400">{t('stats.qualifiedExpenses')}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-base md:text-lg font-semibold text-white">
+              {allExpenses.length}
+            </div>
+            <div className="text-surface-400">{t('common.items')}</div>
           </div>
         </div>
       </div>
