@@ -18,6 +18,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [receiptDetectionResult, setReceiptDetectionResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [ocrResult, setOcrResult] = useState<any>(null);
   const currentLanguage = getCurrentLanguage();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -62,6 +63,9 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
 
       setProcessingStep(t('imageUpload.processingComplete', currentLanguage, 'OCR処理完了！'));
       setStatus('success');
+      
+      // OCR結果を保存
+      setOcrResult(ocrResult);
       
       // 結果を親コンポーネントに渡す
       onOCRComplete(ocrResult);
@@ -210,13 +214,32 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
         <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <CheckCircle className="w-5 h-5 text-green-400" />
-            <div>
+            <div className="flex-1">
               <p className="text-green-400 font-medium">
                 {t('imageUpload.uploadComplete', currentLanguage, 'OCR処理完了')}
               </p>
               <p className="text-green-300 text-sm">
                 {t('imageUpload.moveToDataInput', currentLanguage, 'OCR処理が完了しました。データ入力画面に移動します。')}
               </p>
+              {/* OCR信頼度表示 */}
+              {ocrResult && ocrResult.confidence && (
+                <div className="mt-2 flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
+                    <div className={`w-2 h-2 rounded-full ${
+                      ocrResult.confidence >= 80 ? 'bg-green-400' :
+                      ocrResult.confidence >= 60 ? 'bg-yellow-400' : 'bg-red-400'
+                    }`}></div>
+                    <span className="text-xs text-green-300">
+                      信頼度: {ocrResult.confidence}%
+                    </span>
+                  </div>
+                  {ocrResult.confidence < 70 && (
+                    <span className="text-xs text-yellow-300">
+                      (手動確認をお勧めします)
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
