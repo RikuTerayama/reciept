@@ -13,20 +13,18 @@ interface ImageUploadProps {
 }
 
 export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [processingStep, setProcessingStep] = useState<string>('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
   const currentLanguage = getCurrentLanguage();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
     const file = acceptedFiles[0];
-    setIsProcessing(true);
+    setStatus('processing');
     setError(null);
-    setIsSuccess(false);
     setProcessingStep(t('imageUpload.processing', currentLanguage, '画像を処理中...'));
 
     try {
@@ -44,7 +42,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       setProcessingStep(t('imageUpload.processingComplete', currentLanguage, '処理完了！'));
       
       // 成功状態を設定
-      setIsSuccess(true);
+      setStatus('success');
       
       // 少し遅延してから結果を親コンポーネントに渡す（UX改善のため）
       setTimeout(() => {
@@ -59,9 +57,8 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
     } catch (error) {
       console.error('Image processing error:', error);
       setError(error instanceof Error ? error.message : '画像処理に失敗しました');
-      setIsSuccess(false);
+      setStatus('error');
     } finally {
-      setIsProcessing(false);
       setProcessingStep('');
     }
   }, [onOCRComplete, onComplete, currentLanguage]);
@@ -69,10 +66,14 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp']
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif'],
+      'image/bmp': ['.bmp'],
+      'image/webp': ['.webp']
     },
     multiple: false,
-    disabled: isProcessing
+    disabled: status === 'processing'
   });
 
   const handleCameraCapture = () => {
@@ -91,12 +92,12 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             ? 'border-primary-500 bg-primary-500/10' 
             : 'border-surface-600 hover:border-primary-500 hover:bg-surface-800/50'
           }
-          ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
+          ${status === 'processing' ? 'opacity-50 cursor-not-allowed' : ''}
         `}
       >
         <input {...getInputProps()} />
         
-        {isProcessing ? (
+        {status === 'processing' ? (
           <div className="space-y-4">
             <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto" />
             <div>
@@ -155,7 +156,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       </div>
 
       {/* エラー表示 */}
-      {error && !isSuccess && (
+      {error && status !== 'success' && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center space-x-3">
           <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
           <div>
@@ -166,7 +167,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       )}
 
       {/* 成功時のプレビュー表示 */}
-      {previewImage && isSuccess && !error && (
+      {previewImage && status === 'success' && !error && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-semibold text-white">
@@ -189,7 +190,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
       )}
 
       {/* 成功時の処理完了メッセージ */}
-      {!isProcessing && previewImage && isSuccess && !error && (
+      {status === 'success' && previewImage && !error && (
         <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <CheckCircle className="w-5 h-5 text-green-400" />
@@ -198,7 +199,7 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
                 {t('imageUpload.uploadComplete', currentLanguage, 'アップロード完了')}
               </p>
               <p className="text-green-300 text-xs">
-                {t('imageUpload.moveToDataInput', currentLanguage, 'OCR結果を確認しました。次にデータ入力を行ってください。')}
+                {t('imageUpload.moveToDataInput', currentLanguage, 'OCR処理が完了しました。データ入力画面に移動します。')}
               </p>
             </div>
           </div>
