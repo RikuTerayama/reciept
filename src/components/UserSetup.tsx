@@ -104,11 +104,11 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
       )}
       
       <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-2xl font-semibold mb-6">{safeT('common.settings', currentLanguage, '設定')}</h3>
+        <h3 className="text-2xl font-semibold mb-6 text-center">{safeT('common.settings', currentLanguage, '設定')}</h3>
         
-        <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-full">
-          <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{safeT('common.email', currentLanguage, 'メールアドレス')} *</label>
+        <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-full flex flex-col items-center">
+          <div className="w-full max-w-full flex flex-col items-center">
+            <label className="block text-sm font-medium mb-2 text-center">{safeT('common.email', currentLanguage, 'メールアドレス')} *</label>
             <input
               type="email"
               name="email"
@@ -120,11 +120,11 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               }`}
               placeholder="example@company.com"
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-red-500 text-sm mt-1 text-center">{errors.email}</p>}
           </div>
 
-          <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{safeT('common.targetMonth', currentLanguage, '対象月')} *</label>
+          <div className="w-full max-w-full flex flex-col items-center">
+            <label className="block text-sm font-medium mb-2 text-center">{safeT('common.targetMonth', currentLanguage, '対象月')} *</label>
             <input
               type="month"
               name="targetMonth"
@@ -135,11 +135,11 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
                 errors.targetMonth ? 'border-red-500' : 'border-gray-600'
               }`}
             />
-            {errors.targetMonth && <p className="text-red-500 text-sm mt-1">{errors.targetMonth}</p>}
+            {errors.targetMonth && <p className="text-red-500 text-sm mt-1 text-center">{errors.targetMonth}</p>}
           </div>
 
-          <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{safeT('common.budget', currentLanguage, '予算')} *</label>
+          <div className="w-full max-w-full flex flex-col items-center">
+            <label className="block text-sm font-medium mb-2 text-center">{safeT('common.budget', currentLanguage, '予算')} *</label>
             <input
               type="number"
               name="budget"
@@ -152,11 +152,11 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               placeholder="100000"
               min="0"
             />
-            {errors.budget && <p className="text-red-500 text-sm mt-1">{errors.budget}</p>}
+            {errors.budget && <p className="text-red-500 text-sm mt-1 text-center">{errors.budget}</p>}
           </div>
 
-          <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{safeT('dataInput.currency', currentLanguage, '通貨')} *</label>
+          <div className="w-full max-w-full flex flex-col items-center">
+            <label className="block text-sm font-medium mb-2 text-center">{safeT('dataInput.currency', currentLanguage, '通貨')} *</label>
             <select
               name="currency"
               value={formData.currency}
@@ -177,7 +177,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               <option value="CAD">カナダドル（CAD）</option>
               <option value="CHF">スイスフラン（CHF）</option>
             </select>
-            {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
+            {errors.currency && <p className="text-red-500 text-sm mt-1 text-center">{errors.currency}</p>}
           </div>
 
           <button
