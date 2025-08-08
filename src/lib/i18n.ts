@@ -467,7 +467,7 @@ const translations: Record<Language, Translations> = {
     batchUpload: {
       title: '一括アップロード',
       description: '複数のレシート画像を同時にアップロードできます。レシート自動検出とOCR処理を効率的に実行します。',
-      dragDropText: 'ドラッグ&ドロップまたはクリックして画像を選択',
+      dragDropText: 'ドラッグ&ドロップ\nまたはクリックして画像を選択',
       processing: '処理中',
       completed: '完了',
       failed: '失敗',
@@ -787,7 +787,7 @@ const translations: Record<Language, Translations> = {
     batchUpload: {
       title: 'Batch Upload',
       description: 'Upload multiple receipt images simultaneously. Efficiently execute receipt detection and OCR processing.',
-      dragDropText: 'Drag & drop or click to select images',
+      dragDropText: 'Drag & drop\nor click to select images',
       processing: 'Processing',
       completed: 'Completed',
       failed: 'Failed',
