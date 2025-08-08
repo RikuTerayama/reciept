@@ -791,7 +791,7 @@ export default function Home() {
           >
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <div className="flex-1"></div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1 whitespace-nowrap">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
