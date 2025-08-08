@@ -115,7 +115,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               value={formData.email}
               onChange={handleInputChange}
               required
-              className={`w-full sm:w-auto px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
                 errors.email ? 'border-red-500' : 'border-gray-600'
               }`}
               placeholder="example@company.com"
@@ -131,7 +131,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               value={formData.targetMonth}
               onChange={handleInputChange}
               required
-              className={`w-full sm:w-auto px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
                 errors.targetMonth ? 'border-red-500' : 'border-gray-600'
               }`}
             />
@@ -146,7 +146,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               value={formData.budget}
               onChange={handleInputChange}
               required
-              className={`w-full sm:w-auto px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
                 errors.budget ? 'border-red-500' : 'border-gray-600'
               }`}
               placeholder="100000"
@@ -162,7 +162,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               value={formData.currency}
               onChange={handleInputChange}
               required
-              className={`w-full sm:w-auto px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+              className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-white ${
                 errors.currency ? 'border-red-500' : 'border-gray-600'
               }`}
             >
