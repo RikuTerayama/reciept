@@ -413,7 +413,7 @@ const translations: Record<Language, Translations> = {
       expenseList: '経費リスト',
       expenseListDesc: '登録済み経費の一覧表示と管理',
       budgetOptimizer: '予算最適化',
-      budgetOptimizerDesc: '指定された予算に最も近い経費の組み合わせを自動提案',
+      budgetOptimizerDesc: '予算に最も近い経費の組み合わせを自動提案',
       menu: 'メニュー',
     },
     welcome: {
@@ -560,7 +560,7 @@ const translations: Record<Language, Translations> = {
     },
     budgetOptimizer: {
       title: '予算最適化',
-      description: '指定された予算に最も近い経費の組み合わせを自動提案します。効率的な予算管理にお役立てください。',
+      description: '予算に最も近い経費の組み合わせを自動提案します。効率的な予算管理にお役立てください。',
       targetBudget: '目標予算',
       optimize: '最適化実行',
       results: '最適化結果',
@@ -733,7 +733,7 @@ const translations: Record<Language, Translations> = {
       expenseList: 'Expense List',
       expenseListDesc: 'View and manage registered expenses',
       budgetOptimizer: 'Budget Optimizer',
-      budgetOptimizerDesc: 'Automatically suggest expense combinations closest to specified budgets',
+      budgetOptimizerDesc: 'Automatically suggest expense combinations closest to budgets',
       menu: 'Menu',
     },
     welcome: {
@@ -880,7 +880,7 @@ const translations: Record<Language, Translations> = {
     },
     budgetOptimizer: {
       title: 'Budget Optimization',
-      description: 'Automatically suggest expense combinations closest to specified budgets. Use for efficient budget management.',
+      description: 'Automatically suggest expense combinations closest to budgets. Use for efficient budget management.',
       targetBudget: 'Target Budget',
       optimize: 'Run Optimization',
       results: 'Optimization Results',
