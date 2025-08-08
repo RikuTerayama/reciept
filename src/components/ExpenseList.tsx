@@ -143,15 +143,9 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* ヘッダー */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-xl md:text-2xl font-semibold text-center text-white">
-            {t('expenseList.title')}
-          </h2>
-        </div>
-        
-        {/* 統計情報 */}
-        <div className="flex space-x-4 text-xs md:text-sm">
+      <div className="flex flex-col space-y-4">
+        {/* 統計情報 - スマホ時は中央揃え、PC時は従来通り */}
+        <div className="flex flex-wrap gap-4 justify-center sm:justify-start text-center">
           <div className="text-center">
             <div className="text-base md:text-lg font-semibold text-white">
               ¥{totalAmount.toLocaleString()}
