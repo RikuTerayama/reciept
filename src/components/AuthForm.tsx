@@ -23,9 +23,19 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
   // t関数の安全性を確保
   const safeT = (key: string, lang: Language = currentLanguage, defaultValue?: string): string => {
     try {
-      return t(key, lang, defaultValue);
+      console.log('[AuthForm] safeT called with key:', key, 'lang:', lang);
+      console.log('[AuthForm] typeof t =', typeof t);
+      
+      if (typeof t !== 'function') {
+        console.error('[AuthForm] t is not a function! Check i18n import/export and init order.');
+        return defaultValue || key;
+      }
+      
+      const result = t(key, lang, defaultValue);
+      console.log('[AuthForm] Translation result:', result);
+      return result;
     } catch (error) {
-      console.warn('Translation error:', error);
+      console.error('[AuthForm] Translation error:', error);
       return defaultValue || key;
     }
   };
