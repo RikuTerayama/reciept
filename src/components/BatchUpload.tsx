@@ -148,8 +148,8 @@ export default function BatchUpload({ onComplete }: BatchUploadProps) {
           >
             <input {...getInputProps()} />
             <Upload className="mx-auto h-10 w-10 md:h-12 md:w-12 text-gray-400 mb-4" />
-            <p className="text-xs md:text-sm text-white leading-relaxed">
-              {isDragActive ? t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択') : t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップまたはクリックして画像を選択')}
+            <p className="text-xs md:text-sm text-white leading-relaxed whitespace-pre-line">
+              {isDragActive ? t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップ\nまたはクリックして画像を選択') : t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップ\nまたはクリックして画像を選択')}
             </p>
             <p className="text-xs text-gray-300 mt-2 text-center leading-relaxed">
               {t('batchUpload.supportedFormats', currentLanguage, 'サポートされている形式：JPG / PNG / PDF')}
