@@ -64,7 +64,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
       id: 'batch' as TabType,
       label: t('navigation.batchUpload', currentLanguage, '一括アップロード'),
       icon: Upload,
-      description: t('batchUpload.description', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理できます'),
+      description: t('batchUpload.description', currentLanguage, '複数のレシート画像を同時にアップロードできます'),
       color: 'from-green-500 to-emerald-500'
     },
     {
@@ -419,7 +419,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="space-y-6">
               <div className="text-center">
                               <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">{t('batchUpload.description', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理できます')}</p>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('batchUpload.description', currentLanguage, '複数のレシート画像を同時にアップロードできます')}</p>
               </div>
               <BatchUpload />
             </div>
