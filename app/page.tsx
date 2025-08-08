@@ -629,7 +629,7 @@ export default function Home() {
                         <BarChart3 className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.budgetOptimizerDesc', currentLanguage, '指定された予算に最も近い経費の組み合わせを自動提案')}</p>
+                      <p className="text-sm text-surface-400">{t('navigation.budgetOptimizerDesc', currentLanguage, '予算に最も近い経費の組み合わせを自動提案')}</p>
                     </div>
                   </button>
                 </div>
