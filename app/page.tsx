@@ -577,7 +577,7 @@ export default function Home() {
                         <Camera className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロードしてOCR処理')}</p>
+                      <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロード')}</p>
                     </div>
                   </button>
 
