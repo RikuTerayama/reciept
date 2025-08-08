@@ -408,7 +408,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
           {activeTab === 'upload' && (
             <div className="space-y-6">
               <div className="text-center">
-                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
+                              <h2 className="text-3xl font-bold text-white mb-4 whitespace-nowrap">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
 
               </div>
               <EnhancedImageUpload onOCRComplete={handleOCRComplete} />
