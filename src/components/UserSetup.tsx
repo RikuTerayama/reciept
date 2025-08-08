@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getCurrentLanguage, t } from '@/lib/i18n';
+import { getCurrentLanguage, t, Language } from '@/lib/i18n';
 
 interface UserInfo {
   email: string;
@@ -26,6 +26,28 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
   const [errors, setErrors] = useState<Record<string, string>>({});
   const currentLanguage = getCurrentLanguage();
 
+  // デバッグログを追加
+  console.log('[UserSetup] typeof t =', typeof t, 'value:', t);
+  console.log('[UserSetup] currentLanguage =', currentLanguage);
+
+  // 安全なt関数のラッパー
+  const safeT = (key: string, lang: Language = currentLanguage, defaultValue?: string): string => {
+    try {
+      console.log('[UserSetup] safeT called with key:', key, 'lang:', lang);
+      console.log('[UserSetup] typeof t in safeT =', typeof t);
+      
+      if (typeof t !== 'function') {
+        console.error('[UserSetup] t is not a function!');
+        return defaultValue || key;
+      }
+      
+      return t(key, lang, defaultValue);
+    } catch (error) {
+      console.error('[UserSetup] Translation error:', error);
+      return defaultValue || key;
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -43,21 +65,21 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
     const newErrors: Record<string, string> = {};
 
     if (!formData.email) {
-              newErrors.email = t('dataInput.validation.required', currentLanguage, 'この項目は必須です');
+      newErrors.email = safeT('dataInput.validation.required', currentLanguage, 'この項目は必須です');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-              newErrors.email = t('dataInput.validation.invalidEmail', currentLanguage, '有効なメールアドレスを入力してください');
+      newErrors.email = safeT('dataInput.validation.invalidEmail', currentLanguage, '有効なメールアドレスを入力してください');
     }
 
     if (!formData.targetMonth) {
-              newErrors.targetMonth = t('dataInput.validation.required', currentLanguage, 'この項目は必須です');
+      newErrors.targetMonth = safeT('dataInput.validation.required', currentLanguage, 'この項目は必須です');
     }
 
     if (!formData.budget || formData.budget <= 0) {
-              newErrors.budget = t('dataInput.validation.invalidAmount', currentLanguage, '有効な金額を入力してください');
+      newErrors.budget = safeT('dataInput.validation.invalidAmount', currentLanguage, '有効な金額を入力してください');
     }
 
     if (!formData.currency) {
-              newErrors.currency = t('dataInput.validation.required', currentLanguage, 'この項目は必須です');
+      newErrors.currency = safeT('dataInput.validation.required', currentLanguage, 'この項目は必須です');
     }
 
     setErrors(newErrors);
@@ -76,17 +98,17 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
     <div className="max-w-2xl mx-auto">
       {!hideWelcomeTitle && (
         <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-4">{t('welcome.title', currentLanguage, 'Welcome')}</h2>
-        <p className="text-xl text-gray-400">{t('welcome.description', currentLanguage, 'OCR技術による自動抽出・管理')}</p>
+          <h2 className="text-3xl font-bold mb-4">{safeT('welcome.title', currentLanguage, 'Welcome')}</h2>
+          <p className="text-xl text-gray-400">{safeT('welcome.description', currentLanguage, 'OCR技術による自動抽出・管理')}</p>
         </div>
       )}
       
       <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-2xl font-semibold mb-6">{t('common.settings', currentLanguage, '設定')}</h3>
+        <h3 className="text-2xl font-semibold mb-6">{safeT('common.settings', currentLanguage, '設定')}</h3>
         
         <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-full">
           <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
+            <label className="block text-sm font-medium mb-2">{safeT('common.email', currentLanguage, 'メールアドレス')} *</label>
             <input
               type="email"
               name="email"
@@ -102,7 +124,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
           </div>
 
           <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{t('common.targetMonth', currentLanguage, '対象月')} *</label>
+            <label className="block text-sm font-medium mb-2">{safeT('common.targetMonth', currentLanguage, '対象月')} *</label>
             <input
               type="month"
               name="targetMonth"
@@ -117,7 +139,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
           </div>
 
           <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{t('common.budget', currentLanguage, '予算')} *</label>
+            <label className="block text-sm font-medium mb-2">{safeT('common.budget', currentLanguage, '予算')} *</label>
             <input
               type="number"
               name="budget"
@@ -134,7 +156,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
           </div>
 
           <div className="w-full max-w-full">
-            <label className="block text-sm font-medium mb-2">{t('dataInput.currency', currentLanguage, '通貨')} *</label>
+            <label className="block text-sm font-medium mb-2">{safeT('dataInput.currency', currentLanguage, '通貨')} *</label>
             <select
               name="currency"
               value={formData.currency}
@@ -162,7 +184,7 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
             type="submit"
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            {t('common.save', currentLanguage, '保存')}
+            {safeT('common.save', currentLanguage, '保存')}
           </button>
         </form>
       </div>
