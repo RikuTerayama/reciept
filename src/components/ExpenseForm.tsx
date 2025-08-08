@@ -227,7 +227,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               required
-              className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
+              className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                 errors.receiptDate ? 'border-red-500' : 'border-surface-600'
               }`}
             />
@@ -251,7 +251,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
                 required
                 step="0.01"
                 min="0"
-                className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
+                className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                   errors.totalAmount ? 'border-red-500' : 'border-surface-600'
                 }`}
                 placeholder="0.00"
@@ -275,7 +275,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               value={formData.currency}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+              className="w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             >
               <option value="JPY">日本円（JPY）</option>
               <option value="USD">米ドル（USD）</option>
@@ -302,7 +302,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               required
-              className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
+              className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                 errors.category ? 'border-red-500' : 'border-surface-600'
               }`}
             >
@@ -329,7 +329,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             required
-            className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
+            className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
               errors.description ? 'border-red-500' : 'border-surface-600'
             }`}
             placeholder={t('dataInput.descriptionPlaceholder', currentLanguage, '経費の詳細を入力')}
@@ -354,7 +354,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               min="0"
               max="100"
               step="0.1"
-              className={`w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
+              className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                 errors.taxRate ? 'border-red-500' : 'border-surface-600'
               }`}
               placeholder="10.0"
@@ -376,7 +376,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onFocus={handleNumberFocus}
               onBlur={handleNumberBlur}
               min="0"
-              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+              className="w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
               placeholder="0"
             />
           </div>
@@ -395,7 +395,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               onFocus={handleNumberFocus}
               onBlur={handleNumberBlur}
               min="0"
-              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+              className="w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
               placeholder="0"
             />
           </div>
@@ -412,7 +412,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             value={formData.companyName}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+            className="w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             placeholder={t('dataInput.companyNamePlaceholder', currentLanguage, '会社名を入力してください')}
           />
         </div>
@@ -427,7 +427,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             value={formData.isQualified}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+            className="w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
           >
             {QUALIFICATION_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -449,7 +449,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               value={formData.rechargedToClient}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+              className="w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             >
               <option value="N">N</option>
               <option value="Y">Y</option>
@@ -466,7 +466,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               value={formData.gstVatApplicable}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
+              className="w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm"
             >
               <option value="N">N</option>
               <option value="Y">Y</option>
