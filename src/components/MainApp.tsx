@@ -85,7 +85,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
       id: 'optimizer' as TabType,
       label: t('navigation.budgetOptimizer', currentLanguage, '予算最適化'),
       icon: Calculator,
-      description: t('budgetOptimizer.description', currentLanguage, '自動的に指定された予算に最も近い経費の組み合わせを提案します'),
+      description: t('budgetOptimizer.description', currentLanguage, '自動的に予算に最も近い経費の組み合わせを提案します'),
       color: 'from-indigo-500 to-purple-500'
     }
   ], [currentLanguage]);
@@ -509,7 +509,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
             <div className="space-y-6">
               <div className="text-center">
                               <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">{t('budgetOptimizer.description', currentLanguage, '自動的に指定された予算に最も近い経費の組み合わせを提案します')}</p>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('budgetOptimizer.description', currentLanguage, '自動的に予算に最も近い経費の組み合わせを提案します')}</p>
               </div>
               <BudgetOptimizer />
             </div>
