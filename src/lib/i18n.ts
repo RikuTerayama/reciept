@@ -1020,12 +1020,18 @@ export const setLanguage = (language: Language): void => {
 // 翻訳を取得
 export const t = (key: string, language: Language = getCurrentLanguage(), defaultValue?: string): string => {
   try {
+    // デバッグログを追加
+    console.log('[i18n] t called with key:', key, 'language:', language);
+    console.log('[i18n] typeof translations =', typeof translations);
+    console.log('[i18n] translations exists:', !!translations);
+    
     // languageがundefinedの場合はデフォルト言語を使用
     const currentLang = language || getCurrentLanguage();
+    console.log('[i18n] currentLang =', currentLang);
     
     // translationsオブジェクトが存在しない場合の対策
     if (!translations || !translations[currentLang]) {
-      console.warn(`Translation not found for language: ${currentLang}, key: ${key}`);
+      console.warn(`[i18n] Translation not found for language: ${currentLang}, key: ${key}`);
       return defaultValue || key;
     }
     
@@ -1036,14 +1042,16 @@ export const t = (key: string, language: Language = getCurrentLanguage(), defaul
       if (value && typeof value === 'object' && k in value) {
         value = (value as Record<string, any>)[k];
       } else {
-        console.warn(`Translation key not found: ${key} in language: ${currentLang}`);
+        console.warn(`[i18n] Translation key not found: ${key} in language: ${currentLang}`);
         return defaultValue || key;
       }
     }
     
-    return typeof value === 'string' ? value : (defaultValue || key);
+    const result = typeof value === 'string' ? value : (defaultValue || key);
+    console.log('[i18n] Translation result:', result);
+    return result;
   } catch (error) {
-    console.error('Translation error:', error, 'key:', key, 'language:', language);
+    console.error('[i18n] Translation error:', error, 'key:', key, 'language:', language);
     return defaultValue || key;
   }
 };
