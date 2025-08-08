@@ -418,7 +418,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
           {activeTab === 'batch' && (
             <div className="space-y-6">
               <div className="text-center">
-                              <h2 className="text-3xl font-bold text-white mb-4">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
+                              <h2 className="text-3xl font-bold text-white mb-4 whitespace-nowrap">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
               <p className="text-gray-400 max-w-2xl mx-auto">{t('batchUpload.description', currentLanguage, '複数のレシート画像を同時にアップロードできます')}</p>
               </div>
               <BatchUpload />
