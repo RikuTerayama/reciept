@@ -1025,6 +1025,12 @@ export const t = (key: string, language: Language = getCurrentLanguage(), defaul
     console.log('[i18n] typeof translations =', typeof translations);
     console.log('[i18n] translations exists:', !!translations);
     
+    // translationsオブジェクトの初期化チェック
+    if (typeof translations === 'undefined') {
+      console.error('[i18n] translations object is undefined! This should not happen.');
+      return defaultValue || key;
+    }
+    
     // languageがundefinedの場合はデフォルト言語を使用
     const currentLang = language || getCurrentLanguage();
     console.log('[i18n] currentLang =', currentLang);
