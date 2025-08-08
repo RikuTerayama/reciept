@@ -590,7 +590,7 @@ export default function Home() {
                         <FolderOpen className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロードして一括処理')}</p>
+                      <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロード')}</p>
                     </div>
                   </button>
 
