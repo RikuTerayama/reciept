@@ -404,7 +404,7 @@ const translations: Record<Language, Translations> = {
     },
     navigation: {
       singleUpload: '単一アップロード',
-      singleUploadDesc: 'レシート画像を1枚ずつアップロードしてOCR処理',
+      singleUploadDesc: 'レシート画像を1枚ずつアップロード',
       batchUpload: '一括アップロード',
       batchUploadDesc: '複数のレシート画像を同時にアップロードして一括処理',
       dataInput: 'データ入力',
@@ -724,7 +724,7 @@ const translations: Record<Language, Translations> = {
     },
     navigation: {
       singleUpload: 'Single Upload',
-      singleUploadDesc: 'Upload receipt images one by one for OCR processing',
+      singleUploadDesc: 'Upload receipt images one by one',
       batchUpload: 'Batch Upload',
       batchUploadDesc: 'Upload multiple receipt images simultaneously for batch processing',
       dataInput: 'Data Input',
