@@ -104,15 +104,15 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-full">
+    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-full flex flex-col items-center">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 w-full">
+          <p className="text-red-400 text-sm text-center">{error}</p>
         </div>
       )}
       
-      <div className="w-full max-w-full">
-        <label className="block text-sm font-medium mb-2 text-surface-300">
+      <div className="w-full max-w-full flex flex-col items-center">
+        <label className="block text-sm font-medium mb-2 text-surface-300 text-center">
           {safeT('common.email', currentLanguage, 'メールアドレス')}
         </label>
         <input
@@ -125,8 +125,8 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
         />
       </div>
       
-      <div className="w-full max-w-full">
-        <label className="block text-sm font-medium mb-2 text-surface-300">
+      <div className="w-full max-w-full flex flex-col items-center">
+        <label className="block text-sm font-medium mb-2 text-surface-300 text-center">
           {safeT('common.password', currentLanguage, 'パスワード')}
         </label>
         <input
@@ -142,10 +142,10 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
 
       {mode === 'register' && (
         <>
-          <div className="w-full max-w-full">
-                    <label className="block text-sm font-medium mb-2 text-surface-300">
-          {safeT('common.targetMonth', currentLanguage, '対象月')} *
-        </label>
+          <div className="w-full max-w-full flex flex-col items-center">
+            <label className="block text-sm font-medium mb-2 text-surface-300 text-center">
+              {safeT('common.targetMonth', currentLanguage, '対象月')} *
+            </label>
             <input
               type="month"
               value={targetMonth}
@@ -156,10 +156,10 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
             />
           </div>
 
-          <div className="w-full max-w-full">
-                    <label className="block text-sm font-medium mb-2 text-surface-300">
-          {safeT('common.budget', currentLanguage, '予算')} *
-        </label>
+          <div className="w-full max-w-full flex flex-col items-center">
+            <label className="block text-sm font-medium mb-2 text-surface-300 text-center">
+              {safeT('common.budget', currentLanguage, '予算')} *
+            </label>
             <input
               type="number"
               value={budget}
