@@ -17,7 +17,7 @@ const ITEMS_PER_PAGE = 20;
 
 export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
   const { user } = useAuthStore();
-  const { expenses, updateExpense, deleteExpense } = useExpenseStore();
+  const { expenses, updateExpense, deleteExpense, deleteExpenses, selectedExpenses, toggleExpenseSelection, clearSelection } = useExpenseStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
@@ -130,9 +130,40 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
       if (paginatedExpenses.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
+      
+      alert('削除しました');
     } catch (error) {
       console.error('Failed to delete expense:', error);
       alert('削除に失敗しました');
+    }
+  };
+
+  // 一括削除処理
+  const handleBatchDelete = async () => {
+    const selectedIds = selectedExpenses.filter(id => 
+      allExpenses.some(exp => exp.id === id)
+    );
+    
+    if (selectedIds.length === 0) return;
+    
+    if (!confirm(`選択した経費を一括削除しますか？（${selectedIds.length}件、取り消し不可）`)) return;
+
+    try {
+      // ローカルストアから一括削除
+      deleteExpenses(selectedIds);
+      
+      // 選択をクリア
+      clearSelection();
+      
+      // ページネーション調整
+      if (paginatedExpenses.length <= selectedIds.length && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+      
+      alert(`${selectedIds.length}件の経費を削除しました`);
+    } catch (error) {
+      console.error('Failed to batch delete expenses:', error);
+      alert('一括削除に失敗しました');
     }
   };
 
@@ -180,22 +211,39 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
           />
         </div>
         
-        <select
-          value={`${sortBy}-${sortOrder}`}
-          onChange={(e) => {
-            const [field, order] = e.target.value.split('-') as ['date' | 'amount' | 'category', 'asc' | 'desc'];
-            setSortBy(field);
-            setSortOrder(order);
-          }}
-          className="px-3 py-2 md:px-4 md:py-2 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-        >
-          <option value="date-desc">{t('expenseList.sort.dateDesc') || '日付（新しい順）'}</option>
-          <option value="date-asc">{t('expenseList.sort.dateAsc') || '日付（古い順）'}</option>
-          <option value="amount-desc">{t('expenseList.sort.amountDesc') || '金額（高い順）'}</option>
-          <option value="amount-asc">{t('expenseList.sort.amountAsc') || '金額（低い順）'}</option>
-          <option value="category-asc">{t('expenseList.sort.categoryAsc') || 'カテゴリ（A-Z）'}</option>
-          <option value="category-desc">{t('expenseList.sort.categoryDesc') || 'カテゴリ（Z-A）'}</option>
-        </select>
+        <div className="flex gap-2">
+          <select
+            value={`${sortBy}-${sortOrder}`}
+            onChange={(e) => {
+              const [field, order] = e.target.value.split('-') as ['date' | 'amount' | 'category', 'asc' | 'desc'];
+              setSortBy(field);
+              setSortOrder(order);
+            }}
+            className="px-3 py-2 md:px-4 md:py-2 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+          >
+            <option value="date-desc">{t('expenseList.sort.dateDesc') || '日付（新しい順）'}</option>
+            <option value="date-asc">{t('expenseList.sort.dateAsc') || '日付（古い順）'}</option>
+            <option value="amount-desc">{t('expenseList.sort.amountDesc') || '金額（高い順）'}</option>
+            <option value="amount-asc">{t('expenseList.sort.amountAsc') || '金額（低い順）'}</option>
+            <option value="category-asc">{t('expenseList.sort.categoryAsc') || 'カテゴリ（A-Z）'}</option>
+            <option value="category-desc">{t('expenseList.sort.categoryDesc') || 'カテゴリ（Z-A）'}</option>
+          </select>
+          
+          {/* 一括削除ボタン */}
+          {selectedExpenses.length > 0 && (
+            <button
+              onClick={handleBatchDelete}
+              aria-label="選択した経費を一括削除"
+              className={`px-3 py-2 text-xs md:text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-1 ${
+                selectedExpenses.length === 0 ? 'opacity-50 pointer-events-none' : ''
+              }`}
+            >
+              <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">一括削除</span>
+              <span className="text-xs">({selectedExpenses.length})</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ローディング */}
@@ -226,22 +274,45 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
                 <table className="w-full">
                   <thead className="bg-surface-700">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
+                      <th className="px-2 md:px-4 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
+                        <input
+                          type="checkbox"
+                          checked={paginatedExpenses.length > 0 && paginatedExpenses.every(exp => selectedExpenses.includes(exp.id))}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              paginatedExpenses.forEach(exp => {
+                                if (!selectedExpenses.includes(exp.id)) {
+                                  toggleExpenseSelection(exp.id);
+                                }
+                              });
+                            } else {
+                              paginatedExpenses.forEach(exp => {
+                                if (selectedExpenses.includes(exp.id)) {
+                                  toggleExpenseSelection(exp.id);
+                                }
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 text-primary-600 bg-surface-600 border-surface-500 rounded focus:ring-primary-500 focus:ring-2"
+                          aria-label="全て選択/選択解除"
+                        />
+                      </th>
+                      <th className="px-2 md:px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
                         {t('expenseList.date')}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
+                      <th className="px-2 md:px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
                         {t('dataInput.descriptionField')}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
+                      <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-medium text-surface-300 uppercase tracking-wider">
                         {t('dataInput.category')}
                       </th>
-                      <th className="px-6 py-4 text-right text-xs font-medium text-surface-300 uppercase tracking-wider">
+                      <th className="px-2 md:px-6 py-4 text-right text-xs font-medium text-surface-300 uppercase tracking-wider">
                         {t('expenseList.amount')}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
+                      <th className="hidden md:table-cell px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
                         {t('dataInput.qualification')}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
+                      <th className="px-2 md:px-6 py-4 text-center text-xs font-medium text-surface-300 uppercase tracking-wider">
                         {t('common.actions')}
                       </th>
                     </tr>
@@ -249,19 +320,39 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
                   <tbody className="divide-y divide-surface-700">
                     {paginatedExpenses.map((expense) => (
                       <tr key={expense.id} className="hover:bg-surface-700/50 transition-colors">
-                        <td className="px-6 py-4 text-sm text-white">
+                        {/* チェックボックス */}
+                        <td className="px-2 md:px-4 py-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedExpenses.includes(expense.id)}
+                            onChange={() => toggleExpenseSelection(expense.id)}
+                            className="w-4 h-4 text-primary-600 bg-surface-600 border-surface-500 rounded focus:ring-primary-500 focus:ring-2"
+                            aria-label={`経費を選択: ${expense.description || expense.id}`}
+                          />
+                        </td>
+                        {/* 日付 */}
+                        <td className="px-2 md:px-6 py-4 text-sm text-white">
                           {expense.receiptDate ? new Date(expense.receiptDate).toLocaleDateString('ja-JP') : '-'}
                         </td>
-                        <td className="px-6 py-4 text-sm text-white max-w-xs truncate">
-                          {expense.description || '-'}
+                        {/* 説明 */}
+                        <td className="px-2 md:px-6 py-4 text-sm text-white max-w-xs truncate">
+                          <div>
+                            <div>{expense.description || '-'}</div>
+                            {/* スマホ時はカテゴリも表示 */}
+                            <div className="md:hidden text-xs text-surface-400 mt-1">
+                              {expense.category || '-'}
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-surface-300">
+                        {/* カテゴリ（PC時のみ） */}
+                        <td className="hidden md:table-cell px-6 py-4 text-sm text-surface-300">
                           {expense.category || '-'}
                         </td>
-                        <td className="px-6 py-4 text-sm text-right">
+                        {/* 金額 */}
+                        <td className="px-2 md:px-6 py-4 text-sm text-right">
                           <div className="flex items-center justify-end space-x-2">
                             <span className="text-white font-medium">
-                              {expense.totalAmount?.toLocaleString() || '0'}
+                              ¥{expense.totalAmount?.toLocaleString() || '0'}
                             </span>
                             {expense.currency && expense.currency !== 'JPY' && (
                               <span className="text-xs text-surface-400">
@@ -269,8 +360,19 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
                               </span>
                             )}
                           </div>
+                          {/* スマホ時は適格性も表示 */}
+                          <div className="md:hidden mt-1">
+                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                              expense.isQualified?.includes('Qualified')
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {expense.isQualified || '-'}
+                            </span>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-center">
+                        {/* 適格性（PC時のみ） */}
+                        <td className="hidden md:table-cell px-6 py-4 text-sm text-center">
                           <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                             expense.isQualified?.includes('Qualified')
                               ? 'bg-green-100 text-green-800'
@@ -279,26 +381,27 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
                             {expense.isQualified || '-'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-center">
-                          <div className="flex items-center justify-center space-x-2">
+                        {/* アクション */}
+                        <td className="px-2 md:px-6 py-4 text-sm text-center">
+                          <div className="flex items-center justify-center space-x-1 md:space-x-2">
                             {onEdit && (
                               <button
                                 onClick={() => onEdit(expense)}
-                                className="p-1 text-surface-400 hover:text-blue-400 transition-colors"
+                                className="p-1.5 md:p-2 text-surface-400 hover:text-blue-400 transition-colors"
                                 title={t('common.edit')}
+                                aria-label={`編集: ${expense.description || expense.id}`}
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-3 h-3 md:w-4 md:h-4" />
                               </button>
                             )}
-                            {onDelete && (
-                              <button
-                                onClick={() => handleDelete(expense.id)}
-                                className="p-1 text-surface-400 hover:text-red-400 transition-colors"
-                                title={t('common.delete')}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleDelete(expense.id)}
+                              className="p-1.5 md:p-2 text-surface-400 hover:text-red-400 transition-colors"
+                              title={t('common.delete')}
+                              aria-label={`削除: ${expense.description || expense.id}`}
+                            >
+                              <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
