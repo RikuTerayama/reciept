@@ -23,6 +23,7 @@ interface ExpenseStore {
   addExpense: (expense: ExpenseData) => void;
   updateExpense: (expense: ExpenseData) => void;
   deleteExpense: (id: string) => void;
+  deleteExpenses: (ids: string[]) => void;
   setOCRResult: (result: OCRResult | null) => void;
   setProcessing: (processing: boolean) => void;
   toggleExpenseSelection: (id: string) => void;
@@ -66,7 +67,7 @@ export const useExpenseStore = create<ExpenseStore>()(
       },
 
       // 経費データの削除
-      deleteExpense: (id: string, userEmail?: string) => {
+      deleteExpense: (id: string) => {
         set((state) => {
           const expenseToDelete = state.expenses.find(exp => exp.id === id);
           const filteredExpenses = state.expenses.filter((exp) => exp.id !== id);
@@ -74,8 +75,28 @@ export const useExpenseStore = create<ExpenseStore>()(
           
           // ローカルストレージからも削除（同期対応）
           if (expenseToDelete) {
-            deleteExpenseFromStorage(id, userEmail, expenseToDelete.date);
+            deleteExpenseFromStorage(id, undefined, expenseToDelete.date);
           }
+          
+          return { 
+            expenses: filteredExpenses, 
+            selectedExpenses: filteredSelection 
+          };
+        });
+      },
+
+      // 複数経費データの一括削除
+      deleteExpenses: (ids: string[]) => {
+        set((state) => {
+          const idSet = new Set(ids);
+          const expensesToDelete = state.expenses.filter(exp => idSet.has(exp.id));
+          const filteredExpenses = state.expenses.filter((exp) => !idSet.has(exp.id));
+          const filteredSelection = state.selectedExpenses.filter((selectedId) => !idSet.has(selectedId));
+          
+          // ローカルストレージからも削除（同期対応）
+          expensesToDelete.forEach(expense => {
+            deleteExpenseFromStorage(expense.id, undefined, expense.date);
+          });
           
           return { 
             expenses: filteredExpenses, 
