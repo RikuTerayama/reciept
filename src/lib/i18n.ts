@@ -360,6 +360,29 @@ export interface Translations {
     mmk: string;
     lbp: string;
   };
+
+  // 音声入力
+  voice: {
+    start: string;
+    listening: string;
+    result: string;
+    stop: string;
+    unsupported: string;
+  };
+
+  // エラー
+  errors: {
+    speechUnsupported: string;
+    speechError: string;
+    speechTimeout: string;
+  };
+
+  // フォーム
+  form: {
+    requiredNotice: string;
+    dateRequired: string;
+    amountRequired: string;
+  };
 }
 
 const translations: Record<Language, Translations> = {
@@ -682,6 +705,23 @@ const translations: Record<Language, Translations> = {
       mmk: 'MMK',
       lbp: 'LBP',
     },
+    voice: {
+      start: '音声で入力',
+      listening: '聴き取り中…',
+      result: '抽出結果',
+      stop: '停止',
+      unsupported: '非対応',
+    },
+    errors: {
+      speechUnsupported: 'このブラウザは音声入力に対応していません',
+      speechError: '音声認識でエラーが発生しました',
+      speechTimeout: '音声認識がタイムアウトしました',
+    },
+    form: {
+      requiredNotice: '日付と金額は必須です',
+      dateRequired: '日付は必須です',
+      amountRequired: '金額は必須です',
+    },
   },
   en: {
     common: {
@@ -1001,6 +1041,23 @@ const translations: Record<Language, Translations> = {
       vnd: 'VND',
       mmk: 'MMK',
       lbp: 'LBP',
+    },
+    voice: {
+      start: 'Voice Input',
+      listening: 'Listening...',
+      result: 'Extraction Result',
+      stop: 'Stop',
+      unsupported: 'Not Supported',
+    },
+    errors: {
+      speechUnsupported: 'This browser does not support voice input',
+      speechError: 'Speech recognition error occurred',
+      speechTimeout: 'Speech recognition timed out',
+    },
+    form: {
+      requiredNotice: 'Date and amount are required',
+      dateRequired: 'Date is required',
+      amountRequired: 'Amount is required',
     },
   },
 };
