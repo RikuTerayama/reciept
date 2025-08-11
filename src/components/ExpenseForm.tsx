@@ -279,6 +279,14 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
       if (displayValues[name as keyof typeof displayValues] === '0') {
         setDisplayValues(prev => ({ ...prev, [name]: '' }));
       }
+      
+      // 金額フィールドの場合は千位区切りを除去して数値のみ表示
+      if (name === 'totalAmount') {
+        setDisplayValues(prev => ({ 
+          ...prev, 
+          totalAmount: formData.totalAmount.toString() 
+        }));
+      }
     }
   };
 
@@ -290,6 +298,14 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         setDisplayValues(prev => ({ ...prev, [name]: '0' }));
         setFormData(prev => ({ ...prev, [name]: 0 }));
       }
+      
+      // 金額フィールドの場合は千位区切りを表示
+      if (name === 'totalAmount' && formData.totalAmount > 0) {
+        setDisplayValues(prev => ({ 
+          ...prev, 
+          totalAmount: formData.totalAmount.toLocaleString('ja-JP') 
+        }));
+      }
     }
   };
 
@@ -300,11 +316,19 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         <div className="mb-6 p-4 bg-blue-600/20 border border-blue-500/30 rounded-lg">
           <div className="flex items-center gap-3">
             <div className="text-blue-300 text-lg">📷</div>
-            <div>
+            <div className="flex-1">
               <p className="text-blue-300 font-medium">OCR処理が完了しました</p>
               <p className="text-blue-200 text-sm mt-1">
                 以下の情報を確認・編集してから保存してください。
               </p>
+              {/* 不足情報の案内 */}
+              {(!ocrResult.date || !ocrResult.totalAmount) && (
+                <div className="mt-2 p-2 bg-blue-500/20 rounded border border-blue-400/30">
+                  <p className="text-blue-200 text-xs">
+                    💡 足りない情報は音声で入力できます
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -320,13 +344,14 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             <button
               type="button"
               onClick={stopVoiceInput}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors animate-pulse"
               aria-label="音声入力を停止"
               aria-pressed="true"
               aria-busy="true"
             >
               <MicOff className="w-4 h-4" />
               <span className="hidden sm:inline">{t('voice.stop', currentLanguage, '停止')}</span>
+              <span className="text-xs">聴き取り中...</span>
             </button>
           ) : (
             <button
@@ -347,6 +372,17 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           )}
         </div>
       </div>
+
+      {/* 音声入力中の表示 */}
+      {isListening && (
+        <div className="mb-4 p-3 bg-blue-600/20 border border-blue-500/30 rounded-lg">
+          <div className="flex items-center gap-2 text-blue-300">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+            <span className="text-sm font-medium">{t('voice.listening', currentLanguage, '聴き取り中...')}</span>
+            <span className="text-xs">話しかけてください</span>
+          </div>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -462,7 +498,6 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             value={formData.description}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            required
             className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
               errors.description ? 'border-red-500' : 'border-surface-600'
             }`}
@@ -658,6 +693,32 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           </button>
         </div>
       </form>
+
+      {/* モバイル用フローティングマイクボタン */}
+      {speechRecognizer?.supported && (
+        <div className="fixed bottom-6 right-6 md:hidden">
+          {isListening ? (
+            <button
+              onClick={stopVoiceInput}
+              className="w-16 h-16 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 animate-pulse"
+              aria-label="音声入力を停止"
+              aria-pressed="true"
+              aria-busy="true"
+            >
+              <MicOff className="w-6 h-6" />
+            </button>
+          ) : (
+            <button
+              onClick={handleVoiceInput}
+              className="w-16 h-16 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
+              aria-label="音声で入力"
+              aria-pressed="false"
+            >
+              <Mic className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 } 
