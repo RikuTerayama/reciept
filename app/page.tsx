@@ -804,33 +804,10 @@ export default function Home() {
                 onOCRComplete={(ocrResult) => {
                   console.log('OCR Result:', ocrResult);
                   
-                  // OCR結果をstoreに追加
+                  // OCR結果をストアに保存（登録はしない）
                   if (ocrResult) {
-                    const expenseData: ExpenseData = {
-                      id: Date.now().toString(),
-                      date: ocrResult.date || new Date().toISOString().split('T')[0],
-                      receiptDate: ocrResult.date || new Date().toISOString().split('T')[0],
-                      totalAmount: ocrResult.totalAmount || 0,
-                      category: ocrResult.category || 'Others',
-                      description: ocrResult.description || '',
-                      taxRate: ocrResult.taxRate || 0,
-                      participantFromClient: 0,
-                      participantFromCompany: 0,
-                      isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
-                      currency: 'JPY',
-                      originalAmount: ocrResult.totalAmount || 0,
-                      originalCurrency: 'JPY',
-                      convertedAmount: ocrResult.totalAmount || 0,
-                      baseCurrency: 'JPY',
-                      conversionRate: 1,
-                      conversionDate: new Date().toISOString().split('T')[0],
-                      createdAt: new Date(),
-                      imageData: ocrResult.imageData,
-                      ocrText: ocrResult.text,
-                      receiptNumber: ocrResult.receiptNumber
-                    };
-                    
-                    addExpense(expenseData);
+                    // OCR結果をストアに保存して、データ入力画面で確認・編集できるようにする
+                    // 自動登録は行わない
                   }
                   
                   // モーダルを閉じてデータ入力画面を開く
