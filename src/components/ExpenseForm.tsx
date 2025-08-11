@@ -7,6 +7,9 @@ import { getCurrentLanguage, t } from '@/lib/i18n';
 import { useExchangeRates, convertCurrencyWithCache } from '@/lib/exchange-rate-cache';
 import { useAuthStore } from '@/lib/auth-store';
 import { useExpenseStore } from '@/lib/store';
+import { createSpeechRecognizer } from '@/lib/voice';
+import { parseJaSpeechToDateAmount } from '@/lib/voiceParse';
+import { Mic, MicOff, X } from 'lucide-react';
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseData>;
@@ -55,10 +58,65 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechRecognizer, setSpeechRecognizer] = useState<ReturnType<typeof createSpeechRecognizer> | null>(null);
   const currentLanguage = getCurrentLanguage();
 
   // 為替レート取得
   const { rates, isLoading: ratesLoading, isError: ratesError } = useExchangeRates(baseCurrency);
+
+  // 音声認識の初期化
+  useEffect(() => {
+    const recognizer = createSpeechRecognizer();
+    setSpeechRecognizer(recognizer);
+  }, []);
+
+  // 音声入力処理
+  const handleVoiceInput = async () => {
+    if (!speechRecognizer?.supported) {
+      alert(t('errors.speechUnsupported', currentLanguage, 'このブラウザは音声入力に対応していません'));
+      return;
+    }
+
+    setIsListening(true);
+    try {
+      const speechText = await speechRecognizer.start();
+      const result = parseJaSpeechToDateAmount(speechText);
+      
+      if (result.date || result.amount) {
+        const updates: Partial<ExpenseData> = {};
+        if (result.date) updates.date = result.date;
+        if (result.amount) {
+          updates.totalAmount = result.amount;
+          setDisplayValues(prev => ({ ...prev, totalAmount: result.amount.toString() }));
+        }
+        
+        setFormData(prev => ({ ...prev, ...updates }));
+        
+        // 結果をトースト表示
+        const summary = [];
+        if (result.date) summary.push(`日付: ${result.date}`);
+        if (result.amount) summary.push(`金額: ¥${result.amount.toLocaleString('ja-JP')}`);
+        
+        alert(`${t('voice.result', currentLanguage, '抽出結果')}: ${summary.join(' / ')}`);
+      } else {
+        alert('音声から日付・金額を抽出できませんでした。もう一度お試しください。');
+      }
+    } catch (error) {
+      console.error('Voice input error:', error);
+      alert(t('errors.speechError', currentLanguage, '音声認識でエラーが発生しました'));
+    } finally {
+      setIsListening(false);
+    }
+  };
+
+  // 音声入力を停止
+  const stopVoiceInput = () => {
+    if (speechRecognizer?.supported) {
+      speechRecognizer.stop();
+    }
+    setIsListening(false);
+  };
 
   // OCR結果がある場合、フォームに設定
   useEffect(() => {
@@ -165,24 +223,12 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.receiptDate) {
-      newErrors.receiptDate = t('dataInput.validation.required', currentLanguage, '領収書日付を入力してください');
+    if (!formData.date) {
+      newErrors.date = t('form.dateRequired', currentLanguage, '日付は必須です');
     }
 
     if (!formData.totalAmount || formData.totalAmount <= 0) {
-      newErrors.totalAmount = t('dataInput.validation.invalidAmount', currentLanguage, '有効な金額を入力してください');
-    }
-
-    if (!formData.category) {
-      newErrors.category = t('dataInput.validation.required', currentLanguage, 'カテゴリを選択してください');
-    }
-
-    if (!formData.description) {
-      newErrors.description = t('dataInput.validation.required', currentLanguage, '説明を入力してください');
-    }
-
-    if (formData.taxRate < 0 || formData.taxRate > 100) {
-      newErrors.taxRate = t('dataInput.validation.invalidTaxRate', currentLanguage, '税率は0-100の範囲で入力してください');
+      newErrors.totalAmount = t('form.amountRequired', currentLanguage, '金額は必須です');
     }
 
     setErrors(newErrors);
@@ -263,6 +309,44 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           </div>
         </div>
       )}
+
+      {/* 音声入力ボタン */}
+      <div className="mb-6 flex justify-between items-center">
+        <div className="text-sm text-surface-400">
+          {t('form.requiredNotice', currentLanguage, '日付と金額は必須です')}
+        </div>
+        <div className="flex gap-2">
+          {isListening ? (
+            <button
+              type="button"
+              onClick={stopVoiceInput}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              aria-label="音声入力を停止"
+              aria-pressed="true"
+              aria-busy="true"
+            >
+              <MicOff className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('voice.stop', currentLanguage, '停止')}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleVoiceInput}
+              disabled={!speechRecognizer?.supported}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                speechRecognizer?.supported
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-surface-600 text-surface-400 cursor-not-allowed'
+              }`}
+              aria-label="音声で入力"
+              aria-pressed="false"
+            >
+              <Mic className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('voice.start', currentLanguage, '音声で入力')}</span>
+            </button>
+          )}
+        </div>
+      </div>
       
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
