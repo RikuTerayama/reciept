@@ -1,21 +1,21 @@
 export interface ExpenseData {
   id: string;
-  date: string;
-  receiptDate: string;
-  totalAmount: number;
-  category: string;
-  description: string;
-  taxRate: number;
-  participantFromClient: number;
-  participantFromCompany: number;
-  isQualified: string;
-  currency: string;
-  originalAmount: number;
-  originalCurrency: string;
-  convertedAmount: number;
-  baseCurrency: string;
-  conversionRate: number;
-  conversionDate: string;
+  date: string;                    // 必須 (YYYY-MM-DD)
+  totalAmount: number;             // 必須（数値）
+  receiptDate?: string;            // 任意
+  category?: string;               // 任意
+  description?: string;            // 任意
+  taxRate?: number;                // 任意
+  participantFromClient?: number;  // 任意
+  participantFromCompany?: number; // 任意
+  isQualified?: string;            // 任意
+  currency?: string;               // 任意
+  originalAmount?: number;         // 任意
+  originalCurrency?: string;       // 任意
+  convertedAmount?: number;        // 任意
+  baseCurrency?: string;           // 任意
+  conversionRate?: number;         // 任意
+  conversionDate?: string;         // 任意
   createdAt: Date;
   updatedAt?: Date;
   imageData?: string;
