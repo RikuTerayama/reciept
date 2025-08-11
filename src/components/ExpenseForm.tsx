@@ -350,26 +350,26 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
       
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          {/* 領収書日付 */}
+          {/* 日付（必須） */}
           <div>
             <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
-              {t('dataInput.receiptDate', currentLanguage, '領収書日付')} *
+              {t('dataInput.date', currentLanguage, '日付')} *
             </label>
             <input
               type="date"
-              name="receiptDate"
-              value={formData.receiptDate}
+              name="date"
+              value={formData.date}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               required
               className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
-                errors.receiptDate ? 'border-red-500' : 'border-surface-600'
+                errors.date ? 'border-red-500' : 'border-surface-600'
               }`}
             />
-            {errors.receiptDate && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.receiptDate}</p>}
+            {errors.date && <p className="text-red-400 text-xs md:text-sm mt-1">{errors.date}</p>}
           </div>
 
-          {/* 金額 */}
+          {/* 金額（必須） */}
           <div>
             <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
               {t('dataInput.amount', currentLanguage, '金額')} *
@@ -403,7 +403,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* 通貨 */}
           <div>
             <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
-              {t('dataInput.currency', currentLanguage, '通貨')} *
+              {t('dataInput.currency', currentLanguage, '通貨')}
             </label>
             <select
               name="currency"
@@ -429,14 +429,13 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           {/* カテゴリ */}
           <div>
             <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
-              {t('dataInput.category', currentLanguage, 'カテゴリ')} *
+              {t('dataInput.category', currentLanguage, 'カテゴリ')}
             </label>
             <select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              required
               className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
                 errors.category ? 'border-red-500' : 'border-surface-600'
               }`}
@@ -452,11 +451,11 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           </div>
         </div>
 
-        {/* 説明 */}
-        <div>
-          <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
-            {t('dataInput.descriptionField', currentLanguage, '説明')} *
-          </label>
+                  {/* 説明 */}
+          <div>
+            <label className="block text-xs md:text-sm font-medium mb-2 text-surface-300">
+              {t('dataInput.descriptionField', currentLanguage, '説明')}
+            </label>
           <input
             type="text"
             name="description"
