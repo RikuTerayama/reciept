@@ -35,7 +35,7 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
   const [activeTab, setActiveTab] = useState<TabType>('upload');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<Language>(getCurrentLanguage());
-  const { expenses, selectedExpenses, clearSelection, addExpense } = useExpenseStore();
+  const { expenses, selectedExpenses, clearSelection, addExpense, setOCRResult } = useExpenseStore();
   const { toasts, success, error, info, removeToast } = useToast();
 
   // メモ化された値
@@ -118,46 +118,17 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
     success('エクスポート完了', `${selectedExpenses.length}件の経費データをエクスポートしました`);
   }, [selectedExpenses, expenses, error, success]);
 
-  // OCR完了後の自動遷移処理
+  // OCR完了後の処理
   const handleOCRComplete = useCallback((ocrResult: any) => {
-    // OCR結果をストアに追加
     if (ocrResult) {
-      const expenseData: ExpenseData = {
-        id: Date.now().toString(),
-        date: ocrResult.date || new Date().toISOString().split('T')[0],
-        receiptDate: ocrResult.date || new Date().toISOString().split('T')[0],
-        totalAmount: ocrResult.totalAmount || 0,
-        category: ocrResult.category || '',
-        description: ocrResult.description || '',
-        taxRate: ocrResult.taxRate || 10,
-        participantFromClient: ocrResult.participantFromClient || 0,
-        participantFromCompany: ocrResult.participantFromCompany || 0,
-        isQualified: ocrResult.isQualified || 'Qualified invoice/receipt',
-        currency: ocrResult.currency || 'JPY',
-        originalAmount: ocrResult.originalAmount || ocrResult.totalAmount || 0,
-        originalCurrency: ocrResult.originalCurrency || 'JPY',
-        convertedAmount: ocrResult.convertedAmount || ocrResult.totalAmount || 0,
-        baseCurrency: ocrResult.baseCurrency || 'JPY',
-        conversionRate: ocrResult.conversionRate || 1,
-        conversionDate: new Date().toISOString().split('T')[0],
-        createdAt: new Date(),
-        rechargedToClient: ocrResult.rechargedToClient || 'N',
-        gstVatApplicable: ocrResult.gstVatApplicable || 'N',
-        companyName: ocrResult.companyName || '-',
-        imageData: ocrResult.imageData || null,
-        imageUrl: ocrResult.imageUrl || null,
-        imageFileName: ocrResult.imageFileName || null,
-        ocrText: ocrResult.ocrText || '',
-        receiptNumber: ocrResult.receiptNumber || '',
-      };
-      
-      addExpense(expenseData);
-      success('OCR処理完了', '画像から経費情報を抽出しました。データ入力画面で詳細を確認してください。');
+      // OCR結果をストアに保存（登録はしない）
+      setOCRResult(ocrResult);
+      success('OCR処理完了', '画像から経費情報を抽出しました。データ入力画面で詳細を確認・編集してください。');
     }
     
     // データ入力画面に自動遷移
     setActiveTab('form');
-  }, [addExpense, success]);
+  }, [setOCRResult, success]);
 
   // モバイルメニューのタブ切り替え
   const handleMobileTabChange = useCallback((tab: TabType) => {
