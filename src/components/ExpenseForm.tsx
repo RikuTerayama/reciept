@@ -6,6 +6,7 @@ import { convertToJPY, convertFromJPY, fetchExchangeRates } from '@/lib/currency
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { useExchangeRates, convertCurrencyWithCache } from '@/lib/exchange-rate-cache';
 import { useAuthStore } from '@/lib/auth-store';
+import { useExpenseStore } from '@/lib/store';
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseData>;
@@ -15,6 +16,7 @@ interface ExpenseFormProps {
 
 export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFormProps) {
   const { user } = useAuthStore();
+  const { ocrResult } = useExpenseStore();
   const baseCurrency = user?.currency || 'JPY';
   
   const [formData, setFormData] = useState<ExpenseData>({
@@ -57,6 +59,40 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
 
   // 為替レート取得
   const { rates, isLoading: ratesLoading, isError: ratesError } = useExchangeRates(baseCurrency);
+
+  // OCR結果がある場合、フォームに設定
+  useEffect(() => {
+    if (ocrResult && !initialData) {
+      const ocrData: Partial<ExpenseData> = {
+        date: ocrResult.date || new Date().toISOString().split('T')[0],
+        receiptDate: ocrResult.date || new Date().toISOString().split('T')[0],
+        totalAmount: ocrResult.totalAmount || 0,
+        category: ocrResult.category || '',
+        description: ocrResult.description || '',
+        taxRate: ocrResult.taxRate || 10,
+        isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
+        currency: baseCurrency,
+        originalAmount: ocrResult.totalAmount || 0,
+        originalCurrency: baseCurrency,
+        convertedAmount: ocrResult.totalAmount || 0,
+        baseCurrency: baseCurrency,
+        conversionRate: 1,
+        companyName: ocrResult.companyName || '-',
+        imageData: ocrResult.imageData || null,
+        ocrText: ocrResult.text || '',
+        receiptNumber: ocrResult.receiptNumber || '',
+      };
+      
+      setFormData(prev => ({ ...prev, ...ocrData }));
+      
+      // 表示値も更新
+      setDisplayValues(prev => ({
+        ...prev,
+        totalAmount: (ocrResult.totalAmount || 0).toString(),
+        taxRate: (ocrResult.taxRate || 10).toString(),
+      }));
+    }
+  }, [ocrResult, initialData, baseCurrency]);
 
   // 通貨変更時の自動換算
   useEffect(() => {
