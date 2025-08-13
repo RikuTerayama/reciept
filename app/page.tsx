@@ -220,13 +220,13 @@ export default function Home() {
       if (email) {
         try {
           const userData = await loadUserDataByEmail(email);
-          if (userData && userData.settings) {
-            setUserInfo(userData.settings);
+          if (userData && userData.userInfo) {
+            setUserInfo(userData.userInfo);
             setFormData({
-              email: userData.settings.email || '',
-              targetMonth: userData.settings.targetMonth || '',
-              budget: userData.settings.budget || 100000,
-              office: userData.settings.office || 'japan'
+              email: userData.userInfo.email || '',
+              targetMonth: userData.userInfo.targetMonth || '',
+              budget: userData.userInfo.budget || 100000,
+              office: userData.userInfo.office || 'japan'
             });
           }
         } catch (error) {
@@ -899,7 +899,7 @@ export default function Home() {
               </button>
             </div>
             <div className="text-center">
-              <ExpenseList />
+              <ExpenseList activeMonth={userInfo?.targetMonth ?? ''} />
             </div>
           </div>
         </div>
@@ -924,7 +924,7 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <BudgetOptimizer hideTitle={true} />
+            <BudgetOptimizer hideTitle={true} activeMonth={userInfo?.targetMonth ?? ''} />
           </div>
         </div>
       )}
@@ -1084,4 +1084,4 @@ export default function Home() {
     </div>
     </SWRConfig>
   );
-} 
+}
