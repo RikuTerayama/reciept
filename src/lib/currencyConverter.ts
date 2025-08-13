@@ -38,168 +38,169 @@ export const CURRENCY_INFO: Record<string, CurrencyInfo> = {
   HUF: { code: 'HUF', name: 'ハンガリーフォリント', symbol: 'Ft', isBaseCurrency: false },
   MXN: { code: 'MXN', name: 'メキシコペソ', symbol: '$', isBaseCurrency: false },
   RUB: { code: 'RUB', name: 'ロシアルーブル', symbol: '₽', isBaseCurrency: false },
+  TWD: { code: 'TWD', name: '台湾ドル', symbol: 'NT$', isBaseCurrency: false },
+  KWD: { code: 'KWD', name: 'クウェートディナール', symbol: 'د.ك', isBaseCurrency: false },
   ZAR: { code: 'ZAR', name: '南アフリカランド', symbol: 'R', isBaseCurrency: false },
   NZD: { code: 'NZD', name: 'ニュージーランドドル', symbol: 'NZ$', isBaseCurrency: false },
-  SAR: { code: 'SAR', name: 'サウジアラビアリヤル', symbol: '﷼', isBaseCurrency: false },
-  PLN: { code: 'PLN', name: 'ポーランドズロチ', symbol: 'zł', isBaseCurrency: false },
+  SAR: { code: 'SAR', name: 'サウジアラビアリヤル', symbol: 'ر.س', isBaseCurrency: false },
+  PLN: { code: 'PLN', name: 'ポーランドズロティ', symbol: 'zł', isBaseCurrency: false },
   PGK: { code: 'PGK', name: 'パプアニューギニアキナ', symbol: 'K', isBaseCurrency: false },
   MYR: { code: 'MYR', name: 'マレーシアリンギット', symbol: 'RM', isBaseCurrency: false },
   BHD: { code: 'BHD', name: 'バーレーンディナール', symbol: '.د.ب', isBaseCurrency: false },
+  SEK: { code: 'SEK', name: 'スウェーデンクローナ', symbol: 'kr', isBaseCurrency: false },
   CZK: { code: 'CZK', name: 'チェココルナ', symbol: 'Kč', isBaseCurrency: false },
+  AED: { code: 'AED', name: 'UAEディルハム', symbol: 'د.إ', isBaseCurrency: false },
   DKK: { code: 'DKK', name: 'デンマーククローネ', symbol: 'kr', isBaseCurrency: false },
   VND: { code: 'VND', name: 'ベトナムドン', symbol: '₫', isBaseCurrency: false },
   MMK: { code: 'MMK', name: 'ミャンマーキャット', symbol: 'K', isBaseCurrency: false },
   LBP: { code: 'LBP', name: 'レバノンポンド', symbol: 'ل.ل', isBaseCurrency: false },
 };
 
-// デフォルトの為替レート（実際の運用ではAPIから取得）
-const DEFAULT_RATES: Record<string, number> = {
+// オフィス別の基軸通貨設定
+export const OFFICE_BASE_CURRENCIES: Record<string, string> = {
+  'japan': 'JPY',
+  'singapore': 'SGD',
+  'australia': 'AUD',
+  'hongkong': 'HKD',
+  'thailand': 'THB',
+  'philippines': 'PHP',
+  'indonesia': 'IDR',
+  'malaysia': 'MYR',
+  'vietnam': 'VND',
+  'myanmar': 'MMK',
+  'default': 'JPY', // デフォルトは日本円
+};
+
+// サンプル為替レート（実際の運用では外部APIから取得）
+const SAMPLE_EXCHANGE_RATES: Record<string, number> = {
   'USD_JPY': 150.0,
-  'EUR_JPY': 160.0,
+  'EUR_JPY': 165.0,
   'GBP_JPY': 190.0,
-  'CNY_JPY': 20.0,
+  'CNY_JPY': 20.5,
   'KRW_JPY': 0.11,
-  'SGD_JPY': 110.0,
-  'AUD_JPY': 100.0,
+  'SGD_JPY': 112.0,
+  'AUD_JPY': 98.0,
   'CAD_JPY': 110.0,
   'CHF_JPY': 170.0,
   'PHP_JPY': 2.7,
   'THB_JPY': 4.2,
-  'HKD_JPY': 19.0,
-  'IDR_JPY': 0.009,
-  'TRY_JPY': 5.0,
-  'NOK_JPY': 14.0,
+  'HKD_JPY': 19.2,
+  'IDR_JPY': 0.0096,
+  'TRY_JPY': 4.8,
+  'NOK_JPY': 14.2,
   'INR_JPY': 1.8,
-  'HUF_JPY': 0.4,
-  'MXN_JPY': 8.8,
+  'HUF_JPY': 0.42,
+  'MXN_JPY': 8.9,
   'RUB_JPY': 1.6,
-  'ZAR_JPY': 8.0,
-  'NZD_JPY': 90.0,
+  'TWD_JPY': 4.7,
+  'KWD_JPY': 490.0,
+  'ZAR_JPY': 8.1,
+  'NZD_JPY': 92.0,
   'SAR_JPY': 40.0,
   'PLN_JPY': 37.0,
-  'PGK_JPY': 40.0,
-  'MYR_JPY': 32.0,
+  'PGK_JPY': 42.0,
   'BHD_JPY': 400.0,
-  'CZK_JPY': 6.5,
+  'SEK_JPY': 14.5,
+  'CZK_JPY': 6.8,
+  'AED_JPY': 40.8,
   'DKK_JPY': 22.0,
-  'VND_JPY': 0.006,
-  'MMK_JPY': 0.07,
-  'LBP_JPY': 0.1,
+  'VND_JPY': 0.0061,
+  'MMK_JPY': 0.071,
+  'LBP_JPY': 0.0005,
 };
 
 /**
- * 為替レートを取得（ローカルストレージから）
+ * オフィス名から基軸通貨を取得
  */
-export function getExchangeRate(fromCurrency: string, toCurrency: string): number | null {
-  try {
-    const stored = localStorage.getItem('exchangeRates');
-    if (!stored) return null;
-    
-    const rates: ExchangeRate[] = JSON.parse(stored);
-    const rate = rates.find(r => r.from === fromCurrency && r.to === toCurrency);
-    
-    if (rate && Date.now() - rate.lastUpdated < 24 * 60 * 60 * 1000) {
-      return rate.rate; // 24時間以内のレート
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('為替レートの取得に失敗しました:', error);
-    return null;
-  }
+export function getBaseCurrencyForOffice(officeName: string): string {
+  const normalizedOffice = officeName.toLowerCase().replace(/\s+/g, '');
+  return OFFICE_BASE_CURRENCIES[normalizedOffice] || OFFICE_BASE_CURRENCIES.default;
 }
 
 /**
- * 為替レートを保存（ローカルストレージに）
+ * 為替レートを取得（サンプルデータから）
  */
-export function saveExchangeRate(fromCurrency: string, toCurrency: string, rate: number): void {
-  try {
-    const stored = localStorage.getItem('exchangeRates');
-    const rates: ExchangeRate[] = stored ? JSON.parse(stored) : [];
-    
-    const existingIndex = rates.findIndex(r => r.from === fromCurrency && r.to === toCurrency);
-    const newRate: ExchangeRate = {
-      from: fromCurrency,
-      to: toCurrency,
-      rate,
-      lastUpdated: Date.now()
-    };
-    
-    if (existingIndex >= 0) {
-      rates[existingIndex] = newRate;
-    } else {
-      rates.push(newRate);
-    }
-    
-    localStorage.setItem('exchangeRates', JSON.stringify(rates));
-  } catch (error) {
-    console.error('為替レートの保存に失敗しました:', error);
-  }
-}
-
-/**
- * デフォルトレートから為替レートを取得
- */
-function getDefaultRate(fromCurrency: string, toCurrency: string): number | null {
+export function getExchangeRate(fromCurrency: string, toCurrency: string): number {
   if (fromCurrency === toCurrency) return 1.0;
   
-  const key = `${fromCurrency}_${toCurrency}`;
-  if (DEFAULT_RATES[key]) return DEFAULT_RATES[key];
+  // 直接レートがある場合
+  const directKey = `${fromCurrency}_${toCurrency}`;
+  if (SAMPLE_EXCHANGE_RATES[directKey]) {
+    return SAMPLE_EXCHANGE_RATES[directKey];
+  }
   
-  // 逆方向のレートがある場合は逆数を計算
+  // 逆レートがある場合
   const reverseKey = `${toCurrency}_${fromCurrency}`;
-  if (DEFAULT_RATES[reverseKey]) return 1 / DEFAULT_RATES[reverseKey];
+  if (SAMPLE_EXCHANGE_RATES[reverseKey]) {
+    return 1 / SAMPLE_EXCHANGE_RATES[reverseKey];
+  }
   
-  return null;
+  // JPY経由での計算（JPYが基準通貨の場合）
+  if (fromCurrency === 'JPY' && SAMPLE_EXCHANGE_RATES[`${toCurrency}_JPY`]) {
+    return 1 / SAMPLE_EXCHANGE_RATES[`${toCurrency}_JPY`];
+  }
+  
+  if (toCurrency === 'JPY' && SAMPLE_EXCHANGE_RATES[`${fromCurrency}_JPY`]) {
+    return SAMPLE_EXCHANGE_RATES[`${fromCurrency}_JPY`];
+  }
+  
+  // デフォルトレート（1.0）
+  console.warn(`Exchange rate not found for ${fromCurrency} to ${toCurrency}, using 1.0`);
+  return 1.0;
 }
 
 /**
- * 通貨を換算
+ * 通貨を基軸通貨に換算
+ */
+export function convertToBaseCurrency(
+  amount: number,
+  fromCurrency: string,
+  baseCurrency: string
+): number {
+  if (fromCurrency === baseCurrency) return amount;
+  
+  const rate = getExchangeRate(fromCurrency, baseCurrency);
+  return amount * rate;
+}
+
+/**
+ * 基軸通貨から指定通貨に換算
+ */
+export function convertFromBaseCurrency(
+  amount: number,
+  baseCurrency: string,
+  toCurrency: string
+): number {
+  if (baseCurrency === toCurrency) return amount;
+  
+  const rate = getExchangeRate(baseCurrency, toCurrency);
+  return amount * rate;
+}
+
+/**
+ * 通貨間の直接換算
  */
 export function convertCurrency(
   amount: number,
   fromCurrency: string,
-  toCurrency: string,
-  baseCurrency: string = 'JPY'
-): { convertedAmount: number; rate: number; source: 'stored' | 'default' | 'calculated' } {
-  if (fromCurrency === toCurrency) {
-    return { convertedAmount: amount, rate: 1.0, source: 'stored' };
-  }
+  toCurrency: string
+): number {
+  if (fromCurrency === toCurrency) return amount;
   
-  // 1. 保存されたレートを確認
-  let rate = getExchangeRate(fromCurrency, toCurrency);
-  let source: 'stored' | 'default' | 'calculated' = 'stored';
+  const rate = getExchangeRate(fromCurrency, toCurrency);
+  return amount * rate;
+}
+
+/**
+ * 為替レートの有効性をチェック
+ */
+export function isExchangeRateValid(fromCurrency: string, toCurrency: string): boolean {
+  if (fromCurrency === toCurrency) return true;
   
-  // 2. デフォルトレートを確認
-  if (!rate) {
-    rate = getDefaultRate(fromCurrency, toCurrency);
-    source = 'default';
-  }
+  const directKey = `${fromCurrency}_${toCurrency}`;
+  const reverseKey = `${toCurrency}_${fromCurrency}`;
   
-  // 3. 基軸通貨経由で計算
-  if (!rate && fromCurrency !== baseCurrency && toCurrency !== baseCurrency) {
-    const rateToBase = getDefaultRate(fromCurrency, baseCurrency);
-    const rateFromBase = getDefaultRate(baseCurrency, toCurrency);
-    
-    if (rateToBase && rateFromBase) {
-      rate = rateToBase * rateFromBase;
-      source = 'calculated';
-    }
-  }
-  
-  if (!rate) {
-    console.warn(`為替レートが見つかりません: ${fromCurrency} → ${toCurrency}`);
-    return { convertedAmount: amount, rate: 1.0, source: 'calculated' };
-  }
-  
-  const convertedAmount = amount * rate;
-  
-  // レートを保存（次回の使用のため）
-  if (source !== 'stored') {
-    saveExchangeRate(fromCurrency, toCurrency, rate);
-  }
-  
-  return { convertedAmount, rate, source };
+  return !!(SAMPLE_EXCHANGE_RATES[directKey] || SAMPLE_EXCHANGE_RATES[reverseKey]);
 }
 
 /**
@@ -226,65 +227,89 @@ export function getCurrencyName(currencyCode: string): string {
 }
 
 /**
- * 基軸通貨を設定
+ * 金額を指定通貨でフォーマット
  */
-export function setBaseCurrency(currencyCode: string): void {
-  try {
-    // 既存の通貨情報を更新
-    Object.keys(CURRENCY_INFO).forEach(code => {
-      CURRENCY_INFO[code].isBaseCurrency = (code === currencyCode);
-    });
-    
-    // ローカルストレージに保存
-    localStorage.setItem('baseCurrency', currencyCode);
-  } catch (error) {
-    console.error('基軸通貨の設定に失敗しました:', error);
-  }
-}
-
-/**
- * 基軸通貨を取得
- */
-export function getBaseCurrency(): string {
-  try {
-    const stored = localStorage.getItem('baseCurrency');
-    if (stored && CURRENCY_INFO[stored]) {
-      return stored;
-    }
-  } catch (error) {
-    console.error('基軸通貨の取得に失敗しました:', error);
-  }
-  
-  // デフォルトは日本円
-  return 'JPY';
-}
-
-/**
- * 通貨フォーマット
- */
-export function formatCurrency(amount: number, currencyCode: string, locale: string = 'ja-JP'): string {
+export function formatCurrency(
+  amount: number,
+  currencyCode: string,
+  locale: string = 'ja-JP'
+): string {
   const symbol = getCurrencySymbol(currencyCode);
   
   try {
-    return new Intl.NumberFormat(locale, {
+    // 通貨別のフォーマット設定
+    const formatter = new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currencyCode,
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(amount);
+      maximumFractionDigits: 2,
+    });
+    
+    return formatter.format(amount);
   } catch (error) {
-    // フォールバック: 手動フォーマット
-    return `${symbol}${amount.toLocaleString(locale)}`;
+    // フォーマット失敗時のフォールバック
+    return `${symbol}${amount.toLocaleString()}`;
   }
 }
 
 /**
- * 為替レートの更新が必要かチェック
+ * 基軸通貨での表示用フォーマット
  */
-export function needsRateUpdate(fromCurrency: string, toCurrency: string): boolean {
-  const rate = getExchangeRate(fromCurrency, toCurrency);
-  if (!rate) return true;
+export function formatBaseCurrency(
+  amount: number,
+  baseCurrency: string,
+  locale: string = 'ja-JP'
+): string {
+  return formatCurrency(amount, baseCurrency, locale);
+}
+
+/**
+ * 外貨と基軸通貨の両方を表示
+ */
+export function formatDualCurrency(
+  originalAmount: number,
+  originalCurrency: string,
+  convertedAmount: number,
+  baseCurrency: string,
+  locale: string = 'ja-JP'
+): string {
+  const original = formatCurrency(originalAmount, originalCurrency, locale);
+  const converted = formatCurrency(convertedAmount, baseCurrency, locale);
   
-  // 24時間以上古い場合は更新が必要
-  return Date.now() - rate.lastUpdated > 24 * 60 * 60 * 1000;
+  if (originalCurrency === baseCurrency) {
+    return converted;
+  }
+  
+  return `${original} (${converted})`;
+}
+
+/**
+ * 為替レートの表示
+ */
+export function formatExchangeRate(
+  fromCurrency: string,
+  toCurrency: string,
+  rate: number
+): string {
+  if (fromCurrency === toCurrency) return '1.00';
+  
+  return `${rate.toFixed(4)} ${fromCurrency}/${toCurrency}`;
+}
+
+/**
+ * 為替レートの更新日時を取得
+ */
+export function getExchangeRateLastUpdated(): Date {
+  // サンプルデータなので現在時刻を返す
+  // 実際の運用では外部APIから取得した更新日時を返す
+  return new Date();
+}
+
+/**
+ * 為替レートの有効期限をチェック
+ */
+export function isExchangeRateExpired(lastUpdated: number, maxAgeHours: number = 24): boolean {
+  const now = Date.now();
+  const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
+  return (now - lastUpdated) > maxAgeMs;
 }
