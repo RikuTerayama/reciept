@@ -2,6 +2,7 @@ export interface ExpenseData {
   id: string;
   date: string;                    // 必須 (YYYY-MM-DD)
   totalAmount: number;             // 必須（数値）
+  monthKey?: string;               // 自動付与 (YYYY-MM)
   receiptDate?: string;            // 任意
   category?: string;               // 任意
   description?: string;            // 任意
