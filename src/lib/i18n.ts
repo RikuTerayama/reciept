@@ -55,6 +55,8 @@ export interface Translations {
     singleUploadDesc: string;
     batchUpload: string;
     batchUploadDesc: string;
+    voiceInput: string;
+    voiceInputDesc: string;
     dataInput: string;
     dataInputDesc: string;
     dataEntry: string;
@@ -363,11 +365,33 @@ export interface Translations {
 
   // 音声入力
   voice: {
+    title: string;
+    subtitle: string;
     start: string;
-    listening: string;
-    result: string;
     stop: string;
+    listening: string;
+    speakNow: string;
+    processing: string;
+    complete: string;
+    error: string;
+    errorTitle: string;
     unsupported: string;
+    noSpeech: string;
+    guideTitle: string;
+    guideSubtitle: string;
+    step1Title: string;
+    step2Title: string;
+    step3Title: string;
+    tipsTitle: string;
+    progress: string;
+    recognizedText: string;
+    noText: string;
+    extractedData: string;
+    date: string;
+    amount: string;
+    retry: string;
+    apply: string;
+    cancel: string;
   };
 
   // エラー
@@ -430,6 +454,8 @@ const translations: Record<Language, Translations> = {
       singleUploadDesc: 'レシート画像を1枚ずつアップロード',
       batchUpload: '一括アップロード',
       batchUploadDesc: '複数のレシート画像を同時にアップロード',
+      voiceInput: '音声入力',
+      voiceInputDesc: '音声で経費情報を入力',
       dataInput: 'データ入力',
       dataInputDesc: '経費情報を手動で入力・編集',
       dataEntry: 'データ入力',
@@ -706,11 +732,33 @@ const translations: Record<Language, Translations> = {
       lbp: 'LBP',
     },
     voice: {
-      start: '音声で入力',
-      listening: '聴き取り中…',
-      result: '抽出結果',
+      title: '音声入力',
+      subtitle: '音声で経費情報を入力してください',
+      start: '音声入力を開始',
       stop: '停止',
-      unsupported: '非対応',
+      listening: '聴き取り中...',
+      speakNow: '今すぐ話してください',
+      processing: '音声を解析中...',
+      complete: '音声認識完了',
+      error: '音声認識でエラーが発生しました',
+      errorTitle: '音声入力エラー',
+      unsupported: 'このブラウザは音声入力に対応していません',
+      noSpeech: '音声が検出されませんでした',
+      guideTitle: '音声入力ガイド',
+      guideSubtitle: '以下の順番で音声入力してください',
+      step1Title: '日付',
+      step2Title: '金額',
+      step3Title: '詳細',
+      tipsTitle: '音声入力のコツ',
+      progress: 'ステップ {step}/3',
+      recognizedText: '認識された音声',
+      noText: '音声が認識されませんでした',
+      extractedData: '抽出された情報',
+      date: '日付',
+      amount: '金額',
+      retry: '再試行',
+      apply: '結果を適用',
+      cancel: 'キャンセル'
     },
     errors: {
       speechUnsupported: 'このブラウザは音声入力に対応していません',
@@ -767,6 +815,8 @@ const translations: Record<Language, Translations> = {
       singleUploadDesc: 'Upload receipt images one by one',
       batchUpload: 'Batch Upload',
       batchUploadDesc: 'Upload multiple receipt images simultaneously',
+      voiceInput: 'Voice Input',
+      voiceInputDesc: 'Enter expense information by voice',
       dataInput: 'Data Input',
       dataInputDesc: 'Manually input and edit expense information',
       dataEntry: 'Data Entry',
@@ -1043,11 +1093,33 @@ const translations: Record<Language, Translations> = {
       lbp: 'LBP',
     },
     voice: {
-      start: 'Voice Input',
-      listening: 'Listening...',
-      result: 'Extraction Result',
+      title: 'Voice Input',
+      subtitle: 'Enter expense information by voice',
+      start: 'Start Voice Input',
       stop: 'Stop',
-      unsupported: 'Not Supported',
+      listening: 'Listening...',
+      speakNow: 'Speak now',
+      processing: 'Processing voice...',
+      complete: 'Voice recognition complete',
+      error: 'Speech recognition error occurred',
+      errorTitle: 'Voice Input Error',
+      unsupported: 'This browser does not support voice input',
+      noSpeech: 'No speech detected',
+      guideTitle: 'Voice Input Guide',
+      guideSubtitle: 'Please input in the following order',
+      step1Title: 'Date',
+      step2Title: 'Amount',
+      step3Title: 'Details',
+      tipsTitle: 'Voice Input Tips',
+      progress: 'Step {step}/3',
+      recognizedText: 'Recognized speech',
+      noText: 'No speech was recognized',
+      extractedData: 'Extracted information',
+      date: 'Date',
+      amount: 'Amount',
+      retry: 'Retry',
+      apply: 'Apply Result',
+      cancel: 'Cancel'
     },
     errors: {
       speechUnsupported: 'This browser does not support voice input',
