@@ -1081,10 +1081,12 @@ export const t = (key: string, language: Language = getCurrentLanguage(), defaul
     console.log('[i18n] t called with key:', key, 'language:', language);
     console.log('[i18n] typeof translations =', typeof translations);
     console.log('[i18n] translations exists:', !!translations);
+    console.log('[i18n] translations keys:', translations ? Object.keys(translations) : 'undefined');
     
     // translationsオブジェクトの初期化チェック
     if (typeof translations === 'undefined') {
       console.error('[i18n] translations object is undefined! This should not happen.');
+      console.error('[i18n] Stack trace:', new Error().stack);
       return defaultValue || key;
     }
     
@@ -1095,6 +1097,7 @@ export const t = (key: string, language: Language = getCurrentLanguage(), defaul
     // translationsオブジェクトが存在しない場合の対策
     if (!translations || !translations[currentLang]) {
       console.warn(`[i18n] Translation not found for language: ${currentLang}, key: ${key}`);
+      console.warn(`[i18n] Available languages:`, translations ? Object.keys(translations) : 'none');
       return defaultValue || key;
     }
     
@@ -1106,6 +1109,7 @@ export const t = (key: string, language: Language = getCurrentLanguage(), defaul
         value = (value as Record<string, any>)[k];
       } else {
         console.warn(`[i18n] Translation key not found: ${key} in language: ${currentLang}`);
+        console.warn(`[i18n] Available keys at current level:`, value ? Object.keys(value) : 'none');
         return defaultValue || key;
       }
     }
@@ -1115,6 +1119,7 @@ export const t = (key: string, language: Language = getCurrentLanguage(), defaul
     return result;
   } catch (error) {
     console.error('[i18n] Translation error:', error, 'key:', key, 'language:', language);
+    console.error('[i18n] Error stack:', error.stack);
     return defaultValue || key;
   }
 };
