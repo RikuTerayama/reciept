@@ -6,6 +6,7 @@ import { Camera, Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-rea
 import { processImageWithOCR, setOcrProgressHandler } from '@/lib/ocr';
 import { detectAndCropReceipt, preprocessImageForOCR } from '@/lib/receipt-detection';
 import { getCurrentLanguage, t } from '@/lib/i18n';
+import { saveImageToStorage } from '@/lib/imageStorage';
 import { OCRResult } from '@/types';
 
 interface EnhancedImageUploadProps {
@@ -75,6 +76,22 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
       
       // OCR結果を保存
       setOcrResult(ocrResult);
+      
+      // 画像をストレージに保存
+      try {
+        const imageDataUrl = previewImage || detectionResult?.croppedImage?.toDataURL() || '';
+        if (imageDataUrl) {
+          await saveImageToStorage(
+            imageDataUrl,
+            file.name,
+            undefined, // expenseIdは後で設定
+            ocrResult
+          );
+        }
+      } catch (storageError) {
+        console.warn('画像のストレージ保存に失敗しました:', storageError);
+        // ストレージ保存の失敗は処理を継続
+      }
       
       // 結果を親コンポーネントに渡す
       onOCRComplete(ocrResult);
