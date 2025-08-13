@@ -8,24 +8,30 @@ import { exportBudgetOptimizationToExcel } from '@/lib/excel';
 
 interface BudgetOptimizerProps {
   hideTitle?: boolean;
+  activeMonth?: string; // 対象月（YYYY-MM形式）
 }
 
-export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
+export default function BudgetOptimizer({ hideTitle, activeMonth }: BudgetOptimizerProps) {
   const [targetBudget, setTargetBudget] = useState(100000);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<any>(null);
   const { expenses } = useExpenseStore();
   const currentLanguage = getCurrentLanguage();
 
+  // 対象月でフィルタリング
+  const monthFilteredExpenses = activeMonth 
+    ? expenses.filter(exp => exp.monthKey === activeMonth)
+    : expenses;
+
   const handleOptimize = async () => {
-    if (expenses.length === 0) {
-      alert(t('budgetOptimizer.noExpenses', currentLanguage, '経費データがありません'));
+    if (monthFilteredExpenses.length === 0) {
+      alert(t('budgetOptimizer.noExpenses', currentLanguage, '対象月の経費データがありません'));
       return;
     }
 
     setIsOptimizing(true);
     try {
-      const result = await optimizeBudget(expenses, targetBudget);
+      const result = await optimizeBudget(monthFilteredExpenses, targetBudget);
       setOptimizationResult(result);
     } catch (error) {
       console.error('Optimization error:', error);
@@ -89,7 +95,12 @@ export default function BudgetOptimizer({ hideTitle }: BudgetOptimizerProps) {
         </div>
 
         <div className="mt-4 text-xs md:text-sm text-gray-400 text-center">
-          {t('budgetOptimizer.availableExpenses', currentLanguage, '利用可能な経費')}: {expenses.length} {t('common.items', currentLanguage, '件')}
+          {t('budgetOptimizer.availableExpenses', currentLanguage, '利用可能な経費')}: {monthFilteredExpenses.length} {t('common.items', currentLanguage, '件')}
+          {activeMonth && (
+            <div className="text-xs text-blue-400 mt-1">
+              {activeMonth} の経費のみ表示
+            </div>
+          )}
         </div>
       </div>
 
