@@ -48,6 +48,7 @@ export interface OCRResult {
   imageData?: string; // Base64画像データ
   receiptNumber?: string; // レシート番号
   companyName?: string; // 会社名
+  source?: 'ocr' | 'voice'; // データソース
 }
 
 export interface BudgetOption {
