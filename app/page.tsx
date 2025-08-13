@@ -28,7 +28,8 @@ import BudgetDisplay from '@/components/BudgetDisplay';
 import AuthForm from '@/components/AuthForm';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
-import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut } from 'lucide-react';
+import VoiceInput from '@/components/VoiceInput';
+import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut, Mic } from 'lucide-react';
 import { ExpenseData } from '@/types';
 import { calculateTotalAmountWithRounding } from '@/lib/currency';
 
@@ -62,6 +63,7 @@ export default function Home() {
   const [showOptimizerModal, setShowOptimizerModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showVoiceInputModal, setShowVoiceInputModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -315,6 +317,13 @@ export default function Home() {
     }
     
     setShowDataInputModal(false);
+  };
+
+  // 音声入力完了時の処理
+  const handleVoiceInputComplete = (result: any) => {
+    console.log('Voice input completed:', result);
+    setShowVoiceInputModal(false);
+    setShowDataInputModal(true);
   };
 
   const handleSingleUpload = () => {
@@ -604,6 +613,19 @@ export default function Home() {
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h3>
                       <p className="text-sm text-surface-400">{t('navigation.dataInputDesc', currentLanguage, '経費情報を手動で入力・編集')}</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setShowVoiceInputModal(true)}
+                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
+                  >
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-orange-500 transition-colors">
+                        <Mic className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-medium text-white mb-1">{t('navigation.voiceInput', currentLanguage, '音声入力')}</h3>
+                      <p className="text-sm text-surface-400">{t('navigation.voiceInputDesc', currentLanguage, '音声で経費情報を入力')}</p>
                     </div>
                   </button>
 
@@ -950,6 +972,16 @@ export default function Home() {
             </div>
             <UserSetup onSave={handleSettingsSave} hideWelcomeTitle={true} />
           </div>
+        </div>
+      )}
+
+      {/* 音声入力モーダル */}
+      {showVoiceInputModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <VoiceInput
+            onComplete={handleVoiceInputComplete}
+            onCancel={() => setShowVoiceInputModal(false)}
+          />
         </div>
       )}
 
