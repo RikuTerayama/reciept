@@ -55,6 +55,29 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     participantFromCompany: initialData?.participantFromCompany?.toString() || ''
   });
 
+  // 金額入力の生値と表示値を管理
+  const [amountRaw, setAmountRaw] = useState(initialData?.totalAmount?.toString() || '');
+  const [amountFocused, setAmountFocused] = useState(false);
+
+  // 金額のフォーマット関数
+  const formatJPY = (n: number) => new Intl.NumberFormat('ja-JP').format(n);
+
+  // 金額入力の処理
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 数字以外を除去し、先頭ゼロを削除
+    const cleaned = e.target.value.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
+    setAmountRaw(cleaned);
+    
+    // フォームデータも更新
+    const numericValue = Number(cleaned || '0');
+    setFormData(prev => ({ ...prev, totalAmount: numericValue }));
+  };
+
+  // 金額の表示値を計算
+  const amountDisplayValue = amountFocused
+    ? (amountRaw === '' ? '' : amountRaw)
+    : formatJPY(Number(amountRaw || '0'));
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
@@ -149,6 +172,9 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
         totalAmount: (ocrResult.totalAmount || 0).toString(),
         taxRate: (ocrResult.taxRate || 10).toString(),
       }));
+      
+      // 金額の生値も更新
+      setAmountRaw((ocrResult.totalAmount || 0).toString());
     }
   }, [ocrResult, initialData, baseCurrency]);
 
@@ -411,22 +437,21 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
               {t('dataInput.amount', currentLanguage, '金額')} *
             </label>
             <div className="relative">
-              <input
-                type="number"
-                name="totalAmount"
-                value={displayValues.totalAmount}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                onFocus={handleNumberFocus}
-                onBlur={handleNumberBlur}
-                required
-                step="0.01"
-                min="0"
-                className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
-                  errors.totalAmount ? 'border-red-500' : 'border-surface-600'
-                }`}
-                placeholder="0.00"
-              />
+                          <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              name="totalAmount"
+              value={amountDisplayValue}
+              onChange={handleAmountChange}
+              onFocus={() => setAmountFocused(true)}
+              onBlur={() => setAmountFocused(false)}
+              required
+              className={`w-full sm:w-auto px-3 py-2 md:px-4 md:py-3 bg-surface-700 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-sm ${
+                errors.totalAmount ? 'border-red-500' : 'border-surface-600'
+              }`}
+              placeholder="0"
+            />
               {isConverting && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
