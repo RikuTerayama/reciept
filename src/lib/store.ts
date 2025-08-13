@@ -11,6 +11,7 @@ import {
   getYearMonthFromDate
 } from '@/lib/storage';
 import { getMonthKey } from '@/lib/date';
+import { getImagesByExpenseId, renameImage } from './imageStorage';
 
 interface ExpenseStore {
   // 状態
@@ -56,6 +57,18 @@ export const useExpenseStore = create<ExpenseStore>()(
           const newExpenses = [...state.expenses, expenseWithMonthKey];
           // ローカルストレージにも保存（同期対応）
           addExpenseToStorage(expenseWithMonthKey, userEmail);
+          
+          // OCR結果から画像を関連付け
+          if (state.ocrResult && state.ocrResult.source === 'ocr') {
+            // 関連する画像のexpenseIdを更新
+            const relatedImages = getImagesByExpenseId(expense.id);
+            relatedImages.forEach(image => {
+              if (!image.expenseId) {
+                renameImage(image.id, `${expense.id}_${image.originalName}`);
+              }
+            });
+          }
+          
           return { expenses: newExpenses };
         });
       },
