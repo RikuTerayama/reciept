@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserInfo } from '@/types';
 import { registerUser, loginUser } from '@/lib/auth-service';
 import { getCurrentLanguage, t, Language } from '@/lib/i18n';
@@ -20,14 +20,48 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
   const [error, setError] = useState('');
   const currentLanguage = getCurrentLanguage();
 
+  // i18nの初期化チェック
+  useEffect(() => {
+    console.log('[AuthForm] Component mounted');
+    console.log('[AuthForm] t function status:', {
+      isFunction: typeof t === 'function',
+      isUndefined: typeof t === 'undefined',
+      isNull: t === null
+    });
+    console.log('[AuthForm] currentLanguage:', currentLanguage);
+    
+    // i18nが正しく初期化されているかチェック
+    if (typeof t !== 'function') {
+      console.error('[AuthForm] t function is not available on mount!');
+    } else {
+      console.log('[AuthForm] t function is available on mount');
+    }
+  }, [currentLanguage]);
+
   // t関数の安全性を確保
   const safeT = (key: string, lang: Language = currentLanguage, defaultValue?: string): string => {
     try {
       console.log('[AuthForm] safeT called with key:', key, 'lang:', lang);
       console.log('[AuthForm] typeof t =', typeof t);
+      console.log('[AuthForm] t function details:', {
+        isFunction: typeof t === 'function',
+        isUndefined: typeof t === 'undefined',
+        isNull: t === null,
+        toString: t?.toString?.()
+      });
       
       if (typeof t !== 'function') {
         console.error('[AuthForm] t is not a function! Check i18n import/export and init order.');
+        console.error('[AuthForm] Import check - try importing i18n again...');
+        
+        // i18nの再インポートを試行（同期的に）
+        try {
+          // 動的インポートは同期的に実行できないため、エラーログのみ
+          console.error('[AuthForm] Cannot reimport i18n synchronously, using fallback');
+        } catch (reimportError) {
+          console.error('[AuthForm] Failed to reimport i18n:', reimportError);
+        }
+        
         return defaultValue || key;
       }
       
@@ -36,6 +70,7 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
       return result;
     } catch (error) {
       console.error('[AuthForm] Translation error:', error);
+      console.error('[AuthForm] Error stack:', error.stack);
       return defaultValue || key;
     }
   };
@@ -87,11 +122,18 @@ export default function AuthForm({ mode, onSuccess, onCancel }: AuthFormProps) {
       console.error('AuthForm - Authentication error:', error);
       console.error('AuthForm - Error message:', error.message);
       console.error('AuthForm - Error stack:', error.stack);
+      console.error('AuthForm - Error type:', typeof error);
+      console.error('AuthForm - Error constructor:', error.constructor?.name);
       
       // エラーメッセージの生成
       let errorMessage = '認証に失敗しました';
       try {
-        errorMessage = error.message || safeT('auth.error', currentLanguage, '認証に失敗しました');
+        if (typeof t === 'function') {
+          errorMessage = error.message || t('auth.error', currentLanguage, '認証に失敗しました');
+        } else {
+          console.error('[AuthForm] t function is still not available, using fallback');
+          errorMessage = error.message || '認証に失敗しました';
+        }
       } catch (translationError) {
         console.error('AuthForm - Translation error:', translationError);
         errorMessage = error.message || '認証に失敗しました';
