@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Mic, MicOff, Play, Pause, RotateCcw, Info, CheckCircle, AlertCircle } from 'lucide-react';
-import { createSpeechRecognizer, parseJaSpeechToDateAmount } from '@/lib/voice';
+import { createSpeechRecognizer } from '@/lib/voice';
+import { parseJaSpeechToDateAmount } from '@/lib/voiceParse';
 import { getCurrentLanguage, t, Language } from '@/lib/i18n';
 import { useExpenseStore } from '@/lib/store';
 
@@ -99,7 +100,7 @@ export default function VoiceInput({ onComplete, onCancel }: VoiceInputProps) {
         totalAmount: extractedData.amount || 0,
         text: recognizedText,
         confidence: 0.9, // 音声入力の信頼度
-        source: 'voice'
+        source: 'voice' as const
       };
 
       // ストアに保存
@@ -260,7 +261,7 @@ export default function VoiceInput({ onComplete, onCancel }: VoiceInputProps) {
           ))}
         </div>
         <p className="text-xs text-surface-400">
-          {t('voice.progress', currentLanguage, 'ステップ {step}/3', { step: Math.min(stepProgress + 1, 3) })}
+          {t('voice.progress', currentLanguage, `ステップ ${Math.min(stepProgress + 1, 3)}/3`)}
         </p>
       </div>
 
