@@ -126,6 +126,22 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
               <p className="text-sm text-surface-400 mt-2">
                 {t('imageUpload.processing', currentLanguage, '画像を処理中です。しばらくお待ちください...')}
               </p>
+              
+              {/* OCR進捗バー */}
+              {processingStep.includes('OCR処理中') && (
+                <div className="mt-3">
+                  <div className="flex justify-between text-xs text-surface-400 mb-1">
+                    <span>OCR進行状況</span>
+                    <span>{Math.round(ocrProgress * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-surface-600 rounded-full h-2">
+                    <div 
+                      className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${ocrProgress * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
