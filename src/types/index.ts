@@ -17,6 +17,10 @@ export interface ExpenseData {
   baseCurrency?: string;           // 任意
   conversionRate?: number;         // 任意
   conversionDate?: string;         // 任意
+  // 通貨換算関連
+  isForeignCurrency?: boolean;     // 外貨かどうか
+  exchangeRate?: number;           // 為替レート
+  baseCurrencyAmount?: number;     // 基軸通貨での金額
   createdAt: Date;
   updatedAt?: Date;
   imageData?: string;
