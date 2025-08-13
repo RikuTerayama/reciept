@@ -69,6 +69,7 @@ export interface Translations {
     downloadAll: string;
     budgetNumber: string;
     download: string;
+    office: string;
     menu: string;
   };
 
@@ -472,6 +473,7 @@ const translations: Record<Language, Translations> = {
       downloadAll: '全画像をZIPでダウンロード',
       budgetNumber: '予算番号',
       download: 'ダウンロード',
+      office: 'オフィス',
       budgetOptimizerDesc: '予算に最も近い経費の組み合わせを自動提案',
       menu: 'メニュー',
     },
@@ -838,6 +840,7 @@ const translations: Record<Language, Translations> = {
       downloadAll: 'Download All as ZIP',
       budgetNumber: 'Budget Number',
       download: 'Download',
+      office: 'Office',
       budgetOptimizerDesc: 'Automatically suggest expense combinations closest to budgets',
       menu: 'Menu',
     },
