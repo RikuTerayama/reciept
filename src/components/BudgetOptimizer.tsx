@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useExpenseStore } from '@/lib/store';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { optimizeBudget } from '@/lib/optimizer';
 import { exportBudgetOptimizationToExcel } from '@/lib/excel';
+import { generateBudgetOptimizationImages, saveBudgetOptimizationImages, downloadImage, downloadMultipleImagesAsZip, BudgetOptimizationImage } from '@/lib/imageStorage';
+import { ImageIcon, X, FolderOpen, Download } from 'lucide-react';
 
 interface BudgetOptimizerProps {
   hideTitle?: boolean;
@@ -15,6 +17,8 @@ export default function BudgetOptimizer({ hideTitle, activeMonth }: BudgetOptimi
   const [targetBudget, setTargetBudget] = useState(100000);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<any>(null);
+  const [optimizationImages, setOptimizationImages] = useState<BudgetOptimizationImage[]>([]);
+  const [showImageManager, setShowImageManager] = useState(false);
   const { expenses } = useExpenseStore();
   const currentLanguage = getCurrentLanguage();
 
@@ -33,6 +37,15 @@ export default function BudgetOptimizer({ hideTitle, activeMonth }: BudgetOptimi
     try {
       const result = await optimizeBudget(monthFilteredExpenses, targetBudget);
       setOptimizationResult(result);
+      
+      // 最適化結果から画像リストを生成
+      if (result.selectedExpenses && result.selectedExpenses.length > 0) {
+        const expenseIds = result.selectedExpenses.map((exp: any) => exp.id);
+        const budgetNumbers = result.selectedExpenses.map((exp: any, index: number) => index + 1);
+        const images = generateBudgetOptimizationImages(expenseIds, budgetNumbers);
+        setOptimizationImages(images);
+        saveBudgetOptimizationImages(images);
+      }
     } catch (error) {
       console.error('Optimization error:', error);
       alert(t('common.error', currentLanguage, 'エラーが発生しました'));
@@ -102,6 +115,19 @@ export default function BudgetOptimizer({ hideTitle, activeMonth }: BudgetOptimi
             </div>
           )}
         </div>
+        
+        {/* 画像管理ボタン */}
+        {optimizationImages.length > 0 && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setShowImageManager(true)}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm flex items-center justify-center gap-2 mx-auto"
+            >
+              <ImageIcon className="w-4 h-4" />
+              {t('budgetOptimizer.manageImages', currentLanguage, '画像管理')} ({optimizationImages.length})
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 結果セクション */}
@@ -181,6 +207,78 @@ export default function BudgetOptimizer({ hideTitle, activeMonth }: BudgetOptimi
           </div>
         </div>
       </div>
+
+      {/* 画像管理モーダル */}
+      {showImageManager && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-white">
+                {t('budgetOptimizer.imageManager', currentLanguage, '画像管理')}
+              </h3>
+              <button
+                onClick={() => setShowImageManager(false)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* 一括ダウンロード */}
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => downloadMultipleImagesAsZip(optimizationImages, 'budget_optimization_images.zip')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm flex items-center gap-2"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  {t('budgetOptimizer.downloadAll', currentLanguage, '全画像をZIPでダウンロード')}
+                </button>
+              </div>
+
+              {/* 画像リスト */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {optimizationImages.map((image, index) => (
+                  <div key={image.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <div className="text-center mb-3">
+                      <div className="text-2xl font-bold text-blue-400 mb-1">
+                        {image.budgetNumber.toString().padStart(3, '0')}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {t('budgetOptimizer.budgetNumber', currentLanguage, '予算番号')}
+                      </div>
+                    </div>
+                    
+                    <div className="text-center mb-3">
+                      <img
+                        src={image.dataUrl}
+                        alt={image.originalName}
+                        className="w-full h-32 object-cover rounded-lg mx-auto"
+                      />
+                    </div>
+                    
+                    <div className="text-center mb-3">
+                      <div className="text-xs text-gray-300 mb-1 truncate">
+                        {image.originalName}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => downloadImage(image)}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors flex items-center gap-1"
+                      >
+                        <Download className="w-3 h-3" />
+                        {t('budgetOptimizer.download', currentLanguage, 'ダウンロード')}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
