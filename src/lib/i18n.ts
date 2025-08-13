@@ -64,6 +64,11 @@ export interface Translations {
     expenseListDesc: string;
     budgetOptimizer: string;
     budgetOptimizerDesc: string;
+    manageImages: string;
+    imageManager: string;
+    downloadAll: string;
+    budgetNumber: string;
+    download: string;
     menu: string;
   };
 
@@ -462,6 +467,11 @@ const translations: Record<Language, Translations> = {
       expenseList: '経費リスト',
       expenseListDesc: '登録済み経費の一覧表示と管理',
       budgetOptimizer: '予算最適化',
+      manageImages: '画像管理',
+      imageManager: '画像管理',
+      downloadAll: '全画像をZIPでダウンロード',
+      budgetNumber: '予算番号',
+      download: 'ダウンロード',
       budgetOptimizerDesc: '予算に最も近い経費の組み合わせを自動提案',
       menu: 'メニュー',
     },
@@ -823,6 +833,11 @@ const translations: Record<Language, Translations> = {
       expenseList: 'Expense List',
       expenseListDesc: 'View and manage registered expenses',
       budgetOptimizer: 'Budget Optimizer',
+      manageImages: 'Image Management',
+      imageManager: 'Image Manager',
+      downloadAll: 'Download All as ZIP',
+      budgetNumber: 'Budget Number',
+      download: 'Download',
       budgetOptimizerDesc: 'Automatically suggest expense combinations closest to budgets',
       menu: 'Menu',
     },
