@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { getCurrentLanguage, t, Language } from '@/lib/i18n';
+import { getBaseCurrencyForOffice, OFFICE_BASE_CURRENCIES } from '@/lib/currencyConverter';
 
 interface UserInfo {
   email: string;
+  office: string;
   targetMonth: string;
   budget: number;
   currency: string;
@@ -18,6 +20,7 @@ interface UserSetupProps {
 export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetupProps) {
   const [formData, setFormData] = useState<UserInfo>({
     email: '',
+    office: 'japan',
     targetMonth: '',
     budget: 0,
     currency: 'JPY'
@@ -50,10 +53,21 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'budget' ? Number(value) || 0 : value
-    }));
+    
+    if (name === 'office') {
+      // オフィス選択時に基軸通貨を自動設定
+      const baseCurrency = getBaseCurrencyForOffice(value);
+      setFormData(prev => ({
+        ...prev,
+        office: value,
+        currency: baseCurrency
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'budget' ? Number(value) || 0 : value
+      }));
+    }
 
     // エラーをクリア
     if (errors[name]) {
@@ -121,6 +135,31 @@ export default function UserSetup({ onSave, hideWelcomeTitle = false }: UserSetu
               placeholder="example@company.com"
             />
             {errors.email && <p className="text-red-500 text-sm mt-1 text-center">{errors.email}</p>}
+          </div>
+
+          <div className="w-full max-w-full flex flex-col items-center">
+            <label className="block text-sm font-medium mb-2 text-center">{safeT('common.office', currentLanguage, 'オフィス')} *</label>
+            <select
+              name="office"
+              value={formData.office}
+              onChange={handleInputChange}
+              required
+              className={`w-full max-w-xs sm:max-w-sm px-3 py-2 bg-gray-700 border rounded-lg text-white ${
+                errors.office ? 'border-red-500' : 'border-gray-600'
+              }`}
+            >
+              <option value="japan">日本 (JPY)</option>
+              <option value="singapore">シンガポール (SGD)</option>
+              <option value="australia">オーストラリア (AUD)</option>
+              <option value="hongkong">香港 (HKD)</option>
+              <option value="thailand">タイ (THB)</option>
+              <option value="philippines">フィリピン (PHP)</option>
+              <option value="indonesia">インドネシア (IDR)</option>
+              <option value="malaysia">マレーシア (MYR)</option>
+              <option value="vietnam">ベトナム (VND)</option>
+              <option value="myanmar">ミャンマー (MMK)</option>
+            </select>
+            {errors.office && <p className="text-red-500 text-sm mt-1 text-center">{errors.office}</p>}
           </div>
 
           <div className="w-full max-w-full flex flex-col items-center">
