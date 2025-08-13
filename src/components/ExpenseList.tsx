@@ -11,11 +11,12 @@ import { ChevronLeft, ChevronRight, Edit, Trash2, Download, Search } from 'lucid
 interface ExpenseListProps {
   onEdit?: (expense: ExpenseData) => void;
   onDelete?: (expenseId: string) => void;
+  activeMonth?: string; // 対象月（YYYY-MM形式）
 }
 
 const ITEMS_PER_PAGE = 20;
 
-export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
+export default function ExpenseList({ onEdit, onDelete, activeMonth }: ExpenseListProps) {
   const { user } = useAuthStore();
   const { expenses, updateExpense, deleteExpense, deleteExpenses, selectedExpenses, toggleExpenseSelection, clearSelection } = useExpenseStore();
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,9 +48,14 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
 
   // 全経費データ（ローカル + クラウド）
   const allExpenses = [...expenses, ...cloudExpenses];
+  
+  // 対象月でフィルタリング
+  const monthFilteredExpenses = activeMonth 
+    ? allExpenses.filter(exp => exp.monthKey === activeMonth)
+    : allExpenses;
 
   // 検索・フィルタリング
-  const filteredExpenses = allExpenses.filter(expense => {
+  const filteredExpenses = monthFilteredExpenses.filter(expense => {
     const searchLower = searchTerm.toLowerCase();
     return (
       expense.description?.toLowerCase().includes(searchLower) ||
@@ -167,9 +173,9 @@ export default function ExpenseList({ onEdit, onDelete }: ExpenseListProps) {
     }
   };
 
-  // 統計情報
-  const totalAmount = allExpenses.reduce((sum, exp) => sum + (exp.totalAmount || 0), 0);
-  const qualifiedCount = allExpenses.filter(exp => exp.isQualified?.includes('Qualified')).length;
+  // 統計情報（対象月のデータを使用）
+  const totalAmount = monthFilteredExpenses.reduce((sum, exp) => sum + (exp.totalAmount || 0), 0);
+  const qualifiedCount = monthFilteredExpenses.filter(exp => exp.isQualified?.includes('Qualified')).length;
 
   return (
     <div className="space-y-4 md:space-y-6">
