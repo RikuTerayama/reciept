@@ -10,6 +10,7 @@ import {
   loadMonthlyExpenses,
   getYearMonthFromDate
 } from '@/lib/storage';
+import { getMonthKey } from '@/lib/date';
 
 interface ExpenseStore {
   // 状態
@@ -47,9 +48,14 @@ export const useExpenseStore = create<ExpenseStore>()(
       // 経費データの追加
       addExpense: (expense: ExpenseData, userEmail?: string) => {
         set((state) => {
-          const newExpenses = [...state.expenses, expense];
+          // monthKeyを自動付与
+          const expenseWithMonthKey = {
+            ...expense,
+            monthKey: getMonthKey(expense.date)
+          };
+          const newExpenses = [...state.expenses, expenseWithMonthKey];
           // ローカルストレージにも保存（同期対応）
-          addExpenseToStorage(expense, userEmail);
+          addExpenseToStorage(expenseWithMonthKey, userEmail);
           return { expenses: newExpenses };
         });
       },
@@ -57,11 +63,16 @@ export const useExpenseStore = create<ExpenseStore>()(
       // 経費データの更新
       updateExpense: (expense: ExpenseData, userEmail?: string) => {
         set((state) => {
+          // monthKeyを再計算
+          const updatedExpense = {
+            ...expense,
+            monthKey: getMonthKey(expense.date)
+          };
           const updatedExpenses = state.expenses.map((exp) =>
-            exp.id === expense.id ? expense : exp
+            exp.id === expense.id ? updatedExpense : exp
           );
           // ローカルストレージにも更新（同期対応）
-          updateExpenseInStorage(expense, userEmail);
+          updateExpenseInStorage(updatedExpense, userEmail);
           return { expenses: updatedExpenses };
         });
       },
