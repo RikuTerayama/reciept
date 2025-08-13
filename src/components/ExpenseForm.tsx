@@ -19,7 +19,7 @@ interface ExpenseFormProps {
 
 export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFormProps) {
   const { user } = useAuthStore();
-  const { ocrResult } = useExpenseStore();
+  const { ocrResult, setOCRResult } = useExpenseStore();
   const baseCurrency = user?.currency || 'JPY';
   
   const [formData, setFormData] = useState<ExpenseData>({
@@ -58,6 +58,50 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   // 金額入力の生値と表示値を管理
   const [amountRaw, setAmountRaw] = useState(initialData?.totalAmount?.toString() || '');
   const [amountFocused, setAmountFocused] = useState(false);
+
+  // フォームリセット機能
+  const resetForm = () => {
+    const defaultData: ExpenseData = {
+      id: '',
+      date: new Date().toISOString().split('T')[0],
+      totalAmount: 0,
+      category: '',
+      description: '',
+      taxRate: 10,
+      participantFromClient: 0,
+      participantFromCompany: 0,
+      isQualified: 'Qualified invoice/receipt',
+      currency: baseCurrency,
+      originalAmount: 0,
+      originalCurrency: baseCurrency,
+      convertedAmount: 0,
+      baseCurrency: baseCurrency,
+      conversionRate: 1,
+      conversionDate: new Date().toISOString(),
+      createdAt: new Date(),
+      rechargedToClient: 'N',
+      gstVatApplicable: 'N',
+      companyName: '-',
+    };
+
+    setFormData(defaultData);
+    setDisplayValues({
+      totalAmount: '',
+      taxRate: '10',
+      participantFromClient: '',
+      participantFromCompany: ''
+    });
+    setAmountRaw('');
+    setErrors({});
+  };
+
+  // OCR結果をクリア
+  const clearOCRResult = () => {
+    // OCR結果をストアからクリア
+    if (setOCRResult) {
+      setOCRResult(null);
+    }
+  };
 
   // 金額のフォーマット関数
   const formatJPY = (n: number) => new Intl.NumberFormat('ja-JP').format(n);
@@ -141,42 +185,42 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
     setIsListening(false);
   };
 
-  // OCR結果がある場合、フォームに設定
-  useEffect(() => {
-    if (ocrResult && !initialData) {
-      const ocrData: Partial<ExpenseData> = {
-        date: ocrResult.date || new Date().toISOString().split('T')[0],
-        receiptDate: ocrResult.date || new Date().toISOString().split('T')[0],
-        totalAmount: ocrResult.totalAmount || 0,
-        category: ocrResult.category || '',
-        description: ocrResult.description || '',
-        taxRate: ocrResult.taxRate || 10,
-        isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
-        currency: baseCurrency,
-        originalAmount: ocrResult.totalAmount || 0,
-        originalCurrency: baseCurrency,
-        convertedAmount: ocrResult.totalAmount || 0,
-        baseCurrency: baseCurrency,
-        conversionRate: 1,
-        companyName: ocrResult.companyName || '-',
-        imageData: ocrResult.imageData || null,
-        ocrText: ocrResult.text || '',
-        receiptNumber: ocrResult.receiptNumber || '',
-      };
-      
-      setFormData(prev => ({ ...prev, ...ocrData }));
-      
-      // 表示値も更新
-      setDisplayValues(prev => ({
-        ...prev,
-        totalAmount: (ocrResult.totalAmount || 0).toString(),
-        taxRate: (ocrResult.taxRate || 10).toString(),
-      }));
-      
-      // 金額の生値も更新
-      setAmountRaw((ocrResult.totalAmount || 0).toString());
-    }
-  }, [ocrResult, initialData, baseCurrency]);
+  // OCR結果の適用処理
+  const applyOCRResult = () => {
+    if (!ocrResult) return;
+    
+    const ocrData: Partial<ExpenseData> = {
+      date: ocrResult.date || new Date().toISOString().split('T')[0],
+      receiptDate: ocrResult.date || new Date().toISOString().split('T')[0],
+      totalAmount: ocrResult.totalAmount || 0,
+      category: ocrResult.category || '',
+      description: ocrResult.description || '',
+      taxRate: ocrResult.taxRate || 10,
+      isQualified: ocrResult.isQualified ? 'Qualified invoice/receipt' : 'Not Qualified',
+      currency: baseCurrency,
+      originalAmount: ocrResult.totalAmount || 0,
+      originalCurrency: baseCurrency,
+      convertedAmount: ocrResult.totalAmount || 0,
+      baseCurrency: baseCurrency,
+      conversionRate: 1,
+      companyName: ocrResult.companyName || '-',
+      imageData: ocrResult.imageData || null,
+      ocrText: ocrResult.text || '',
+      receiptNumber: ocrResult.receiptNumber || '',
+    };
+    
+    setFormData(prev => ({ ...prev, ...ocrData }));
+    
+    // 表示値も更新
+    setDisplayValues(prev => ({
+      ...prev,
+      totalAmount: (ocrResult.totalAmount || 0).toString(),
+      taxRate: (ocrResult.taxRate || 10).toString(),
+    }));
+    
+    // 金額の生値も更新
+    setAmountRaw((ocrResult.totalAmount || 0).toString());
+  };
 
   // 通貨変更時の自動換算
   useEffect(() => {
@@ -345,8 +389,21 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             <div className="flex-1">
               <p className="text-blue-300 font-medium">OCR処理が完了しました</p>
               <p className="text-blue-200 text-sm mt-1">
-                以下の情報を確認・編集してから保存してください。
+                読み取った情報を確認してから、必要に応じて「OCR結果を適用」ボタンを押してください。
               </p>
+              
+              {/* OCR結果のプレビュー */}
+              <div className="mt-3 p-3 bg-blue-500/10 rounded border border-blue-400/20">
+                <p className="text-blue-200 text-xs font-medium mb-2">読み取り結果:</p>
+                <div className="space-y-1 text-xs text-blue-200">
+                  {ocrResult.date && <div>📅 日付: {ocrResult.date}</div>}
+                  {ocrResult.totalAmount && <div>💰 金額: ¥{ocrResult.totalAmount.toLocaleString('ja-JP')}</div>}
+                  {ocrResult.category && <div>🏷️ カテゴリ: {ocrResult.category}</div>}
+                  {ocrResult.description && <div>📝 説明: {ocrResult.description}</div>}
+                  {ocrResult.receiptNumber && <div>🔢 レシート番号: {ocrResult.receiptNumber}</div>}
+                </div>
+              </div>
+              
               {/* 不足情報の案内 */}
               {(!ocrResult.date || !ocrResult.totalAmount) && (
                 <div className="mt-2 p-2 bg-blue-500/20 rounded border border-blue-400/30">
@@ -356,6 +413,31 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
                 </div>
               )}
             </div>
+          </div>
+          
+          {/* OCR結果適用ボタン */}
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={applyOCRResult}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              📋 OCR結果を適用
+            </button>
+            <button
+              type="button"
+              onClick={resetForm}
+              className="px-4 py-2 bg-surface-600 hover:bg-surface-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              🔄 フォームをリセット
+            </button>
+            <button
+              type="button"
+              onClick={clearOCRResult}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              ❌ OCR結果をクリア
+            </button>
           </div>
         </div>
       )}
