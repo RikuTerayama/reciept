@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { ExpenseData, EXPENSE_CATEGORIES, QUALIFICATION_TYPES } from '@/types';
-import { convertToJPY, convertFromJPY, fetchExchangeRates } from '@/lib/currency';
 import { getCurrentLanguage, t } from '@/lib/i18n';
-import { useExchangeRates, convertCurrencyWithCache } from '@/lib/exchange-rate-cache';
+import { convertToBaseCurrency, getBaseCurrencyForOffice, formatDualCurrency } from '@/lib/currencyConverter';
 import { useAuthStore } from '@/lib/auth-store';
 import { useExpenseStore } from '@/lib/store';
 import { createSpeechRecognizer } from '@/lib/voice';
@@ -129,9 +128,6 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   const [speechRecognizer, setSpeechRecognizer] = useState<ReturnType<typeof createSpeechRecognizer> | null>(null);
   const currentLanguage = getCurrentLanguage();
 
-  // 為替レート取得
-  const { rates, isLoading: ratesLoading, isError: ratesError } = useExchangeRates(baseCurrency);
-
   // 音声認識の初期化
   useEffect(() => {
     const recognizer = createSpeechRecognizer();
@@ -224,31 +220,33 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
 
   // 通貨変更時の自動換算
   useEffect(() => {
-    if (formData.currency !== baseCurrency && formData.totalAmount > 0 && rates) {
+    if (formData.currency !== baseCurrency && formData.totalAmount > 0) {
       handleCurrencyConversion();
     }
-  }, [formData.currency, formData.totalAmount, rates, baseCurrency]);
+  }, [formData.currency, formData.totalAmount, baseCurrency]);
 
   const handleCurrencyConversion = async () => {
-    if (!rates || formData.currency === baseCurrency) return;
+    if (formData.currency === baseCurrency) return;
 
     setIsConverting(true);
     try {
-      const conversion = convertCurrencyWithCache(
+      // 基軸通貨への換算
+      const baseCurrencyAmount = convertToBaseCurrency(
         formData.totalAmount,
         formData.currency,
-        baseCurrency,
-        rates.rates
+        baseCurrency
       );
-
+      
       setFormData(prev => ({
         ...prev,
         originalAmount: formData.totalAmount,
         originalCurrency: formData.currency,
-        convertedAmount: conversion.convertedAmount,
-        baseCurrency: conversion.baseCurrency,
-        conversionRate: conversion.conversionRate,
-        conversionDate: conversion.conversionDate
+        convertedAmount: baseCurrencyAmount,
+        baseCurrency: baseCurrency,
+        baseCurrencyAmount: baseCurrencyAmount,
+        isForeignCurrency: formData.currency !== baseCurrency,
+        exchangeRate: baseCurrencyAmount / formData.totalAmount,
+        conversionDate: new Date().toISOString()
       }));
     } catch (error) {
       console.error('Currency conversion error:', error);
@@ -769,11 +767,11 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
           </div>
         )}
 
-        {/* 為替レートエラー */}
-        {ratesError && (
+        {/* 通貨換算エラー */}
+        {errors.currency && (
           <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4">
             <p className="text-yellow-400 text-xs md:text-sm">
-              {currentLanguage === 'en' ? 'Failed to fetch exchange rates. Using fixed rates.' : '為替レートの取得に失敗しました。固定レートを使用します。'}
+              {errors.currency}
             </p>
           </div>
         )}
@@ -799,7 +797,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             )}
             <button
               type="submit"
-              disabled={isLoading || ratesLoading}
+              disabled={isLoading || isConverting}
               className="w-full sm:flex-1 px-8 py-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-base"
             >
               {isLoading ? t('dataInput.saving', currentLanguage, '保存中...') : t('dataInput.save', currentLanguage, '保存')}
