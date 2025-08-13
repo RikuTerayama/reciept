@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Camera, Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { processImageWithOCR } from '@/lib/ocr';
+import { processImageWithOCR, setOcrProgressHandler } from '@/lib/ocr';
 import { detectAndCropReceipt, preprocessImageForOCR } from '@/lib/receipt-detection';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { OCRResult } from '@/types';
@@ -19,6 +19,7 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
   const [receiptDetectionResult, setReceiptDetectionResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [ocrResult, setOcrResult] = useState<any>(null);
+  const [ocrProgress, setOcrProgress] = useState(0);
   const currentLanguage = getCurrentLanguage();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -59,6 +60,14 @@ export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUplo
 
       // 3. OCR処理
       setProcessingStep(t('imageUpload.ocrProcessing', currentLanguage, 'OCR処理中...'));
+      
+      // OCR進捗ハンドラーを設定
+      setOcrProgressHandler((m) => {
+        if (m.status === 'recognizing text' && m.progress != null) {
+          setOcrProgress(m.progress);
+        }
+      });
+      
       const ocrResult = await processImageWithOCR(file);
 
       setProcessingStep(t('imageUpload.processingComplete', currentLanguage, 'OCR処理完了！'));
