@@ -2,248 +2,288 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
-import { processImageWithOCR } from '@/lib/ocr';
-import { detectAndCropReceipt } from '@/lib/receipt-detection';
-import { compressImages, preprocessImageForOCR } from '@/lib/image-utils';
+import { Camera, Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { processImageWithOCR, setOcrProgressHandler } from '@/lib/ocr';
+import { detectAndCropReceipt, preprocessImageForOCR } from '@/lib/receipt-detection';
 import { getCurrentLanguage, t } from '@/lib/i18n';
-import { useExpenseStore } from '@/lib/store';
+import { saveImageToStorage } from '@/lib/imageStorage';
+import { OCRResult } from '@/types';
 
-interface BatchUploadProps {
-  onComplete?: () => void;
+interface EnhancedImageUploadProps {
+  onOCRComplete: (result: OCRResult) => void;
 }
 
-interface ProcessingFile {
-  file: File;
-  status: 'pending' | 'processing' | 'completed' | 'error';
-  progress: number;
-  error?: string;
-  result?: any;
-}
+export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUploadProps) {
+  const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [processingStep, setProcessingStep] = useState<string>('');
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [receiptDetectionResult, setReceiptDetectionResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [ocrResult, setOcrResult] = useState<any>(null);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const currentLanguage = getCurrentLanguage();
 
-export default function BatchUpload({ onComplete }: BatchUploadProps) {
-  const [files, setFiles] = useState<ProcessingFile[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [overallProgress, setOverallProgress] = useState(0);
-  const [currentLanguage] = useState(getCurrentLanguage());
-  const { addExpense } = useExpenseStore();
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
 
-  const processFile = async (processingFile: ProcessingFile): Promise<void> => {
-    const { file } = processingFile;
-    
+    const file = acceptedFiles[0];
+    setStatus('processing');
+    setError(null);
+    setProcessingStep(t('imageUpload.processing', currentLanguage, '画像を処理中...'));
+
     try {
-      // ステップ1: 画像前処理（並列処理）
-      const processedImage = await preprocessImageForOCR(file);
-      
-      // ステップ2: レシート検出
-      const compressedBlob = await fetch(processedImage).then(r => r.blob());
-      const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
-      const receiptResult = await detectAndCropReceipt(compressedFile);
-      
-      if (!receiptResult.success) {
-        console.log('Receipt detection failed for:', file.name);
+      // 1. レシート自動検出
+      setProcessingStep(t('imageUpload.detectingReceipt', currentLanguage, 'レシートを検出中...'));
+      const detectionResult = await detectAndCropReceipt(file);
+
+      if (detectionResult.success && detectionResult.croppedImage) {
+        setReceiptDetectionResult(detectionResult);
+        setPreviewImage(detectionResult.croppedImage.toDataURL());
+        setProcessingStep(t('imageUpload.receiptDetection', currentLanguage, 'レシート検出完了'));
+      } else {
+        // レシート検出に失敗した場合は元画像を使用
+        setProcessingStep(t('imageUpload.usingOriginalImage', currentLanguage, '元画像を使用します'));
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          setPreviewImage(canvas.toDataURL());
+        };
+        img.src = URL.createObjectURL(file);
       }
 
-      // ステップ3: OCR処理
-      const ocrResult = await processImageWithOCR(compressedFile);
-      
-      // 結果を更新
-      setFiles(prev => prev.map(f => 
-        f.file === file 
-          ? { ...f, status: 'completed', result: ocrResult }
-          : f
-      ));
-      
-    } catch (error) {
-      console.error('Processing error for:', file.name, error);
-      setFiles(prev => prev.map(f => 
-        f.file === file 
-          ? { ...f, status: 'error', error: error instanceof Error ? error.message : 'Unknown error' }
-          : f
-      ));
-    }
-  };
+      // 2. 画像前処理
+      setProcessingStep(t('imageUpload.compressingImage', currentLanguage, '画像を圧縮中...'));
+      const preprocessedCanvas = await preprocessImageForOCR(file);
 
-  const processAllFiles = async () => {
-    setIsProcessing(true);
-    setOverallProgress(0);
-    
-    const pendingFiles = files.filter(f => f.status === 'pending');
-    const totalFiles = pendingFiles.length;
-    
-    if (totalFiles === 0) {
-      setIsProcessing(false);
-      return;
-    }
-
-    // 並列処理（最大3ファイル同時処理）
-    const batchSize = 3;
-    for (let i = 0; i < pendingFiles.length; i += batchSize) {
-      const batch = pendingFiles.slice(i, i + batchSize);
+      // 3. OCR処理
+      setProcessingStep(t('imageUpload.ocrProcessing', currentLanguage, 'OCR処理中...'));
       
-      // バッチ内のファイルを並列処理
-      const promises = batch.map(async (processingFile) => {
-        // ステータスを処理中に更新
-        setFiles(prev => prev.map(f => 
-          f.file === processingFile.file 
-            ? { ...f, status: 'processing', progress: 0 }
-            : f
-        ));
-        
-        await processFile(processingFile);
-        
-        // 進捗を更新
-        setOverallProgress((i + batch.length) / totalFiles * 100);
+      // OCR進捗ハンドラーを設定
+      setOcrProgressHandler((m) => {
+        if (m.status === 'recognizing text' && m.progress != null) {
+          setOcrProgress(m.progress);
+        }
       });
       
-      await Promise.all(promises);
-    }
-    
-    setIsProcessing(false);
-    
-    if (onComplete) {
-      setTimeout(onComplete, 1000);
-    }
-  };
+      const ocrResult = await processImageWithOCR(file);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: ProcessingFile[] = acceptedFiles.map(file => ({
-      file,
-      status: 'pending',
-      progress: 0
-    }));
-    
-    setFiles(prev => [...prev, ...newFiles]);
-  }, []);
+      setProcessingStep(t('imageUpload.processingComplete', currentLanguage, 'OCR処理完了！'));
+      setStatus('success');
+      
+      // OCR結果を保存
+      setOcrResult(ocrResult);
+      
+      // 画像をストレージに保存
+      try {
+        const imageDataUrl = previewImage || detectionResult?.croppedImage?.toDataURL() || '';
+        if (imageDataUrl) {
+          await saveImageToStorage(
+            imageDataUrl,
+            file.name,
+            undefined, // expenseIdは後で設定
+            ocrResult
+          );
+        }
+      } catch (storageError) {
+        console.warn('画像のストレージ保存に失敗しました:', storageError);
+        // ストレージ保存の失敗は処理を継続
+      }
+      
+      // 結果を親コンポーネントに渡す
+      onOCRComplete(ocrResult);
+
+    } catch (error) {
+      console.error('Image processing error:', error);
+      setError(error instanceof Error ? error.message : 'OCR処理中にエラーが発生しました。もう一度お試しください。');
+      setStatus('error');
+    } finally {
+      setProcessingStep('');
+    }
+  }, [onOCRComplete, currentLanguage]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp', '.pdf']
+      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
     },
-    multiple: true
+    multiple: false,
+    disabled: status === 'processing'
   });
 
-  const removeFile = (fileToRemove: File) => {
-    setFiles(prev => prev.filter(f => f.file !== fileToRemove));
+  const handleCameraCapture = () => {
+    // カメラ機能の実装（必要に応じて）
+    console.log('Camera capture not implemented yet');
   };
-
-  const clearAll = () => {
-    setFiles([]);
-  };
-
-  const completedCount = files.filter(f => f.status === 'completed').length;
-  const errorCount = files.filter(f => f.status === 'error').length;
-  const pendingCount = files.filter(f => f.status === 'pending').length;
 
   return (
     <div className="space-y-6">
-      {!isProcessing && (
-        <div className="space-y-4">
-          <div
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-6 md:p-8 text-center cursor-pointer transition-colors ${
-              isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            <input {...getInputProps()} />
-            <Upload className="mx-auto h-10 w-10 md:h-12 md:w-12 text-gray-400 mb-4" />
-            <p className="text-xs md:text-sm text-white leading-relaxed whitespace-pre-line">
-              {isDragActive ? t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップ\nまたはクリックして画像を選択') : t('batchUpload.dragDropText', currentLanguage, 'ドラッグ&ドロップ\nまたはクリックして画像を選択')}
-            </p>
-            <p className="text-xs text-gray-300 mt-2 text-center leading-relaxed">
-              {t('batchUpload.supportedFormats', currentLanguage, 'サポートされている形式：JPG / PNG / PDF')}
-            </p>
-          </div>
-
-          {files.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-base md:text-lg font-semibold text-white">
-                  {t('batchUpload.processingStatus', currentLanguage, '処理状況')}: {files.length} ファイル
-                </h3>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={processAllFiles}
-                    disabled={pendingCount === 0}
-                    className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
-                  >
-                    {t('batchUpload.startProcessing', currentLanguage, '処理開始')}
-                  </button>
-                  <button
-                    onClick={clearAll}
-                    className="px-3 py-2 md:px-4 md:py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-xs md:text-sm"
-                  >
-                    {t('batchUpload.clearAll', currentLanguage, 'すべてクリア')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {files.map((processingFile, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-surface-800 rounded-lg border border-surface-700">
-                    <div className="flex items-center space-x-3 flex-1">
-                      <FileText className="w-5 h-5 text-gray-400" />
-                      <div className="flex-1">
-                        <p className="text-xs md:text-sm text-white">{processingFile.file.name}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          {processingFile.status === 'pending' && (
-                            <span className="text-xs text-gray-400">待機中</span>
-                          )}
-                          {processingFile.status === 'processing' && (
-                            <div className="flex items-center space-x-2">
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                              <span className="text-xs text-blue-400">処理中</span>
-                            </div>
-                          )}
-                          {processingFile.status === 'completed' && (
-                            <div className="flex items-center space-x-2">
-                              <CheckCircle className="w-3 h-3 text-green-500" />
-                              <span className="text-xs text-green-400">{t('batchUpload.completed', currentLanguage, '完了')}</span>
-                            </div>
-                          )}
-                          {processingFile.status === 'error' && (
-                            <div className="flex items-center space-x-2">
-                              <AlertCircle className="w-3 h-3 text-red-500" />
-                              <span className="text-xs text-red-400">{t('batchUpload.failed', currentLanguage, '失敗')}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removeFile(processingFile.file)}
-                      className="p-1 text-gray-400 hover:text-red-400 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+      {/* アップロードエリア */}
+      <div
+        {...getRootProps()}
+        className={`
+          relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer
+          ${isDragActive 
+            ? 'border-primary-500 bg-primary-500/10' 
+            : 'border-surface-600 hover:border-primary-500 hover:bg-surface-800/50'
+          }
+          ${status === 'processing' ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+      >
+        <input {...getInputProps()} />
+        
+        {status === 'processing' ? (
+          <div className="space-y-4">
+            <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto" />
+            <div>
+              <p className="text-lg font-medium text-white">{processingStep}</p>
+              <p className="text-sm text-surface-400 mt-2">
+                {t('imageUpload.processing', currentLanguage, '画像を処理中です。しばらくお待ちください...')}
+              </p>
+              
+              {/* OCR進捗バー */}
+              {processingStep.includes('OCR処理中') && (
+                <div className="mt-3">
+                  <div className="flex justify-between text-xs text-surface-400 mb-1">
+                    <span>OCR進行状況</span>
+                    <span>{Math.round(ocrProgress * 100)}%</span>
                   </div>
-                ))}
+                  <div className="w-full bg-surface-600 rounded-full h-2">
+                    <div 
+                      className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${ocrProgress * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex justify-center space-x-4">
+              <div className="w-16 h-16 bg-primary-600 rounded-lg flex items-center justify-center">
+                <Upload className="w-8 h-8 text-white" />
               </div>
-
-              <div className="flex justify-between text-sm text-gray-400">
-                <span>完了: {completedCount}</span>
-                <span>エラー: {errorCount}</span>
-                <span>待機: {pendingCount}</span>
+              <div className="w-16 h-16 bg-secondary-600 rounded-lg flex items-center justify-center">
+                <Camera className="w-8 h-8 text-white" />
               </div>
             </div>
-          )}
+            
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {t('imageUpload.title', currentLanguage, 'レシート画像をアップロード')}
+              </h3>
+
+              
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCameraCapture();
+                  }}
+                  className="px-6 py-3 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2"
+                >
+                  <Camera className="w-5 h-5" />
+                  <span>{t('imageUpload.cameraCapture', currentLanguage, 'カメラで撮影')}</span>
+                </button>
+                
+                <button className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2">
+                  <Upload className="w-5 h-5" />
+                  <span>{t('imageUpload.selectImage', currentLanguage, '画像を選択')}</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="text-sm text-surface-400">
+              <p className="font-medium mb-2">{t('imageUpload.supportedFormats', currentLanguage, 'サポートされている形式')}</p>
+              <p className="whitespace-pre-line">{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* エラー表示 */}
+      {error && status === 'error' && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center space-x-3">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+          <div>
+            <p className="text-red-400 font-medium">{t('imageUpload.error', currentLanguage, 'OCR処理エラー')}</p>
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
         </div>
       )}
 
-      {isProcessing && (
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-sm text-gray-400">{t('batchUpload.processing', currentLanguage, '処理中')}</p>
-          
-          {/* 全体のプログレスバー */}
-          <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${overallProgress}%` }}
-            ></div>
+      {/* プレビュー表示 */}
+      {previewImage && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-lg font-semibold text-white">
+              {receiptDetectionResult?.success 
+                ? t('imageUpload.receiptDetection', currentLanguage, 'レシート検出完了')
+                : t('imageUpload.usingOriginalImage', currentLanguage, '元画像を使用')
+              }
+            </h4>
+            {receiptDetectionResult?.success && (
+              <div className="flex items-center space-x-2 text-green-400">
+                <CheckCircle className="w-5 h-5" />
+                <span className="text-sm">{t('imageUpload.receiptDetection', currentLanguage, 'レシート検出成功')}</span>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-gray-500">{Math.round(overallProgress)}%</p>
+          
+          <div className="relative">
+            <img
+              src={previewImage}
+              alt="Receipt preview"
+              className="max-w-full h-auto rounded-lg border border-surface-600"
+            />
+            
+            {receiptDetectionResult?.success && (
+              <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                {t('imageUpload.receiptDetection', currentLanguage, '検出済み')}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 処理完了メッセージ */}
+      {status === 'success' && previewImage && (
+        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <CheckCircle className="w-5 h-5 text-green-400" />
+            <div className="flex-1">
+              <p className="text-green-400 font-medium">
+                {t('imageUpload.uploadComplete', currentLanguage, 'OCR処理完了')}
+              </p>
+              <p className="text-green-300 text-sm">
+                {t('imageUpload.moveToDataInput', currentLanguage, 'OCR処理が完了しました。データ入力画面に移動します。')}
+              </p>
+              {/* OCR信頼度表示 */}
+              {ocrResult && ocrResult.confidence && (
+                <div className="mt-2 flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
+                    <div className={`w-2 h-2 rounded-full ${
+                      ocrResult.confidence >= 80 ? 'bg-green-400' :
+                      ocrResult.confidence >= 60 ? 'bg-yellow-400' : 'bg-red-400'
+                    }`}></div>
+                    <span className="text-xs text-green-300">
+                      信頼度: {ocrResult.confidence}%
+                    </span>
+                  </div>
+                  {ocrResult.confidence < 70 && (
+                    <span className="text-xs text-yellow-300">
+                      (手動確認をお勧めします)
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
