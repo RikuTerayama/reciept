@@ -68,7 +68,7 @@ export const recognizeReceipt = async (
     // 3. ROI抽出
     onProgress?.(65, '関心領域検出中...');
     const rois = extractROIs(
-      firstPassResult.data.words || [],
+      firstPassResult.data.text || '',
       preprocessedCanvas.width,
       preprocessedCanvas.height
     );
