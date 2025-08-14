@@ -10,7 +10,7 @@ import BudgetOptimizer from '@/components/BudgetOptimizer';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import UserSetup from '@/components/UserSetup';
 import MobileStatistics from '@/components/MobileStatistics';
-import EnhancedImageUpload from '@/components/EnhancedImageUpload';
+import { EnhancedImageUpload } from '@/components/EnhancedImageUpload';
 import ExpenscanLogo from '@/components/ExpenscanLogo';
 import { useToast, ToastManager } from '@/components/Toast';
 import { useExpenseStore } from '@/lib/store';
@@ -382,7 +382,13 @@ export default function MainApp({ userInfo, onUserSetupComplete }: MainAppProps)
                               <h2 className="text-3xl font-bold text-white mb-4 whitespace-nowrap">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
 
               </div>
-              <EnhancedImageUpload onOCRComplete={handleOCRComplete} />
+              <EnhancedImageUpload 
+          onOcrComplete={handleOCRComplete}
+          onVoiceInput={(result) => {
+            // 音声入力の結果を処理
+            console.log('Voice input result:', result);
+          }}
+        />
             </div>
           )}
 
