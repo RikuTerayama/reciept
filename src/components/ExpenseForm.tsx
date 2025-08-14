@@ -21,41 +21,75 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
   const { ocrResult, setOCRResult } = useExpenseStore();
   const baseCurrency = user?.currency || 'JPY';
   
-  const [formData, setFormData] = useState<ExpenseData>({
-    id: '',
-    date: new Date().toISOString().split('T')[0],
-    receiptDate: '',
-    totalAmount: 0,
-    category: '',
-    description: '',
-    taxRate: 10, // デフォルト税率を10%に設定
-    participantFromClient: 0,
-    participantFromCompany: 0,
-    isQualified: 'Qualified invoice/receipt',
-    currency: baseCurrency,
-    originalAmount: 0,
-    originalCurrency: baseCurrency,
-    convertedAmount: 0,
-    baseCurrency: baseCurrency,
-    conversionRate: 1,
-    conversionDate: new Date().toISOString(),
-    createdAt: new Date(),
-    rechargedToClient: 'N',
-    gstVatApplicable: 'N',
-    companyName: '-',
-    ...initialData
-  });
+  // 安全な初期化のためのデフォルト値
+  const getDefaultFormData = (): ExpenseData => {
+    try {
+      return {
+        id: '',
+        date: new Date().toISOString().split('T')[0],
+        receiptDate: '',
+        totalAmount: 0,
+        category: '',
+        description: '',
+        taxRate: 10, // デフォルト税率を10%に設定
+        participantFromClient: 0,
+        participantFromCompany: 0,
+        isQualified: 'Qualified invoice/receipt',
+        currency: baseCurrency,
+        originalAmount: 0,
+        originalCurrency: baseCurrency,
+        convertedAmount: 0,
+        baseCurrency: baseCurrency,
+        conversionRate: 1,
+        conversionDate: new Date().toISOString(),
+        createdAt: new Date(),
+        rechargedToClient: 'N',
+        gstVatApplicable: 'N',
+        companyName: '-',
+        monthKey: '',
+        ...initialData
+      };
+    } catch (error) {
+      console.error('Error creating default form data:', error);
+      // フォールバック用の最小限のデータ
+      return {
+        id: '',
+        date: new Date().toISOString().split('T')[0],
+        totalAmount: 0,
+        category: '',
+        description: '',
+        taxRate: 10,
+        participantFromClient: 0,
+        participantFromCompany: 0,
+        isQualified: 'Qualified invoice/receipt',
+        currency: baseCurrency,
+        originalAmount: 0,
+        originalCurrency: baseCurrency,
+        convertedAmount: 0,
+        baseCurrency: baseCurrency,
+        conversionRate: 1,
+        conversionDate: new Date().toISOString(),
+        createdAt: new Date(),
+        rechargedToClient: 'N',
+        gstVatApplicable: 'N',
+        companyName: '-',
+        monthKey: ''
+      };
+    }
+  };
+
+  const [formData, setFormData] = useState<ExpenseData>(getDefaultFormData());
 
   // 数値フィールドの表示値を管理する状態
   const [displayValues, setDisplayValues] = useState({
-    totalAmount: initialData?.totalAmount?.toString() || '',
+    totalAmount: initialData?.totalAmount?.toString() || '0',
     taxRate: initialData?.taxRate?.toString() || '10',
-    participantFromClient: initialData?.participantFromClient?.toString() || '',
-    participantFromCompany: initialData?.participantFromCompany?.toString() || ''
+    participantFromClient: initialData?.participantFromClient?.toString() || '0',
+    participantFromCompany: initialData?.participantFromCompany?.toString() || '0'
   });
 
   // 金額入力の生値と表示値を管理
-  const [amountRaw, setAmountRaw] = useState(initialData?.totalAmount?.toString() || '');
+  const [amountRaw, setAmountRaw] = useState(initialData?.totalAmount?.toString() || '0');
   const [amountFocused, setAmountFocused] = useState(false);
 
   // フォームリセット機能
@@ -118,8 +152,8 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
 
   // 金額の表示値を計算
   const amountDisplayValue = amountFocused
-    ? (amountRaw === '' ? '' : amountRaw)
-    : formatJPY(Number(amountRaw || '0'));
+    ? (amountRaw === '' ? '0' : amountRaw)
+    : (amountRaw === '' || amountRaw === '0' ? '0' : formatJPY(Number(amountRaw || '0')));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
