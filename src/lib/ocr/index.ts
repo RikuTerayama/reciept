@@ -1,6 +1,6 @@
 import { preprocessImage, PreprocessOptions } from './preprocess';
 import { workerManager, setProgressCallback, OcrStage } from './worker';
-import { extractROIs, extractCanvasFromROI, sortROIsByPriority } from './roi';
+import { extractROIs, extractROIsFromText, extractCanvasFromROI, sortROIsByPriority } from './roi';
 import { postprocessOCRResult } from './postprocess';
 import { PSM } from 'tesseract.js';
 
@@ -67,7 +67,7 @@ export const recognizeReceipt = async (
 
     // 3. ROI抽出
     onProgress?.(65, '関心領域検出中...');
-    const rois = extractROIs(
+    const rois = extractROIsFromText(
       firstPassResult.data.text || '',
       preprocessedCanvas.width,
       preprocessedCanvas.height
@@ -194,7 +194,7 @@ export const resetOcrWorker = () => workerManager.reset();
 export const terminateOcrWorker = () => workerManager.terminate();
 
 // 既存の関数をエクスポート（互換性のため）
-export const getOcrWorker = () => workerManager.getWorker();
+export const getOcrWorker = () => workerManager.initialize();
 export const setOcrProgressHandler = (callback: (progress: number, stage: string) => void) => {
   workerManager.setProgressCallback(callback);
 };
