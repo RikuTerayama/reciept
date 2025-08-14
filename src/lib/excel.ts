@@ -39,14 +39,20 @@ export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string)
   ];
   worksheet['!cols'] = columnWidths;
   
-  // フォント設定
-  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-  for (let R = range.s.r; R <= range.e.r; ++R) {
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-      if (!worksheet[cell_address]) continue;
-      worksheet[cell_address].s = { font: { name: 'Arial' } };
+  // フォント設定（XLSXユーティリティが利用できない場合のフォールバック）
+  try {
+    if ((XLSX.utils as any).decode_range && (XLSX.utils as any).encode_cell) {
+      const range = (XLSX.utils as any).decode_range(worksheet['!ref'] || 'A1');
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cell_address = (XLSX.utils as any).encode_cell({ r: R, c: C });
+          if (!worksheet[cell_address]) continue;
+          worksheet[cell_address].s = { font: { name: 'Arial' } };
+        }
+      }
     }
+  } catch (error) {
+    console.warn('XLSXフォント設定をスキップしました:', error);
   }
   
   XLSX.utils.book_append_sheet(workbook, worksheet, '経費データ');
@@ -225,12 +231,18 @@ export function exportBudgetOptimizationToExcel(
 
 // ワークシートのフォントを設定するヘルパー関数
 function setWorksheetFont(worksheet: XLSX.WorkSheet, fontName: string) {
-  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-  for (let R = range.s.r; R <= range.e.r; ++R) {
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-      if (!worksheet[cell_address]) continue;
-      worksheet[cell_address].s = { font: { name: fontName } };
+  try {
+    if ((XLSX.utils as any).decode_range && (XLSX.utils as any).encode_cell) {
+      const range = (XLSX.utils as any).decode_range(worksheet['!ref'] || 'A1');
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cell_address = (XLSX.utils as any).encode_cell({ r: R, c: C });
+          if (!worksheet[cell_address]) continue;
+          worksheet[cell_address].s = { font: { name: fontName } };
+        }
+      }
     }
+  } catch (error) {
+    console.warn('XLSXフォント設定をスキップしました:', error);
   }
 } 
