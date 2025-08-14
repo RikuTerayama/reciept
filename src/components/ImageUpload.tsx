@@ -114,7 +114,17 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
 
   // カメラボタンのクリック
   const handleCameraButtonClick = () => {
-    cameraInputRef.current?.click();
+    console.log('Camera button clicked');
+    try {
+      if (cameraInputRef.current) {
+        console.log('Triggering camera input click');
+        cameraInputRef.current.click();
+      } else {
+        console.error('Camera input ref is null');
+      }
+    } catch (error) {
+      console.error('Error clicking camera input:', error);
+    }
   };
 
   return (
