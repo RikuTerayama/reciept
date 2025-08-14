@@ -116,7 +116,7 @@ export const EnhancedImageUpload: React.FC<EnhancedImageUploadProps> = ({
     }));
 
     try {
-      const result = await recognizeReceipt(file);
+      const result = await recognizeReceipt(file, handleProgress);
       
       setOcrState(prev => ({
         ...prev,
@@ -293,7 +293,7 @@ export const EnhancedImageUpload: React.FC<EnhancedImageUploadProps> = ({
   const getResultDisplay = () => {
     if (!ocrState.result) return null;
 
-    const { date, amount } = ocrState.result;
+    const { date, amount, confidence, processingTime } = ocrState.result;
 
     return (
       <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -318,12 +318,22 @@ export const EnhancedImageUpload: React.FC<EnhancedImageUploadProps> = ({
                   </span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-green-700">信頼度:</span>
-                <span className="text-green-600 font-medium">
-                  高
-                </span>
-              </div>
+              {confidence && (
+                <div className="flex justify-between">
+                  <span className="text-green-700">信頼度:</span>
+                  <span className="text-green-600 font-medium">
+                    {Math.round(confidence * 100)}%
+                  </span>
+                </div>
+              )}
+              {processingTime && (
+                <div className="flex justify-between">
+                  <span className="text-green-700">処理時間:</span>
+                  <span className="text-green-600 font-medium">
+                    {processingTime}ms
+                  </span>
+                </div>
+              )}
             </div>
             {autoNavigate && (date || amount) && (
               <div className="mt-3 p-2 bg-green-100 rounded">
