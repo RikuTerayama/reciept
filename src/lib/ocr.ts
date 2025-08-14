@@ -2,7 +2,7 @@
 import { createWorker, PSM } from 'tesseract.js';
 
 // --- ワーカー: シングルトン ---
-let _worker: any;
+let _worker: any = null;
 export const getOcrWorker = async () => {
   if (_worker) return _worker;
   const worker = await createWorker({
@@ -16,15 +16,72 @@ export const getOcrWorker = async () => {
     preserve_interword_spaces: '1',
   });
   _worker = worker;
-  return _worker;
+  return worker;
 };
 
 // --- 進捗コールバック保持 ---
 let _progressCb: ((m: any) => void) | null = null;
 export const setOcrProgressHandler = (cb: (m:any)=>void) => { _progressCb = cb; };
 
+// --- PDF処理 ---
+const processPdf = async (file: File): Promise<HTMLCanvasElement> => {
+  try {
+    // PDF.jsの動的インポート（型エラーを回避）
+    const pdfjsLib = await import('pdfjs-dist');
+    
+    // PDF.jsのワーカー設定
+    if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    }
+    
+    // PDFファイルを読み込み
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    // 最初のページを取得
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 1.5 }); // スケール1.5でレンダリング
+    
+    // Canvasを作成
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d')!;
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    
+    // ページをCanvasにレンダリング
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport
+    };
+    
+    await page.render(renderContext).promise;
+    
+    // 解像度を適度に制限
+    const maxW = 1800;
+    if (canvas.width > maxW) {
+      const scale = maxW / canvas.width;
+      const resizedCanvas = document.createElement('canvas');
+      const resizedContext = resizedCanvas.getContext('2d')!;
+      resizedCanvas.width = Math.floor(canvas.width * scale);
+      resizedCanvas.height = Math.floor(canvas.height * scale);
+      resizedContext.drawImage(canvas, 0, 0, resizedCanvas.width, resizedCanvas.height);
+      return resizedCanvas;
+    }
+    
+    return canvas;
+  } catch (error) {
+    console.error('PDF processing error:', error);
+    throw new Error('PDFファイルの処理に失敗しました。');
+  }
+};
+
 // --- 画像前処理(簡易) ---
-const preprocess = async (fileOrDataUrl: string | Blob): Promise<HTMLCanvasElement> => {
+const preprocess = async (fileOrDataUrl: string | Blob | File): Promise<HTMLCanvasElement> => {
+  // PDFファイルの場合は専用処理
+  if (fileOrDataUrl instanceof File && fileOrDataUrl.type === 'application/pdf') {
+    return await processPdf(fileOrDataUrl);
+  }
+  
   const img = new Image();
   const dataUrl = typeof fileOrDataUrl === 'string' ? fileOrDataUrl : await blobToDataURL(fileOrDataUrl);
   await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = rej; img.src = dataUrl; });
@@ -63,7 +120,7 @@ export type OcrResult = {
   receiptNumber?: string;
 };
 
-export const recognizeReceipt = async (fileOrDataUrl: Blob | string): Promise<OcrResult> => {
+export const recognizeReceipt = async (fileOrDataUrl: Blob | string | File): Promise<OcrResult> => {
   const worker = await getOcrWorker();
   const canvas = await preprocess(fileOrDataUrl);
   const { data } = await worker.recognize(canvas);
