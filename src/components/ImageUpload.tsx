@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Camera, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, Camera, CheckCircle, AlertCircle, Loader2, FileText } from 'lucide-react';
 import { processImageWithOCR } from '@/lib/ocr';
 import { getCurrentLanguage, t } from '@/lib/i18n';
 import { OCRResult } from '@/types';
@@ -17,14 +17,20 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
   const [processingStep, setProcessingStep] = useState<string>('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
   const currentLanguage = getCurrentLanguage();
+  
+  // ファイル入力とカメラ入力のref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-
-    const file = acceptedFiles[0];
+  // ファイル処理の共通関数
+  const processFile = async (file: File) => {
+    if (!file) return;
+    
     setStatus('processing');
     setError(null);
+    setProgress(0);
     setProcessingStep(t('imageUpload.processing', currentLanguage, '画像を処理中...'));
 
     try {
@@ -37,9 +43,12 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
 
       // OCR処理
       setProcessingStep(t('imageUpload.ocrProcessing', currentLanguage, 'OCR処理中...'));
+      setProgress(0.5);
+      
       const ocrResult = await processImageWithOCR(file);
 
       setProcessingStep(t('imageUpload.processingComplete', currentLanguage, 'OCR処理完了！'));
+      setProgress(1.0);
       
       // 成功状態を設定
       setStatus('success');
@@ -61,24 +70,74 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
     } finally {
       setProcessingStep('');
     }
-  }, [onOCRComplete, onComplete, currentLanguage]);
+  };
 
+  // ファイル選択ハンドラー
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      processFile(files[0]);
+    }
+    // 同じファイルを再度選択できるようにリセット
+    event.target.value = '';
+  };
+
+  // カメラ撮影ハンドラー
+  const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      processFile(files[0]);
+    }
+    // 同じファイルを再度選択できるようにリセット
+    event.target.value = '';
+  };
+
+  // ドロップゾーンの設定（PDF対応）
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+    onDrop: async (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        await processFile(acceptedFiles[0]);
+      }
+    },
     accept: {
-      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
+      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'],
+      'application/pdf': ['.pdf']
     },
     multiple: false,
     disabled: status === 'processing'
   });
 
-  const handleCameraCapture = () => {
-    // カメラ機能の実装（必要に応じて）
-    console.log('Camera capture not implemented yet');
+  // ファイル選択ボタンのクリック
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // カメラボタンのクリック
+  const handleCameraButtonClick = () => {
+    cameraInputRef.current?.click();
   };
 
   return (
     <div className="space-y-6">
+      {/* 隠しファイル入力 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      
+      {/* 隠しカメラ入力 */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleCameraCapture}
+        className="hidden"
+      />
+
       {/* アップロードエリア */}
       <div
         {...getRootProps()}
@@ -98,6 +157,13 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto" />
             <div>
               <p className="text-base font-medium text-white">{processingStep}</p>
+              {/* プログレスバー */}
+              <div className="w-full max-w-xs mx-auto bg-surface-700 rounded-full h-2 mt-3">
+                <div 
+                  className="bg-primary-500 h-2 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${progress * 100}%` }}
+                ></div>
+              </div>
               <p className="text-xs text-surface-400 mt-2">
                 {processingStep.includes('OCR') 
                   ? t('imageUpload.ocrProcessing', currentLanguage, 'OCR処理中です。しばらくお待ちください...')
@@ -122,21 +188,21 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
                 {t('imageUpload.title', currentLanguage, 'レシート画像をアップロード')}
               </h3>
 
-              
               <div className="flex flex-col gap-3 justify-center">
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCameraCapture();
-                  }}
+                  onClick={handleCameraButtonClick}
                   className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 text-sm"
                 >
                   <Camera className="w-5 h-5" />
                   <span>{t('imageUpload.cameraCapture', currentLanguage, 'カメラで撮影')}</span>
                 </button>
                 
-                <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 text-sm">
+                <button 
+                  type="button"
+                  onClick={handleFileButtonClick}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 text-sm"
+                >
                   <Upload className="w-5 h-5" />
                   <span>{t('imageUpload.selectImage', currentLanguage, '画像を選択')}</span>
                 </button>
@@ -145,7 +211,9 @@ export default function ImageUpload({ onOCRComplete, onComplete }: ImageUploadPr
             
             <div className="text-xs text-surface-400 mt-2">
               <p className="font-medium mb-2">{t('imageUpload.supportedFormats', currentLanguage, 'サポートされている形式')}</p>
-              <p className="leading-relaxed whitespace-pre-line">{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
+              <p className="leading-relaxed whitespace-pre-line">
+                {t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP, PDF形式のファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}
+              </p>
             </div>
           </div>
         )}
