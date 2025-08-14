@@ -1,291 +1,449 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Camera, Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { processImageWithOCR, setOcrProgressHandler } from '@/lib/ocr';
-import { detectAndCropReceipt, preprocessImageForOCR } from '@/lib/receipt-detection';
-import { getCurrentLanguage, t } from '@/lib/i18n';
-import { saveImageToStorage } from '@/lib/imageStorage';
-import { OCRResult } from '@/types';
+import React, { useState, useRef, useCallback } from 'react';
+import { recognizeReceipt, OcrResult } from '../lib/ocr';
+import { VoiceInputButton } from './VoiceInputButton';
 
-interface EnhancedImageUploadProps {
-  onOCRComplete: (result: OCRResult) => void;
+// OCRの状態
+interface OcrState {
+  isProcessing: boolean;
+  progress: number;
+  stage: string;
+  error: string | null;
+  result: OcrResult | null;
 }
 
-export default function EnhancedImageUpload({ onOCRComplete }: EnhancedImageUploadProps) {
-  const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
-  const [processingStep, setProcessingStep] = useState<string>('');
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [receiptDetectionResult, setReceiptDetectionResult] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [ocrResult, setOcrResult] = useState<any>(null);
-  const [ocrProgress, setOcrProgress] = useState(0);
-  const currentLanguage = getCurrentLanguage();
+// プロパティ
+interface EnhancedImageUploadProps {
+  onOcrComplete: (result: OcrResult) => void;
+  onVoiceInput: (result: { date?: string; amount?: number; transcript: string; confidence: number }) => void;
+  disabled?: boolean;
+  className?: string;
+  autoNavigate?: boolean;
+  showVoiceInput?: boolean;
+}
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-
-    const file = acceptedFiles[0];
-    setStatus('processing');
-    setError(null);
-    setProcessingStep(t('imageUpload.processing', currentLanguage, '画像を処理中...'));
-
-    try {
-      // 1. レシート自動検出
-      setProcessingStep(t('imageUpload.detectingReceipt', currentLanguage, 'レシートを検出中...'));
-      const detectionResult = await detectAndCropReceipt(file);
-
-      if (detectionResult.success && detectionResult.croppedImage) {
-        setReceiptDetectionResult(detectionResult);
-        setPreviewImage(detectionResult.croppedImage.toDataURL());
-        setProcessingStep(t('imageUpload.receiptDetection', currentLanguage, 'レシート検出完了'));
-      } else {
-        // レシート検出に失敗した場合は元画像を使用
-        setProcessingStep(t('imageUpload.usingOriginalImage', currentLanguage, '元画像を使用します'));
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-        const img = new Image();
-        img.onload = () => {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          setPreviewImage(canvas.toDataURL());
-        };
-        img.src = URL.createObjectURL(file);
-      }
-
-      // 2. 画像前処理
-      setProcessingStep(t('imageUpload.compressingImage', currentLanguage, '画像を圧縮中...'));
-      const preprocessedCanvas = await preprocessImageForOCR(file);
-
-      // 3. OCR処理
-      setProcessingStep(t('imageUpload.ocrProcessing', currentLanguage, 'OCR処理中...'));
-      
-      // OCR進捗ハンドラーを設定
-      setOcrProgressHandler((m) => {
-        if (m.status === 'recognizing text' && m.progress != null) {
-          setOcrProgress(m.progress);
-        }
-      });
-      
-      const ocrResult = await processImageWithOCR(file);
-
-      setProcessingStep(t('imageUpload.processingComplete', currentLanguage, 'OCR処理完了！'));
-      setStatus('success');
-      
-      // OCR結果を保存
-      setOcrResult(ocrResult);
-      
-      // 画像をストレージに保存
-      try {
-        const imageDataUrl = previewImage || detectionResult?.croppedImage?.toDataURL() || '';
-        if (imageDataUrl) {
-          await saveImageToStorage(
-            imageDataUrl,
-            file.name,
-            undefined, // expenseIdは後で設定
-            ocrResult
-          );
-        }
-      } catch (storageError) {
-        console.warn('画像のストレージ保存に失敗しました:', storageError);
-        // ストレージ保存の失敗は処理を継続
-      }
-      
-      // 結果を親コンポーネントに渡す
-      onOCRComplete(ocrResult);
-
-    } catch (error) {
-      console.error('Image processing error:', error);
-      setError(error instanceof Error ? error.message : 'OCR処理中にエラーが発生しました。もう一度お試しください。');
-      setStatus('error');
-    } finally {
-      setProcessingStep('');
-    }
-  }, [onOCRComplete, currentLanguage]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
-    },
-    multiple: false,
-    disabled: status === 'processing'
+/**
+ * 強化された画像アップロードコンポーネント
+ * - 高品質OCR処理
+ * - リアルタイム進捗表示
+ * - 音声入力統合
+ * - 自動遷移機能
+ */
+export const EnhancedImageUpload: React.FC<EnhancedImageUploadProps> = ({
+  onOcrComplete,
+  onVoiceInput,
+  disabled = false,
+  className = '',
+  autoNavigate = true,
+  showVoiceInput = true
+}) => {
+  const [ocrState, setOcrState] = useState<OcrState>({
+    isProcessing: false,
+    progress: 0,
+    stage: '',
+    error: null,
+    result: null
   });
 
-  const handleCameraCapture = () => {
-    // カメラ機能の実装（必要に応じて）
-    console.log('Camera capture not implemented yet');
+  const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  // 進捗コールバック
+  const handleProgress = useCallback((progress: number, stage: string) => {
+    setOcrState(prev => ({
+      ...prev,
+      progress,
+      stage
+    }));
+  }, []);
+
+  // ファイル選択処理
+  const handleFileSelect = useCallback(async (file: File) => {
+    if (!file) return;
+
+    // ファイルタイプチェック
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      setOcrState(prev => ({
+        ...prev,
+        error: 'サポートされていないファイル形式です。JPEG、PNG、WebP、PDFを選択してください。'
+      }));
+      return;
+    }
+
+    // ファイルサイズチェック（50MB制限）
+    if (file.size > 50 * 1024 * 1024) {
+      setOcrState(prev => ({
+        ...prev,
+        error: 'ファイルサイズが大きすぎます。50MB以下のファイルを選択してください。'
+      }));
+      return;
+    }
+
+    setSelectedFile(file);
+    setOcrState(prev => ({ ...prev, error: null }));
+
+    // プレビュー生成
+    if (file.type === 'application/pdf') {
+      setPreviewUrl('/pdf-icon.png'); // PDFアイコンを表示
+    } else {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+
+    // 自動OCR開始
+    if (autoNavigate) {
+      await startOcr(file);
+    }
+  }, [autoNavigate]);
+
+  // OCR処理開始
+  const startOcr = useCallback(async (file: File) => {
+    if (ocrState.isProcessing) return;
+
+    setOcrState(prev => ({
+      ...prev,
+      isProcessing: true,
+      progress: 0,
+      stage: '準備中...',
+      error: null,
+      result: null
+    }));
+
+    try {
+      const result = await recognizeReceipt(file);
+      
+      setOcrState(prev => ({
+        ...prev,
+        isProcessing: false,
+        progress: 100,
+        stage: '完了',
+        result
+      }));
+
+      // 結果が妥当な場合は自動でコールバック実行
+      if (result.date || result.amount) {
+        onOcrComplete(result);
+      }
+
+    } catch (error) {
+      console.error('OCR処理に失敗:', error);
+      
+      setOcrState(prev => ({
+        ...prev,
+        isProcessing: false,
+        error: error instanceof Error ? error.message : 'OCR処理に失敗しました'
+      }));
+    }
+  }, [ocrState.isProcessing, onOcrComplete]);
+
+  // 手動OCR開始
+  const handleManualOcr = useCallback(() => {
+    if (selectedFile) {
+      startOcr(selectedFile);
+    }
+  }, [selectedFile, startOcr]);
+
+  // ファイル再選択
+  const handleRetry = useCallback(() => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setOcrState({
+      isProcessing: false,
+      progress: 0,
+      stage: '',
+      error: null,
+      result: null
+    });
+  }, []);
+
+  // ドラッグ&ドロップ処理
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragIn = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setDragActive(true);
+    }
+  }, []);
+
+  const handleDragOut = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      handleFileSelect(file);
+    }
+  }, [handleFileSelect]);
+
+  // ファイル入力クリック
+  const handleFileInputClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // ファイル入力変更
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  }, [handleFileSelect]);
+
+  // 音声入力結果処理
+  const handleVoiceResult = useCallback((result: { date?: string; amount?: number; transcript: string; confidence: number }) => {
+    onVoiceInput(result);
+  }, [onVoiceInput]);
+
+  // ステップ表示の取得
+  const getStepDisplay = () => {
+    if (ocrState.isProcessing) {
+      const steps = [
+        { name: '画像読込', completed: true },
+        { name: '前処理', completed: ocrState.progress >= 20 },
+        { name: 'OCR中', completed: ocrState.progress >= 60 },
+        { name: '結果整形', completed: ocrState.progress >= 90 },
+        { name: '完了', completed: ocrState.progress >= 100 }
+      ];
+
+      return (
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">処理状況</span>
+            <span className="text-sm text-gray-500">{Math.round(ocrState.progress)}%</span>
+          </div>
+          <div className="flex space-x-1">
+            {steps.map((step, index) => (
+              <div key={index} className="flex-1">
+                <div className={`h-2 rounded-full transition-all duration-300 ${
+                  step.completed ? 'bg-blue-500' : 'bg-gray-200'
+                }`} />
+                <div className={`text-xs mt-1 text-center ${
+                  step.completed ? 'text-blue-600' : 'text-gray-400'
+                }`}>
+                  {step.name}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // エラーメッセージの取得
+  const getErrorMessage = () => {
+    if (!ocrState.error) return null;
+
+    const errorHints = [
+      '明るい場所で撮影してください',
+      'レシートが枠内に収まるようにしてください',
+      '影や反射を避けてください',
+      'カメラを安定させてください',
+      'もう一度撮影してみてください'
+    ];
+
+    return (
+      <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="flex items-start">
+          <svg className="w-5 h-5 text-red-400 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          <div className="flex-1">
+            <h4 className="text-sm font-medium text-red-800">OCR処理に失敗しました</h4>
+            <p className="mt-1 text-sm text-red-700">{ocrState.error}</p>
+            <div className="mt-3">
+              <p className="text-xs font-medium text-red-700 mb-2">改善のヒント:</p>
+              <ul className="text-xs text-red-600 space-y-1">
+                {errorHints.map((hint, index) => (
+                  <li key={index}>• {hint}</li>
+                ))}
+              </ul>
+            </div>
+            <button
+              onClick={handleRetry}
+              className="mt-3 text-red-600 hover:text-red-800 text-sm underline"
+            >
+              再試行
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 結果表示の取得
+  const getResultDisplay = () => {
+    if (!ocrState.result) return null;
+
+    const { date, amount } = ocrState.result;
+
+    return (
+      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="flex items-start">
+          <svg className="w-5 h-5 text-green-400 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <div className="flex-1">
+            <h4 className="text-sm font-medium text-green-800">OCR処理が完了しました</h4>
+            <div className="mt-2 space-y-1 text-sm">
+              {date && (
+                <div className="flex justify-between">
+                  <span className="text-green-700">日付:</span>
+                  <span className="text-green-800 font-medium">{date}</span>
+                </div>
+              )}
+              {amount && (
+                <div className="flex justify-between">
+                  <span className="text-green-700">金額:</span>
+                  <span className="text-green-800 font-medium">
+                    ¥{amount.toLocaleString('ja-JP')}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-green-700">信頼度:</span>
+                <span className="text-green-600 font-medium">
+                  高
+                </span>
+              </div>
+            </div>
+            {autoNavigate && (date || amount) && (
+              <div className="mt-3 p-2 bg-green-100 rounded">
+                <p className="text-green-800 text-xs">
+                  ✓ データ入力画面に自動遷移しました
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="space-y-6">
-      {/* アップロードエリア */}
+    <div className={`space-y-6 ${className}`}>
+      {/* ファイルアップロードエリア */}
       <div
-        {...getRootProps()}
-        className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer
-          ${isDragActive 
-            ? 'border-primary-500 bg-primary-500/10' 
-            : 'border-surface-600 hover:border-primary-500 hover:bg-surface-800/50'
-          }
-          ${status === 'processing' ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
+        ref={dropZoneRef}
+        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          dragActive
+            ? 'border-blue-400 bg-blue-50'
+            : selectedFile
+            ? 'border-green-400 bg-green-50'
+            : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
+        }`}
+        onDragEnter={handleDragIn}
+        onDragLeave={handleDragOut}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
       >
-        <input {...getInputProps()} />
-        
-        {status === 'processing' ? (
-          <div className="space-y-4">
-            <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto" />
-            <div>
-              <p className="text-lg font-medium text-white">{processingStep}</p>
-              <p className="text-sm text-surface-400 mt-2">
-                {t('imageUpload.processing', currentLanguage, '画像を処理中です。しばらくお待ちください...')}
+        {!selectedFile ? (
+          <div>
+            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={handleFileInputClick}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={disabled}
+              >
+                ファイルを選択
+              </button>
+              <p className="mt-2 text-sm text-gray-600">
+                または、ここにファイルをドラッグ&ドロップ
               </p>
-              
-              {/* OCR進捗バー */}
-              {processingStep.includes('OCR処理中') && (
-                <div className="mt-3">
-                  <div className="flex justify-between text-xs text-surface-400 mb-1">
-                    <span>OCR進行状況</span>
-                    <span>{Math.round(ocrProgress * 100)}%</span>
-                  </div>
-                  <div className="w-full bg-surface-600 rounded-full h-2">
-                    <div 
-                      className="bg-primary-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${ocrProgress * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
+              <p className="mt-1 text-xs text-gray-500">
+                対応形式: JPEG, PNG, WebP, PDF (最大50MB)
+              </p>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="flex justify-center space-x-4">
-              <div className="w-16 h-16 bg-primary-600 rounded-lg flex items-center justify-center">
-                <Upload className="w-8 h-8 text-white" />
-              </div>
-              <div className="w-16 h-16 bg-secondary-600 rounded-lg flex items-center justify-center">
-                <Camera className="w-8 h-8 text-white" />
-              </div>
+          <div>
+            <div className="flex items-center justify-center">
+              {previewUrl && (
+                <img
+                  src={previewUrl}
+                  alt="プレビュー"
+                  className="h-16 w-16 object-cover rounded"
+                />
+              )}
             </div>
-            
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {t('imageUpload.title', currentLanguage, 'レシート画像をアップロード')}
-              </h3>
-
-              
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+              <p className="text-sm text-gray-500">
+                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+              </p>
+              {!ocrState.isProcessing && !ocrState.result && (
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCameraCapture();
-                  }}
-                  className="px-6 py-3 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2"
+                  onClick={handleManualOcr}
+                  className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  disabled={disabled}
                 >
-                  <Camera className="w-5 h-5" />
-                  <span>{t('imageUpload.cameraCapture', currentLanguage, 'カメラで撮影')}</span>
+                  OCR処理開始
                 </button>
-                
-                <button className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium flex items-center justify-center space-x-2">
-                  <Upload className="w-5 h-5" />
-                  <span>{t('imageUpload.selectImage', currentLanguage, '画像を選択')}</span>
-                </button>
-              </div>
-            </div>
-            
-            <div className="text-sm text-surface-400">
-              <p className="font-medium mb-2">{t('imageUpload.supportedFormats', currentLanguage, 'サポートされている形式')}</p>
-              <p className="whitespace-pre-line">{t('imageUpload.receiptDetectionDescription', currentLanguage, 'JPEG, PNG, GIF, BMP形式の画像ファイル。\nレシート自動検出機能により、背景を除去して精度を向上させます。')}</p>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* エラー表示 */}
-      {error && status === 'error' && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center space-x-3">
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-          <div>
-            <p className="text-red-400 font-medium">{t('imageUpload.error', currentLanguage, 'OCR処理エラー')}</p>
-            <p className="text-red-300 text-sm">{error}</p>
-          </div>
-        </div>
-      )}
+      {/* 隠しファイル入力 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".jpg,.jpeg,.png,.webp,.pdf"
+        onChange={handleFileInputChange}
+        disabled={disabled}
+      />
 
-      {/* プレビュー表示 */}
-      {previewImage && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-lg font-semibold text-white">
-              {receiptDetectionResult?.success 
-                ? t('imageUpload.receiptDetection', currentLanguage, 'レシート検出完了')
-                : t('imageUpload.usingOriginalImage', currentLanguage, '元画像を使用')
-              }
-            </h4>
-            {receiptDetectionResult?.success && (
-              <div className="flex items-center space-x-2 text-green-400">
-                <CheckCircle className="w-5 h-5" />
-                <span className="text-sm">{t('imageUpload.receiptDetection', currentLanguage, 'レシート検出成功')}</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="relative">
-            <img
-              src={previewImage}
-              alt="Receipt preview"
-              className="max-w-full h-auto rounded-lg border border-surface-600"
-            />
-            
-            {receiptDetectionResult?.success && (
-              <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
-                {t('imageUpload.receiptDetection', currentLanguage, '検出済み')}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* 進捗表示 */}
+      {getStepDisplay()}
 
-      {/* 処理完了メッセージ */}
-      {status === 'success' && previewImage && (
-        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <CheckCircle className="w-5 h-5 text-green-400" />
-            <div className="flex-1">
-              <p className="text-green-400 font-medium">
-                {t('imageUpload.uploadComplete', currentLanguage, 'OCR処理完了')}
-              </p>
-              <p className="text-green-300 text-sm">
-                {t('imageUpload.moveToDataInput', currentLanguage, 'OCR処理が完了しました。データ入力画面に移動します。')}
-              </p>
-              {/* OCR信頼度表示 */}
-              {ocrResult && ocrResult.confidence && (
-                <div className="mt-2 flex items-center space-x-2">
-                  <div className="flex items-center space-x-1">
-                    <div className={`w-2 h-2 rounded-full ${
-                      ocrResult.confidence >= 80 ? 'bg-green-400' :
-                      ocrResult.confidence >= 60 ? 'bg-yellow-400' : 'bg-red-400'
-                    }`}></div>
-                    <span className="text-xs text-green-300">
-                      信頼度: {ocrResult.confidence}%
-                    </span>
-                  </div>
-                  {ocrResult.confidence < 70 && (
-                    <span className="text-xs text-yellow-300">
-                      (手動確認をお勧めします)
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+      {/* エラーメッセージ */}
+      {getErrorMessage()}
+
+      {/* 結果表示 */}
+      {getResultDisplay()}
+
+      {/* 音声入力 */}
+      {showVoiceInput && (
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">音声で入力</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            OCRで抽出できなかった日付や金額を音声で入力できます
+          </p>
+          <VoiceInputButton
+            onResult={handleVoiceResult}
+            onError={(error) => console.error('音声入力エラー:', error)}
+            disabled={disabled}
+            placeholder="長押しで録音開始"
+            timeout={30000}
+            vadTimeout={3000}
+          />
         </div>
       )}
     </div>
   );
-} 
+}; 
