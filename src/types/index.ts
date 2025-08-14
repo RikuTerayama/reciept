@@ -130,6 +130,8 @@ export interface UserInfo {
   budget: number;
   currency?: string;
   office?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AuthState {
