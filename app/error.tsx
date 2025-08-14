@@ -23,7 +23,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
         </h1>
         
         <p className="text-surface-400 mb-6">
-          申し訳ございませんが、アプリケーションでエラーが発生しました。
+          申し訳ございませんが、アプリケーションでエラーが発生しました。<br />
           しばらく時間をおいてから再度お試しください。
         </p>
 
