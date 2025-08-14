@@ -586,7 +586,13 @@ export default function Home() {
                         <Camera className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロード')}</p>
+                      <p className="text-sm text-surface-400">
+                        <span className="block md:hidden">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロード')}</span>
+                        <span className="hidden md:block">
+                          {t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつ')}<br />
+                          {t('navigation.singleUploadDesc', currentLanguage, 'アップロード')}
+                        </span>
+                      </p>
                     </div>
                   </button>
 
@@ -599,7 +605,13 @@ export default function Home() {
                         <FolderOpen className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロード')}</p>
+                      <p className="text-sm text-surface-400">
+                        <span className="block md:hidden">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロード')}</span>
+                        <span className="hidden md:block">
+                          {t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を')}<br />
+                          {t('navigation.batchUploadDesc', currentLanguage, '同時にアップロード')}
+                        </span>
+                      </p>
                     </div>
                   </button>
 
@@ -612,7 +624,13 @@ export default function Home() {
                         <Edit3 className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.dataInputDesc', currentLanguage, '経費情報を手動で入力・編集')}</p>
+                      <p className="text-sm text-surface-400">
+                        <span className="block md:hidden">{t('navigation.dataInputDesc', currentLanguage, '経費情報を手動で入力・編集')}</span>
+                        <span className="hidden md:block">
+                          {t('navigation.dataInputDesc', currentLanguage, '経費情報を')}<br />
+                          {t('navigation.dataInputDesc', currentLanguage, '手動で入力・編集')}
+                        </span>
+                      </p>
                     </div>
                   </button>
 
@@ -638,7 +656,13 @@ export default function Home() {
                         <List className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.expenseListDesc', currentLanguage, '登録済み経費の一覧表示と管理')}</p>
+                      <p className="text-sm text-surface-400">
+                        <span className="block md:hidden">{t('navigation.expenseListDesc', currentLanguage, '登録済み経費の一覧表示と管理')}</span>
+                        <span className="hidden md:block">
+                          {t('navigation.expenseListDesc', currentLanguage, '登録済み経費の')}<br />
+                          {t('navigation.expenseListDesc', currentLanguage, '一覧表示と管理')}
+                        </span>
+                      </p>
                     </div>
                   </button>
 
@@ -651,7 +675,13 @@ export default function Home() {
                         <BarChart3 className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-medium text-white mb-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.budgetOptimizerDesc', currentLanguage, '予算に最も近い経費の組み合わせを自動提案')}</p>
+                      <p className="text-sm text-surface-400">
+                        <span className="block md:hidden">{t('navigation.budgetOptimizerDesc', currentLanguage, '予算に最も近い経費の組み合わせを自動提案')}</span>
+                        <span className="hidden md:block">
+                          {t('navigation.budgetOptimizerDesc', currentLanguage, '予算に最も近い経費の')}<br />
+                          {t('navigation.budgetOptimizerDesc', currentLanguage, '組み合わせを自動提案')}
+                        </span>
+                      </p>
                     </div>
                   </button>
                 </div>
