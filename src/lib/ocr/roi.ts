@@ -44,7 +44,7 @@ const AMOUNT_PATTERNS = [
 ];
 
 /**
- * 1段階目の認識結果からROIを抽出
+ * 1段階目の認識結果からROIを抽出（単語ベース）
  */
 export const extractROIs = (
   words: Tesseract.Word[],
@@ -63,6 +63,47 @@ export const extractROIs = (
   
   // 重複するROIを統合
   return mergeOverlappingROIs(rois);
+};
+
+/**
+ * テキストベースでROIを抽出（単語情報がない場合のフォールバック）
+ */
+export const extractROIsFromText = (
+  text: string,
+  canvasWidth: number,
+  canvasHeight: number
+): RegionOfInterest[] => {
+  const rois: RegionOfInterest[] = [];
+  
+  // テキストから金額と日付のパターンを検出
+  const amountMatches = text.match(AMOUNT_PATTERNS.join('|g'));
+  const dateMatches = text.match(DATE_PATTERNS.join('|g'));
+  
+  if (amountMatches) {
+    // 簡易的なROI作成（中央付近に配置）
+    rois.push({
+      x: canvasWidth * 0.3,
+      y: canvasHeight * 0.4,
+      width: canvasWidth * 0.4,
+      height: canvasHeight * 0.2,
+      type: 'amount',
+      confidence: 0.6
+    });
+  }
+  
+  if (dateMatches) {
+    // 簡易的なROI作成（上部付近に配置）
+    rois.push({
+      x: canvasWidth * 0.2,
+      y: canvasHeight * 0.1,
+      width: canvasWidth * 0.6,
+      height: canvasHeight * 0.15,
+      type: 'date',
+      confidence: 0.6
+    });
+  }
+  
+  return rois;
 };
 
 /**
