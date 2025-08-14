@@ -1,4 +1,4 @@
-import { createWorker, PSM, Worker } from 'tesseract.js';
+import { createWorker, PSM, Worker, RecognizeResult } from 'tesseract.js';
 
 // 進捗コールバックの型定義
 export type ProgressCallback = (progress: number, stage: string) => void;
@@ -25,7 +25,7 @@ export interface WorkerState {
 // シングルトンワーカー
 class TesseractWorkerManager {
   private static instance: TesseractWorkerManager;
-  private worker: Worker | null = null;
+  private worker: any = null;
   private isInitializing = false;
   private progressCallback: ProgressCallback | null = null;
   private state: WorkerState = {
@@ -169,7 +169,7 @@ class TesseractWorkerManager {
   public async recognize(
     canvas: HTMLCanvasElement,
     options: RecognitionOptions = {}
-  ): Promise<Tesseract.RecognizeResult> {
+  ): Promise<RecognizeResult> {
     if (!this.worker || !this.state.isInitialized) {
       await this.initialize();
     }
@@ -241,7 +241,7 @@ class TesseractWorkerManager {
 
 // 認識オプション
 export interface RecognitionOptions {
-  psm?: PSM;
+  psm?: typeof PSM;
   characterWhitelist?: string;
 }
 
