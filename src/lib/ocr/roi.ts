@@ -195,12 +195,12 @@ const expandRegion = (
   
   // 領域を適切に拡張
   const expansionFactor = type === 'amount' ? 2.0 : 1.5;
-  const expandedWidth = bbox.width * expansionFactor;
-  const expandedHeight = bbox.height * expansionFactor;
+  const expandedWidth = (bbox.x1 - bbox.x0) * expansionFactor;
+  const expandedHeight = (bbox.y1 - bbox.y0) * expansionFactor;
   
   // 中心を基準に拡張
-  const centerX = bbox.x0 + bbox.width / 2;
-  const centerY = bbox.y0 + bbox.height / 2;
+  const centerX = bbox.x0 + (bbox.x1 - bbox.x0) / 2;
+  const centerY = bbox.y0 + (bbox.y1 - bbox.y0) / 2;
   
   const x = Math.max(0, centerX - expandedWidth / 2);
   const y = Math.max(0, centerY - expandedHeight / 2);
