@@ -243,27 +243,33 @@ export const downloadMultipleImages = async (images: Array<{ base64: string; fil
 export const downloadImagesAsZip = async (images: Array<{ base64: string; filename: string }>) => {
   try {
     // JSZipが利用可能な場合のみZIPダウンロードを試行
-    if (typeof window !== 'undefined' && 'JSZip' in window) {
-      const JSZip = (window as any).JSZip;
-      const zip = new JSZip();
-      
-      // 各画像をZIPに追加
-      images.forEach(({ base64, filename }) => {
-        const blob = base64ToBlob(base64);
-        zip.file(filename, blob);
-      });
-      
-      // ZIPファイルを生成
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      
-      // ダウンロード
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(zipBlob);
-      link.download = `receipts_${new Date().toISOString().split('T')[0]}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+    if (typeof window !== 'undefined') {
+      try {
+        const JSZip = (await import('jszip')).default;
+        const zip = new JSZip();
+        
+        // 各画像をZIPに追加
+        images.forEach(({ base64, filename }) => {
+          const blob = base64ToBlob(base64);
+          zip.file(filename, blob);
+        });
+        
+        // ZIPファイルを生成
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        
+        // ダウンロード
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(zipBlob);
+        link.download = `receipts_${new Date().toISOString().split('T')[0]}.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      } catch (zipError) {
+        console.error('ZIP生成エラー:', zipError);
+        // フォールバック: 個別ダウンロード
+        await downloadMultipleImages(images);
+      }
     } else {
       // JSZipが利用できない場合は個別ダウンロード
       await downloadMultipleImages(images);
