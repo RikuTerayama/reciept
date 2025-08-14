@@ -257,9 +257,9 @@ export async function downloadMultipleImagesAsZip(
   zipFileName: string = 'budget_optimization_images.zip'
 ): Promise<void> {
   try {
-    // JSZipライブラリが必要（必要に応じてインストール）
-    const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
+          // JSZipライブラリを使用
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
     
     images.forEach((image, index) => {
       let fileName = image.originalName;
