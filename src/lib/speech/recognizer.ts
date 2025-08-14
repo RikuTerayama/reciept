@@ -356,7 +356,7 @@ export class SpeechRecognizer {
   /**
    * サポート状況を取得
    */
-  public isSupported(): boolean {
+  public getSupportedStatus(): boolean {
     return this.isSupported;
   }
 
