@@ -26,7 +26,7 @@ export const setOcrProgressHandler = (cb: (m:any)=>void) => { _progressCb = cb; 
 // --- PDF処理 ---
 const processPdf = async (file: File): Promise<HTMLCanvasElement> => {
   try {
-    // PDF.jsの動的インポート
+    // PDF.jsの動的インポート（型エラーを回避）
     const pdfjsLib = await import('pdfjs-dist');
     
     // PDF.jsのワーカー設定
