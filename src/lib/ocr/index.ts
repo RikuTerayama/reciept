@@ -194,4 +194,7 @@ export const resetOcrWorker = () => workerManager.reset();
 export const terminateOcrWorker = () => workerManager.terminate();
 
 // 既存の関数をエクスポート（互換性のため）
-export { getOcrWorker, setOcrProgressHandler } from './worker';
+export const getOcrWorker = () => workerManager.getWorker();
+export const setOcrProgressHandler = (callback: (progress: number, stage: string) => void) => {
+  workerManager.setProgressCallback(callback);
+};
