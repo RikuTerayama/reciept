@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createSpeechRecognizer, SpeechRecognitionState } from '@/lib/speech/recognizer';
 import { parseSpeechResult, evaluateSpeechQuality, generateImprovementHints } from '@/lib/speech/parseJa';
 import { createServerSttClient } from '@/lib/speech/serverStt';
+import { SpeechRecognitionResult, VoiceInputResult } from '@/types';
 
 // 音声入力の状態
 interface VoiceInputState {
@@ -16,13 +17,7 @@ interface VoiceInputState {
   isSpeaking: boolean;
 }
 
-// 音声入力の結果
-interface VoiceInputResult {
-  date?: string;
-  amount?: number;
-  transcript: string;
-  confidence: number;
-}
+// 音声入力の結果（型定義は@/typesからインポート）
 
 // プロパティ
 interface VoiceInputButtonProps {
@@ -83,16 +78,16 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
         onStart: () => {
           setState(prev => ({ ...prev, isRecording: true, error: null }));
         },
-        onResult: (result: any) => {
-          if (result.isFinal) {
-            handleFinalResult(result.transcript, result.confidence);
-          } else {
-            setState(prev => ({ ...prev, transcript: result.transcript }));
-          }
-        },
-        onInterimResult: (result: any) => {
-          setState(prev => ({ ...prev, transcript: result.transcript }));
-        },
+                 onResult: (result: SpeechRecognitionResult) => {
+           if (result.isFinal) {
+             handleFinalResult(result.transcript, result.confidence);
+           } else {
+             setState(prev => ({ ...prev, transcript: result.transcript }));
+           }
+         },
+         onInterimResult: (result: SpeechRecognitionResult) => {
+           setState(prev => ({ ...prev, transcript: result.transcript }));
+         },
         onEnd: () => {
           setState(prev => ({ ...prev, isRecording: false }));
           stopAudioLevelMonitoring();
