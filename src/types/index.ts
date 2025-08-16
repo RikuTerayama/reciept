@@ -155,3 +155,148 @@ export interface CurrencyConversion {
   conversionRate: number;
   conversionDate: string;
 }
+
+// 共通の型定義
+export interface ErrorWithMessage {
+  message: string;
+  code?: string;
+  details?: unknown;
+}
+
+export interface SpeechRecognitionResult {
+  transcript: string;
+  confidence: number;
+  isFinal: boolean;
+  alternatives?: string[];
+}
+
+export interface SpeechRecognitionError {
+  error: string;
+  message: string;
+  code?: string;
+}
+
+export interface VoiceInputResult {
+  date?: string;
+  amount?: number;
+  transcript: string;
+  confidence: number;
+}
+
+export interface OCRProgressCallback {
+  (progress: number, stage: string): void;
+}
+
+export interface FirebaseAuthUser {
+  uid: string;
+  email: string | null;
+  displayName?: string | null;
+  photoURL?: string | null;
+}
+
+export interface FirebaseFirestore {
+  collection: (path: string) => any;
+  doc: (path: string) => any;
+  addDoc: (collectionRef: any, data: any) => Promise<any>;
+  updateDoc: (docRef: any, data: any) => Promise<void>;
+  deleteDoc: (docRef: any) => Promise<void>;
+  getDocs: (query: any) => Promise<any>;
+  getDoc: (docRef: any) => Promise<any>;
+  query: (collectionRef: any, ...constraints: any[]) => any;
+  where: (field: string, op: string, value: any) => any;
+  orderBy: (field: string, direction?: 'asc' | 'desc') => any;
+  limit: (limit: number) => any;
+}
+
+export interface FirebaseAuth {
+  currentUser: FirebaseAuthUser | null;
+  onAuthStateChanged: (callback: (user: FirebaseAuthUser | null) => void) => () => void;
+  signInWithEmailAndPassword: (email: string, password: string) => Promise<any>;
+  createUserWithEmailAndPassword: (email: string, password: string) => Promise<any>;
+  signOut: () => Promise<void>;
+}
+
+export interface TesseractWorker {
+  loadLanguage: (lang: string) => Promise<void>;
+  initialize: (lang: string) => Promise<void>;
+  setParameters: (params: Record<string, any>) => Promise<void>;
+  recognize: (image: ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | CanvasRenderingContext2D | File | Blob | ImageBitmap | ImageData, options?: Record<string, any>) => Promise<any>;
+  terminate: () => Promise<void>;
+}
+
+export interface TesseractProgress {
+  status: string;
+  progress: number;
+}
+
+export interface TesseractRecognizeResult {
+  data: {
+    text: string;
+    confidence: number;
+    words?: Array<{
+      text: string;
+      confidence: number;
+      bbox: {
+        x0: number;
+        y0: number;
+        x1: number;
+        y1: number;
+      };
+    }>;
+  };
+  jobId: string;
+}
+
+export interface BatchUploadResult {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface BatchUploadValue {
+  value: string | number;
+  isValid: boolean;
+  error?: string;
+}
+
+export interface FormInputEvent {
+  target: {
+    name: string;
+    value: string | number;
+  };
+}
+
+export interface VoiceInputCompleteEvent {
+  date?: string;
+  amount?: number;
+  transcript: string;
+}
+
+export interface OCRCompleteEvent {
+  date?: string;
+  amount?: number;
+  text: string;
+  confidence?: number;
+  imageData?: string;
+}
+
+export interface ExpenseFormError {
+  field: string;
+  message: string;
+}
+
+export interface MobileStatisticsProps {
+  expenses: ExpenseData[];
+}
+
+export interface BudgetOptimizationResult {
+  selectedExpenses: ExpenseData[];
+  totalAmount: number;
+  difference: number;
+  optimizationScore: number;
+}
+
+export interface DebounceFunction<T extends (...args: any[]) => any> {
+  (...args: Parameters<T>): void;
+  cancel: () => void;
+}
