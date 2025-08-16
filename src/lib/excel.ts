@@ -1,62 +1,73 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { ExpenseData } from '@/types';
 import { downloadImagesAsZip, downloadMultipleImages } from './image-utils';
 
-export const exportExpensesToExcel = (expenses: ExpenseData[], filename: string) => {
-  const workbook = XLSX.utils.book_new();
-  const data = expenses.map((expense, index) => ({
-    'Receipt #': index + 1,
-    'Receipt Date': expense.date,
-    'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
-    'Currency': expense.currency,
-    'Category': expense.category,
-    'Description': expense.description || '',
-    'Recharged to client?': expense.rechargedToClient || 'N',
-    'GST/VAT applicable': expense.gstVatApplicable || 'N',
-    'Tax Rate (%)': `${expense.taxRate}%`,
-    'Company Name': expense.companyName || '',
-    '# Participant from client': expense.participantFromClient || '',
-    '# Participant from company': expense.participantFromCompany || '',
-    'Tax Credit Qualification': expense.isQualified
-  }));
-  const worksheet = XLSX.utils.json_to_sheet(data);
+export const exportExpensesToExcel = async (expenses: ExpenseData[], filename: string) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('経費データ');
   
-  // 列幅の設定
-  const columnWidths = [
-    { wch: 10 }, // Receipt #
-    { wch: 12 }, // Receipt Date
-    { wch: 25 }, // Total Amount (Inclusive GST/VAT)
-    { wch: 8 },  // Currency
-    { wch: 40 }, // Category
-    { wch: 50 }, // Description
-    { wch: 20 }, // Recharged to client?
-    { wch: 15 }, // GST/VAT applicable
-    { wch: 12 }, // Tax Rate (%)
-    { wch: 20 }, // Company Name
-    { wch: 25 }, // # Participant from client
-    { wch: 25 }, // # Participant from company
-    { wch: 30 }, // Tax Credit Qualification
+  // ヘッダーの設定
+  worksheet.columns = [
+    { header: 'Receipt #', key: 'receiptNumber', width: 10 },
+    { header: 'Receipt Date', key: 'date', width: 12 },
+    { header: 'Total Amount (Inclusive GST/VAT)', key: 'totalAmount', width: 25 },
+    { header: 'Currency', key: 'currency', width: 8 },
+    { header: 'Category', key: 'category', width: 40 },
+    { header: 'Description', key: 'description', width: 50 },
+    { header: 'Recharged to client?', key: 'rechargedToClient', width: 20 },
+    { header: 'GST/VAT applicable', key: 'gstVatApplicable', width: 15 },
+    { header: 'Tax Rate (%)', key: 'taxRate', width: 12 },
+    { header: 'Company Name', key: 'companyName', width: 20 },
+    { header: '# Participant from client', key: 'participantFromClient', width: 25 },
+    { header: '# Participant from company', key: 'participantFromCompany', width: 25 },
+    { header: 'Tax Credit Qualification', key: 'isQualified', width: 30 }
   ];
-  worksheet['!cols'] = columnWidths;
-  
-  // フォント設定（XLSXユーティリティが利用できない場合のフォールバック）
-  try {
-    if ((XLSX.utils as any).decode_range && (XLSX.utils as any).encode_cell) {
-      const range = (XLSX.utils as any).decode_range(worksheet['!ref'] || 'A1');
-      for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-          const cell_address = (XLSX.utils as any).encode_cell({ r: R, c: C });
-          if (!worksheet[cell_address]) continue;
-          worksheet[cell_address].s = { font: { name: 'Arial' } };
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('XLSXフォント設定をスキップしました:', error);
+
+  // スタイル設定
+  const headerRow = worksheet.getRow(1);
+  headerRow.font = { bold: true, name: 'Arial' };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' }
+  };
+
+  // データの追加
+  expenses.forEach((expense, index) => {
+    worksheet.addRow({
+      receiptNumber: index + 1,
+      date: expense.date,
+      totalAmount: expense.totalAmount,
+      currency: expense.currency,
+      category: expense.category,
+      description: expense.description || '',
+      rechargedToClient: expense.rechargedToClient || 'N',
+      gstVatApplicable: expense.gstVatApplicable || 'N',
+      taxRate: `${expense.taxRate}%`,
+      companyName: expense.companyName || '',
+      participantFromClient: expense.participantFromClient || '',
+      participantFromCompany: expense.participantFromCompany || '',
+      isQualified: expense.isQualified
+    });
+  });
+
+  // データ行のスタイル設定
+  for (let i = 2; i <= worksheet.rowCount; i++) {
+    const row = worksheet.getRow(i);
+    row.font = { name: 'Arial' };
   }
-  
-  XLSX.utils.book_append_sheet(workbook, worksheet, '経費データ');
-  XLSX.writeFile(workbook, filename);
+
+  // ファイルの保存
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 // 選択された経費の画像を一括ダウンロード
