@@ -44,11 +44,7 @@ const nextConfig = {
       util: false,
     };
 
-    // undiciのESM構文エラーを完全に回避
-    config.module.rules.push({
-      test: /node_modules\/undici/,
-      use: 'null-loader',
-    });
+    // undiciのESM構文エラーを回避（null-loaderの代わりにexternalsを使用）
 
     // Firebase AuthのESM問題を解決
     config.resolve.alias = {
