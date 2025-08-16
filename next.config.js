@@ -2,18 +2,18 @@
 const nextConfig = {
   // Vercelデプロイ用の設定
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // ビルドエラーを検出
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false, // ESLintエラーを検出
   },
   // 静的ファイルの最適化
   compress: true,
   poweredByHeader: false,
 
-  // SSRを無効化（クライアントサイドのみ）
-  output: 'export',
-  trailingSlash: true,
+  // Vercel用の設定（SSRを有効化）
+  // output: 'export', // 静的エクスポートは無効化
+  // trailingSlash: true, // トレーリングスラッシュは無効化
   images: {
     unoptimized: true,
   },
