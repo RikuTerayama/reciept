@@ -6,8 +6,8 @@ import { getCurrentLanguage, t } from '@/lib/i18n';
 import { convertToBaseCurrency, getBaseCurrencyForOffice, formatDualCurrency } from '@/lib/currencyConverter';
 import { useAuthStore } from '@/lib/auth-store';
 import { useExpenseStore } from '@/lib/store';
-import { createSpeechRecognizer } from '@/lib/voice';
-import { parseJaSpeechToDateAmount } from '@/lib/voiceParse';
+import { createSpeechRecognizer } from '@/lib/speech/recognizer';
+import { parseSpeechResult } from '@/lib/speech/parseJa';
 import { Mic, MicOff, X } from 'lucide-react';
 
 interface ExpenseFormProps {
@@ -170,46 +170,25 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
 
   // 音声入力処理
   const handleVoiceInput = async () => {
-    if (!speechRecognizer?.supported) {
+    if (!speechRecognizer?.getSupportedStatus()) {
       alert(t('errors.speechUnsupported', currentLanguage, 'このブラウザは音声入力に対応していません'));
       return;
     }
 
     setIsListening(true);
     try {
-      const speechText = await speechRecognizer.start();
-      const result = parseJaSpeechToDateAmount(speechText);
-      
-      if (result.date || result.amount) {
-        const updates: Partial<ExpenseData> = {};
-        if (result.date) updates.date = result.date;
-        if (result.amount) {
-          updates.totalAmount = result.amount;
-          setDisplayValues(prev => ({ ...prev, totalAmount: result.amount.toString() }));
-        }
-        
-        setFormData(prev => ({ ...prev, ...updates }));
-        
-        // 結果をトースト表示
-        const summary = [];
-        if (result.date) summary.push(`日付: ${result.date}`);
-        if (result.amount) summary.push(`金額: ¥${result.amount.toLocaleString('ja-JP')}`);
-        
-        alert(`${t('voice.result', currentLanguage, '抽出結果')}: ${summary.join(' / ')}`);
-      } else {
-        alert('音声から日付・金額を抽出できませんでした。もう一度お試しください。');
-      }
+      await speechRecognizer.start();
+      // 音声認識の結果はイベントハンドラーで処理される
     } catch (error) {
       console.error('Voice input error:', error);
       alert(t('errors.speechError', currentLanguage, '音声認識でエラーが発生しました'));
-    } finally {
       setIsListening(false);
     }
   };
 
   // 音声入力を停止
   const stopVoiceInput = () => {
-    if (speechRecognizer?.supported) {
+    if (speechRecognizer) {
       speechRecognizer.stop();
     }
     setIsListening(false);
@@ -497,9 +476,9 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
             <button
               type="button"
               onClick={handleVoiceInput}
-              disabled={!speechRecognizer?.supported}
+              disabled={!speechRecognizer?.getSupportedStatus()}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                speechRecognizer?.supported
+                speechRecognizer?.getSupportedStatus()
                   ? 'bg-blue-600 hover:bg-blue-700 text-white'
                   : 'bg-surface-600 text-surface-400 cursor-not-allowed'
               }`}
@@ -841,7 +820,7 @@ export default function ExpenseForm({ initialData, onSave, onCancel }: ExpenseFo
       </form>
 
       {/* モバイル用フローティングマイクボタン */}
-      {speechRecognizer?.supported && (
+      {speechRecognizer?.getSupportedStatus() && (
         <div className="fixed bottom-6 right-6 md:hidden">
           {isListening ? (
             <button
