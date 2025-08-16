@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { createSpeechRecognizer, SpeechRecognitionState } from '../lib/speech/recognizer';
-import { parseSpeechResult, evaluateSpeechQuality, generateImprovementHints } from '../lib/speech/parseJa';
-import { createServerSttClient } from '../lib/speech/serverStt';
+import { createSpeechRecognizer, SpeechRecognitionState } from '@/lib/speech/recognizer';
+import { parseSpeechResult, evaluateSpeechQuality, generateImprovementHints } from '@/lib/speech/parseJa';
+import { createServerSttClient } from '@/lib/speech/serverStt';
 
 // 音声入力の状態
 interface VoiceInputState {
