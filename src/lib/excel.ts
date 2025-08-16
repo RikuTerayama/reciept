@@ -155,105 +155,131 @@ export const downloadMonthlyReceiptImages = async (expenses: ExpenseData[], year
   }
 };
 
-export function exportBudgetOptimizationToExcel(
+export async function exportBudgetOptimizationToExcel(
   originalExpenses: ExpenseData[],
   optimizedExpenses: ExpenseData[],
   targetBudget: number,
   filename: string = 'budget_optimization.xlsx'
 ) {
   try {
-    const workbook = XLSX.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
 
     // 1. 最適化結果シート
-    const optimizedData = optimizedExpenses.map((expense, index) => ({
-      'Receipt #': index + 1,
-      'Receipt Date': expense.date,
-      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
-      'Currency': expense.currency,
-      'Category': expense.category,
-      'Description': expense.description || expense.ocrText || '',
-      'Recharged to client?': expense.rechargedToClient || 'N',
-      'GST/VAT applicable': expense.gstVatApplicable || 'N',
-      'Tax Rate (%)': `${expense.taxRate}%`,
-      'Company Name': expense.companyName || '',
-      '# Participant from client': expense.participantFromClient || '',
-      '# Participant from company': expense.participantFromCompany || '',
-      'Tax Credit Qualification': expense.isQualified
-    }));
-
-    const optimizedWorksheet = XLSX.utils.json_to_sheet(optimizedData);
-    setWorksheetFont(optimizedWorksheet, 'Arial');
-    XLSX.utils.book_append_sheet(workbook, optimizedWorksheet, '最適化結果');
-
-    // 2. サマリーシート
-    const summaryData = [
-      {
-        '項目': '目標予算',
-        '値': targetBudget
-      },
-      {
-        '項目': '最適化後の合計',
-        '値': optimizedExpenses.reduce((sum, exp) => sum + exp.totalAmount, 0)
-      },
-      {
-        '項目': '差額',
-        '値': targetBudget - optimizedExpenses.reduce((sum, exp) => sum + exp.totalAmount, 0)
-      },
-      {
-        '項目': '選択された経費数',
-        '値': optimizedExpenses.length
-      }
+    const optimizedWorksheet = workbook.addWorksheet('最適化結果');
+    optimizedWorksheet.columns = [
+      { header: 'Receipt #', key: 'receiptNumber', width: 10 },
+      { header: 'Receipt Date', key: 'date', width: 12 },
+      { header: 'Total Amount (Inclusive GST/VAT)', key: 'totalAmount', width: 25 },
+      { header: 'Currency', key: 'currency', width: 8 },
+      { header: 'Category', key: 'category', width: 40 },
+      { header: 'Description', key: 'description', width: 50 },
+      { header: 'Recharged to client?', key: 'rechargedToClient', width: 20 },
+      { header: 'GST/VAT applicable', key: 'gstVatApplicable', width: 15 },
+      { header: 'Tax Rate (%)', key: 'taxRate', width: 12 },
+      { header: 'Company Name', key: 'companyName', width: 20 },
+      { header: '# Participant from client', key: 'participantFromClient', width: 25 },
+      { header: '# Participant from company', key: 'participantFromCompany', width: 25 },
+      { header: 'Tax Credit Qualification', key: 'isQualified', width: 30 }
     ];
 
-    const summaryWorksheet = XLSX.utils.json_to_sheet(summaryData);
-    setWorksheetFont(summaryWorksheet, 'Arial');
-    XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'サマリー');
+    optimizedExpenses.forEach((expense, index) => {
+      optimizedWorksheet.addRow({
+        receiptNumber: index + 1,
+        date: expense.date,
+        totalAmount: expense.totalAmount,
+        currency: expense.currency,
+        category: expense.category,
+        description: expense.description || expense.ocrText || '',
+        rechargedToClient: expense.rechargedToClient || 'N',
+        gstVatApplicable: expense.gstVatApplicable || 'N',
+        taxRate: `${expense.taxRate}%`,
+        companyName: expense.companyName || '',
+        participantFromClient: expense.participantFromClient || '',
+        participantFromCompany: expense.participantFromCompany || '',
+        isQualified: expense.isQualified
+      });
+    });
+
+    // 2. サマリーシート
+    const summaryWorksheet = workbook.addWorksheet('サマリー');
+    summaryWorksheet.columns = [
+      { header: '項目', key: 'item', width: 20 },
+      { header: '値', key: 'value', width: 15 }
+    ];
+
+    const summaryData = [
+      { item: '目標予算', value: targetBudget },
+      { item: '最適化後の合計', value: optimizedExpenses.reduce((sum, exp) => sum + exp.totalAmount, 0) },
+      { item: '差額', value: targetBudget - optimizedExpenses.reduce((sum, exp) => sum + exp.totalAmount, 0) },
+      { item: '選択された経費数', value: optimizedExpenses.length }
+    ];
+
+    summaryData.forEach(row => {
+      summaryWorksheet.addRow(row);
+    });
 
     // 3. 全経費データシート
-    const originalData = originalExpenses.map((expense, index) => ({
-      'Receipt #': index + 1,
-      'Receipt Date': expense.date,
-      'Total Amount (Inclusive GST/VAT)': expense.totalAmount,
-      'Currency': expense.currency,
-      'Category': expense.category,
-      'Description': expense.description || expense.ocrText || '',
-      'Recharged to client?': expense.rechargedToClient || 'N',
-      'GST/VAT applicable': expense.gstVatApplicable || 'N',
-      'Tax Rate (%)': `${expense.taxRate}%`,
-      'Company Name': expense.companyName || '',
-      '# Participant from client': expense.participantFromClient || '',
-      '# Participant from company': expense.participantFromCompany || '',
-      'Tax Credit Qualification': expense.isQualified
-    }));
+    const originalWorksheet = workbook.addWorksheet('全経費データ');
+    originalWorksheet.columns = [
+      { header: 'Receipt #', key: 'receiptNumber', width: 10 },
+      { header: 'Receipt Date', key: 'date', width: 12 },
+      { header: 'Total Amount (Inclusive GST/VAT)', key: 'totalAmount', width: 25 },
+      { header: 'Currency', key: 'currency', width: 8 },
+      { header: 'Category', key: 'category', width: 40 },
+      { header: 'Description', key: 'description', width: 50 },
+      { header: 'Recharged to client?', key: 'rechargedToClient', width: 20 },
+      { header: 'GST/VAT applicable', key: 'gstVatApplicable', width: 15 },
+      { header: 'Tax Rate (%)', key: 'taxRate', width: 12 },
+      { header: 'Company Name', key: 'companyName', width: 20 },
+      { header: '# Participant from client', key: 'participantFromClient', width: 25 },
+      { header: '# Participant from company', key: 'participantFromCompany', width: 25 },
+      { header: 'Tax Credit Qualification', key: 'isQualified', width: 30 }
+    ];
 
-    const originalWorksheet = XLSX.utils.json_to_sheet(originalData);
-    setWorksheetFont(originalWorksheet, 'Arial');
-    XLSX.utils.book_append_sheet(workbook, originalWorksheet, '全経費データ');
+    originalExpenses.forEach((expense, index) => {
+      originalWorksheet.addRow({
+        receiptNumber: index + 1,
+        date: expense.date,
+        totalAmount: expense.totalAmount,
+        currency: expense.currency,
+        category: expense.category,
+        description: expense.description || expense.ocrText || '',
+        rechargedToClient: expense.rechargedToClient || 'N',
+        gstVatApplicable: expense.gstVatApplicable || 'N',
+        taxRate: `${expense.taxRate}%`,
+        companyName: expense.companyName || '',
+        participantFromClient: expense.participantFromClient || '',
+        participantFromCompany: expense.participantFromCompany || '',
+        isQualified: expense.isQualified
+      });
+    });
 
-    // ファイルをダウンロード
-    XLSX.writeFile(workbook, filename);
+    // スタイル設定
+    [optimizedWorksheet, summaryWorksheet, originalWorksheet].forEach(worksheet => {
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, name: 'Arial' };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+    });
+
+    // ファイルの保存
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
     console.log(`Budget optimization Excel file exported: ${filename}`);
   } catch (error) {
     console.error('Budget optimization Excel export error:', error);
     throw new Error('予算最適化のExcelエクスポートに失敗しました');
-  }
-}
-
-// ワークシートのフォントを設定するヘルパー関数
-function setWorksheetFont(worksheet: XLSX.WorkSheet, fontName: string) {
-  try {
-    if ((XLSX.utils as any).decode_range && (XLSX.utils as any).encode_cell) {
-      const range = (XLSX.utils as any).decode_range(worksheet['!ref'] || 'A1');
-      for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-          const cell_address = (XLSX.utils as any).encode_cell({ r: R, c: C });
-          if (!worksheet[cell_address]) continue;
-          worksheet[cell_address].s = { font: { name: fontName } };
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('XLSXフォント設定をスキップしました:', error);
   }
 } 
