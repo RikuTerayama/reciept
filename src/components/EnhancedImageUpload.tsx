@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { recognizeReceipt, OcrResult } from '../lib/ocr';
+import { recognizeReceipt, OcrResult } from '@/lib/ocr';
 import { VoiceInputButton } from './VoiceInputButton';
 
 // OCRの状態
