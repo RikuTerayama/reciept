@@ -44,6 +44,12 @@ const nextConfig = {
       util: false,
     };
 
+    // 依存関係の解決を確実にする
+    config.resolve.modules = [
+      ...config.resolve.modules || [],
+      'node_modules'
+    ];
+
     // undiciのESM構文エラーを回避（null-loaderの代わりにexternalsを使用）
 
     // Firebase AuthのESM問題を解決
