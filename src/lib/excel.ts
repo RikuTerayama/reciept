@@ -1,73 +1,78 @@
-import ExcelJS from 'exceljs';
 import { ExpenseData } from '@/types';
 import { downloadImagesAsZip, downloadMultipleImages } from './image-utils';
 
 export const exportExpensesToExcel = async (expenses: ExpenseData[], filename: string) => {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('経費データ');
-  
-  // ヘッダーの設定
-  worksheet.columns = [
-    { header: 'Receipt #', key: 'receiptNumber', width: 10 },
-    { header: 'Receipt Date', key: 'date', width: 12 },
-    { header: 'Total Amount (Inclusive GST/VAT)', key: 'totalAmount', width: 25 },
-    { header: 'Currency', key: 'currency', width: 8 },
-    { header: 'Category', key: 'category', width: 40 },
-    { header: 'Description', key: 'description', width: 50 },
-    { header: 'Recharged to client?', key: 'rechargedToClient', width: 20 },
-    { header: 'GST/VAT applicable', key: 'gstVatApplicable', width: 15 },
-    { header: 'Tax Rate (%)', key: 'taxRate', width: 12 },
-    { header: 'Company Name', key: 'companyName', width: 20 },
-    { header: '# Participant from client', key: 'participantFromClient', width: 25 },
-    { header: '# Participant from company', key: 'participantFromCompany', width: 25 },
-    { header: 'Tax Credit Qualification', key: 'isQualified', width: 30 }
-  ];
+  try {
+    const ExcelJS = (await import('exceljs')).default;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('経費データ');
+    
+    // ヘッダーの設定
+    worksheet.columns = [
+      { header: 'Receipt #', key: 'receiptNumber', width: 10 },
+      { header: 'Receipt Date', key: 'date', width: 12 },
+      { header: 'Total Amount (Inclusive GST/VAT)', key: 'totalAmount', width: 25 },
+      { header: 'Currency', key: 'currency', width: 8 },
+      { header: 'Category', key: 'category', width: 40 },
+      { header: 'Description', key: 'description', width: 50 },
+      { header: 'Recharged to client?', key: 'rechargedToClient', width: 20 },
+      { header: 'GST/VAT applicable', key: 'gstVatApplicable', width: 15 },
+      { header: 'Tax Rate (%)', key: 'taxRate', width: 12 },
+      { header: 'Company Name', key: 'companyName', width: 20 },
+      { header: '# Participant from client', key: 'participantFromClient', width: 25 },
+      { header: '# Participant from company', key: 'participantFromCompany', width: 25 },
+      { header: 'Tax Credit Qualification', key: 'isQualified', width: 30 }
+    ];
 
-  // スタイル設定
-  const headerRow = worksheet.getRow(1);
-  headerRow.font = { bold: true, name: 'Arial' };
-  headerRow.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FFE0E0E0' }
-  };
+    // スタイル設定
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, name: 'Arial' };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
 
-  // データの追加
-  expenses.forEach((expense, index) => {
-    worksheet.addRow({
-      receiptNumber: index + 1,
-      date: expense.date,
-      totalAmount: expense.totalAmount,
-      currency: expense.currency,
-      category: expense.category,
-      description: expense.description || '',
-      rechargedToClient: expense.rechargedToClient || 'N',
-      gstVatApplicable: expense.gstVatApplicable || 'N',
-      taxRate: `${expense.taxRate}%`,
-      companyName: expense.companyName || '',
-      participantFromClient: expense.participantFromClient || '',
-      participantFromCompany: expense.participantFromCompany || '',
-      isQualified: expense.isQualified
+    // データの追加
+    expenses.forEach((expense, index) => {
+      worksheet.addRow({
+        receiptNumber: index + 1,
+        date: expense.date,
+        totalAmount: expense.totalAmount,
+        currency: expense.currency,
+        category: expense.category,
+        description: expense.description || '',
+        rechargedToClient: expense.rechargedToClient || 'N',
+        gstVatApplicable: expense.gstVatApplicable || 'N',
+        taxRate: `${expense.taxRate}%`,
+        companyName: expense.companyName || '',
+        participantFromClient: expense.participantFromClient || '',
+        participantFromCompany: expense.participantFromCompany || '',
+        isQualified: expense.isQualified
+      });
     });
-  });
 
-  // データ行のスタイル設定
-  for (let i = 2; i <= worksheet.rowCount; i++) {
-    const row = worksheet.getRow(i);
-    row.font = { name: 'Arial' };
+    // データ行のスタイル設定
+    for (let i = 2; i <= worksheet.rowCount; i++) {
+      const row = worksheet.getRow(i);
+      row.font = { name: 'Arial' };
+    }
+
+    // ファイルの保存
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Excel export error:', error);
+    throw new Error('Excelエクスポートに失敗しました');
   }
-
-  // ファイルの保存
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 // 選択された経費の画像を一括ダウンロード
@@ -162,6 +167,7 @@ export async function exportBudgetOptimizationToExcel(
   filename: string = 'budget_optimization.xlsx'
 ) {
   try {
+    const ExcelJS = (await import('exceljs')).default;
     const workbook = new ExcelJS.Workbook();
 
     // 1. 最適化結果シート
