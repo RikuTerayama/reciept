@@ -3,7 +3,14 @@ import { downloadImagesAsZip, downloadMultipleImages } from './image-utils';
 
 export const exportExpensesToExcel = async (expenses: ExpenseData[], filename: string) => {
   try {
-    const ExcelJS = (await import('exceljs')).default;
+    // Vercel環境での依存関係解決を確実にする
+    let ExcelJS: any;
+    try {
+      ExcelJS = (await import('exceljs')).default;
+    } catch (importError) {
+      console.error('ExcelJS import error:', importError);
+      throw new Error('ExcelJSライブラリの読み込みに失敗しました');
+    }
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('経費データ');
     
@@ -167,7 +174,14 @@ export async function exportBudgetOptimizationToExcel(
   filename: string = 'budget_optimization.xlsx'
 ) {
   try {
-    const ExcelJS = (await import('exceljs')).default;
+    // Vercel環境での依存関係解決を確実にする
+    let ExcelJS: any;
+    try {
+      ExcelJS = (await import('exceljs')).default;
+    } catch (importError) {
+      console.error('ExcelJS import error:', importError);
+      throw new Error('ExcelJSライブラリの読み込みに失敗しました');
+    }
     const workbook = new ExcelJS.Workbook();
 
     // 1. 最適化結果シート
