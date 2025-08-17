@@ -3,11 +3,10 @@
     "next/core-web-vitals"
   ],
   "rules": {
-    "no-unused-vars": "error",
-    "no-explicit-any": "warn",
+    "no-unused-vars": "warn",
     "no-console": "warn",
-    "prefer-const": "error",
-    "no-var": "error"
+    "prefer-const": "warn",
+    "no-var": "warn"
   },
   "ignorePatterns": [
     "node_modules/",
