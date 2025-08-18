@@ -787,11 +787,35 @@ export default function Home() {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <AuthForm 
-                mode={authMode}
-                onModeChange={setAuthMode}
-                onSuccess={() => setShowAuthModal(false)}
-              />
+              <div className="space-y-4">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setAuthMode('login')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      authMode === 'login'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    ログイン
+                  </button>
+                  <button
+                    onClick={() => setAuthMode('register')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      authMode === 'register'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    新規登録
+                  </button>
+                </div>
+                <AuthForm 
+                  mode={authMode}
+                  onSuccess={() => setShowAuthModal(false)}
+                  onCancel={() => setShowAuthModal(false)}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -808,7 +832,14 @@ export default function Home() {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <VoiceInput onResult={handleVoiceInput} />
+              <VoiceInput 
+                onComplete={(result) => {
+                  if (result.amount) {
+                    handleVoiceInput(result.transcript);
+                  }
+                }}
+                onCancel={() => setShowVoiceInputModal(false)}
+              />
             </div>
           </div>
         )}
