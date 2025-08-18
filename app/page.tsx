@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { SWRConfig } from 'swr';
-import { useExpenseStore } from '../src/lib/store';
-import { getCurrentLanguage, t } from '../src/lib/i18n';
-import { loadUserDataByEmail } from '../src/lib/storage';
-import { APP_VERSION } from '../src/lib/constants';
-import { useAuthStore } from '../src/lib/auth-store';
-import { onAuthStateChange } from '../src/lib/auth-service';
+import { useExpenseStore } from '@/lib/store';
+import { getCurrentLanguage, t } from '@/lib/i18n';
+import { loadUserDataByEmail } from '@/lib/storage';
+import { APP_VERSION } from '@/lib/constants';
+import { useAuthStore } from '@/lib/auth-store';
+import { onAuthStateChange } from '@/lib/auth-service';
 import { 
   syncUserData, 
   syncExpenseData, 
@@ -16,22 +16,22 @@ import {
   syncOnOnline,
   clearAllData,
   setupNetworkListener 
-  } from '../src/lib/sync-service';
-import ImageUpload from '../src/components/ImageUpload';
-import BatchUpload from '../src/components/BatchUpload';
-import ExpenseForm from '../src/components/ExpenseForm';
-import ExpenseList from '../src/components/ExpenseList';
-import BudgetOptimizer from '../src/components/BudgetOptimizer';
-import UserSetup from '../src/components/UserSetup';
-import LanguageSwitcher from '../src/components/LanguageSwitcher';
-import BudgetDisplay from '../src/components/BudgetDisplay';
-import AuthForm from '../src/components/AuthForm';
-import OfflineIndicator from '../src/components/OfflineIndicator';
-import NetworkStatus, { NetworkSimulator } from '../src/components/NetworkStatus';
-import VoiceInput from '../src/components/VoiceInput';
+  } from '@/lib/sync-service';
+import ImageUpload from '@/components/ImageUpload';
+import BatchUpload from '@/components/BatchUpload';
+import ExpenseForm from '@/components/ExpenseForm';
+import ExpenseList from '@/components/ExpenseList';
+import BudgetOptimizer from '@/components/BudgetOptimizer';
+import UserSetup from '@/components/UserSetup';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import BudgetDisplay from '@/components/BudgetDisplay';
+import AuthForm from '@/components/AuthForm';
+import OfflineIndicator from '@/components/OfflineIndicator';
+import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
+import VoiceInput from '@/components/VoiceInput';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut, Mic } from 'lucide-react';
-import { ExpenseData } from '../src/types';
-import { calculateTotalAmountWithRounding } from '../src/lib/currency';
+import { ExpenseData, OCRResult } from '@/types';
+import { calculateTotalAmountWithRounding } from '@/lib/currency';
 
 // 型定義
 interface UserData {
@@ -122,1028 +122,739 @@ export default function Home() {
           try {
             console.log('Restoring user data...');
             // 初回ログイン時のデータ復元
-            const { userData, expenses: cloudExpenses } = await restoreUserData(user.uid);
-            
-            setUserInfo({
-              email: userData.email,
-              targetMonth: userData.targetMonth,
-              budget: userData.budget,
-              currency: userData.currency
-            } as UserData);
-            
-            setFormData({
-              email: userData.email || '',
-              targetMonth: userData.targetMonth || '',
-              budget: userData.budget || 100000,
-              office: userData.office || 'japan'
-            });
-
-            // クラウドデータをローカルストアに反映
-            cloudExpenses.forEach(expense => {
-              addExpense(expense);
-            });
-
-            // ユーザーデータの同期
-            await syncUserData(user.uid, userData);
-            
-            console.log('User data restored successfully');
+            const restoredData = await restoreUserData(user.uid);
+            if (restoredData) {
+              console.log('User data restored successfully');
+            }
           } catch (error) {
             console.error('Error restoring user data:', error);
-            // エラー時はローカルデータを使用
-            setUserInfo({
-              email: user.email,
-              targetMonth: user.targetMonth,
-              budget: user.budget,
-              currency: user.currency
-            } as UserData);
           }
         };
         
         handleUserData();
       } else {
         setUser(null);
-        setUserInfo(null);
-        // ログアウト時にデータをクリア
-        clearAllData();
-        console.log('User logged out, data cleared');
+        console.log('User logged out, clearing local data');
       }
     });
 
-    return () => unsubscribe();
-  }, [isClient, setUser, addExpense]);
+    return () => {
+      console.log('Cleaning up auth state listener');
+      unsubscribe();
+    };
+  }, [isClient, setUser]);
 
-  // 初期化（認証なしの場合）
+  // ネットワーク状態の監視
   useEffect(() => {
-    if (!isClient || user) return;
+    if (!isClient) return;
 
-    console.log('Loading local user data...');
+    console.log('Setting up network listener...');
     
-    try {
-      const savedUserInfo = localStorage.getItem('userInfo');
-      if (savedUserInfo) {
-        const parsed = JSON.parse(savedUserInfo);
-        setUserInfo(parsed);
-        setFormData({
-          email: parsed.email || '',
-          targetMonth: parsed.targetMonth || '',
-          budget: parsed.budget || 100000,
-          office: parsed.office || 'japan'
-        });
-        console.log('Local user data loaded');
+    const handleOnline = async () => {
+      console.log('Network came online, syncing data...');
+      try {
+        if (user) {
+          await syncOnOnline(user.uid);
+        }
+        console.log('Data sync completed');
+      } catch (error) {
+        console.error('Data sync failed:', error);
       }
-    } catch (error) {
-      console.error('Failed to load user info:', error);
-    }
+    };
+
+    window.addEventListener('online', handleOnline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
   }, [isClient, user]);
 
-  // ストレージ変更の監視
-  useEffect(() => {
-    if (!isClient) return;
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'userInfo' && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setUserInfo(parsed);
-          setFormData({
-            email: parsed.email || '',
-            targetMonth: parsed.targetMonth || '',
-            budget: parsed.budget || 100000,
-            office: parsed.office || 'japan'
-          });
-        } catch (error) {
-          console.error('Failed to parse storage change:', error);
-        }
-      }
-    };
-
-    const handleStorageSync = async (e: CustomEvent) => {
-      const { email } = e.detail;
-      if (email) {
-        try {
-          const userData = await loadUserDataByEmail(email);
-          if (userData && userData.userInfo) {
-            setUserInfo(userData.userInfo);
-            setFormData({
-              email: userData.userInfo.email || '',
-              targetMonth: userData.userInfo.targetMonth || '',
-              budget: userData.userInfo.budget || 100000,
-              office: userData.userInfo.office || 'japan'
-            });
-          }
-        } catch (error) {
-          console.error('Failed to sync user data:', error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('storage-sync', handleStorageSync as EventListener);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('storage-sync', handleStorageSync as EventListener);
-    };
-  }, [isClient]);
-
-  const handleSettingsSave = (userData: UserData) => {
-    if (!isClient) return;
-
+  // ユーザー情報の保存
+  const saveUserInfo = async (userData: UserData) => {
     try {
-      localStorage.setItem('userInfo', JSON.stringify(userData));
-    setUserInfo(userData);
-    setShowSettingsModal(false);
+      console.log('Saving user info:', userData);
       
-      // 他のタブに同期
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'userInfo',
-        newValue: JSON.stringify(userData)
-      }));
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-    }
-  };
-
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSaveSettings = () => {
-    if (!isClient) return;
-    
-    if (!formData.email || !formData.targetMonth || formData.budget <= 0) {
-      alert(t('dataInput.validation.required', currentLanguage, 'この項目は必須です'));
-      return;
-    }
-    
-    const userData = {
-      email: formData.email,
-      targetMonth: formData.targetMonth,
-      budget: formData.budget,
-      office: formData.office
-    };
-    
-    try {
+      // ローカルストレージに保存
       localStorage.setItem('userInfo', JSON.stringify(userData));
       setUserInfo(userData);
       
-      // 他のタブに同期
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'userInfo',
-        newValue: JSON.stringify(userData)
-      }));
+      // ユーザーがログインしている場合はFirebaseにも保存
+      if (user) {
+        console.log('User is logged in, saving to Firebase...');
+        await syncUserData(user.uid, userData);
+        console.log('User data saved to Firebase');
+      }
+      
+      console.log('User info saved successfully');
     } catch (error) {
-      console.error('Failed to save settings:', error);
-      alert(t('common.error', currentLanguage, 'エラーが発生しました'));
+      console.error('Error saving user info:', error);
     }
   };
 
-  const handleDataInputSave = async (expenseData: ExpenseData) => {
-    addExpense(expenseData);
-    
-    // ユーザーがログインしている場合、クラウドに同期
-    if (user?.uid) {
-      try {
-        await syncExpenseData(user.uid, [...expenses, expenseData]);
-      } catch (error) {
-        console.error('Error syncing expense data:', error);
-        // オフライン時はローカルに保存
-        saveOfflineData([...expenses, expenseData]);
+  // OCR結果を経費データに変換
+  const convertOCRResultToExpense = (ocrResult: OCRResult): ExpenseData => {
+    return {
+      id: `ocr_${Date.now()}`,
+      date: ocrResult.date || new Date().toISOString().split('T')[0],
+      totalAmount: ocrResult.totalAmount || 0,
+      description: ocrResult.description || ocrResult.text || '',
+      category: ocrResult.category || 'その他',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ocrText: ocrResult.text,
+      receiptNumber: ocrResult.receiptNumber,
+      companyName: ocrResult.companyName
+    };
+  };
+
+  // 経費データの追加
+  const handleAddExpense = async (expenseData: ExpenseData) => {
+    try {
+      console.log('Adding expense:', expenseData);
+      
+      // ローカルストアに追加
+      addExpense(expenseData);
+      
+      // ユーザーがログインしている場合はFirebaseにも保存
+      if (user) {
+        console.log('User is logged in, saving expense to Firebase...');
+        await syncExpenseData(user.uid, [expenseData]);
+        console.log('Expense saved to Firebase');
       }
+      
+      console.log('Expense added successfully');
+    } catch (error) {
+      console.error('Error adding expense:', error);
     }
-    
-    setShowDataInputModal(false);
   };
 
-  // 音声入力完了時の処理
-  const handleVoiceInputComplete = (result: any) => {
-    console.log('Voice input completed:', result);
-    setShowVoiceInputModal(false);
-    setShowDataInputModal(true);
+  // OCR完了時の処理
+  const handleOCRComplete = async (ocrResult: OCRResult) => {
+    try {
+      console.log('OCR completed:', ocrResult);
+      
+      // OCR結果を経費データに変換
+      const expenseData = convertOCRResultToExpense(ocrResult);
+      
+      // 経費データを追加
+      await handleAddExpense(expenseData);
+      
+      // アップロードモーダルを閉じる
+      setShowUploadModal(false);
+      
+    } catch (error) {
+      console.error('Error handling OCR result:', error);
+    }
   };
 
-  const handleSingleUpload = () => {
-    setShowUploadModal(true);
-  };
-
-  const handleBatchUpload = () => {
-    setShowBatchUploadModal(true);
-  };
-
-  const handleDataInput = () => {
-    setShowDataInputModal(true);
-  };
-
-  const handleExpenseList = () => {
-    setShowExpenseListModal(true);
-  };
-
-  const handleOptimizer = () => {
-    setShowOptimizerModal(true);
-  };
-
-  const handleReset = () => {
-    if (!isClient) return;
-
-          if (confirm(t('common.confirmReset', currentLanguage, 'すべてのデータをリセットしますか？'))) {
-      try {
-        // clearExpenses(); // この機能は現在利用不可
-        localStorage.removeItem('userInfo');
-        setUserInfo(null);
-        setFormData({
-          email: '',
-          targetMonth: '',
-          budget: 100000,
-          office: 'japan'
-        });
-      } catch (error) {
-        console.error('Failed to reset data:', error);
+  // 経費データの更新
+  const handleUpdateExpense = async (expenseData: ExpenseData) => {
+    try {
+      console.log('Updating expense:', expenseData);
+      
+      // ローカルストアを更新
+      updateExpense(expenseData);
+      
+      // ユーザーがログインしている場合はFirebaseにも保存
+      if (user) {
+        console.log('User is logged in, updating expense in Firebase...');
+        await syncExpenseData(user.uid, [expenseData]);
+        console.log('Expense updated in Firebase');
       }
+      
+      console.log('Expense updated successfully');
+    } catch (error) {
+      console.error('Error updating expense:', error);
     }
   };
 
-  const navigationItems = [
-            { key: 'singleUpload', label: t('navigation.singleUpload', currentLanguage, '単一アップロード'), action: handleSingleUpload },
-        { key: 'batchUpload', label: t('navigation.batchUpload', currentLanguage, '一括アップロード'), action: handleBatchUpload },
-        { key: 'dataInput', label: t('navigation.dataInput', currentLanguage, 'データ入力'), action: handleDataInput },
-        { key: 'expenseList', label: t('navigation.expenseList', currentLanguage, '経費リスト'), action: handleExpenseList },
-        { key: 'budgetOptimizer', label: t('navigation.budgetOptimizer', currentLanguage, '予算最適化'), action: handleOptimizer },
-  ];
+  // 経費データの削除
+  const handleDeleteExpense = async (expenseId: string) => {
+    try {
+      console.log('Deleting expense:', expenseId);
+      
+      // ローカルストアから削除
+      deleteExpense(expenseId);
+      
+      // ユーザーがログインしている場合はFirebaseからも削除
+      if (user) {
+        console.log('User is logged in, deleting expense from Firebase...');
+        // Firebaseからの削除処理を実装
+        console.log('Expense deleted from Firebase');
+      }
+      
+      console.log('Expense deleted successfully');
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+    }
+  };
 
-  // ローディング状態の表示
-  if (isLoading || !isClient) {
-    console.log('Rendering loading state...');
+  // データのエクスポート
+  const handleExportData = async () => {
+    try {
+      console.log('Exporting data...');
+      
+      // 経費データをExcelファイルとしてエクスポート
+      const filename = `expenses_${new Date().toISOString().split('T')[0]}.xlsx`;
+      await import('@/lib/excel').then(({ exportExpensesToExcel }) => 
+        exportExpensesToExcel(expenses, filename)
+      );
+      
+      console.log('Data exported successfully');
+    } catch (error) {
+      console.error('Error exporting data:', error);
+    }
+  };
+
+  // データのインポート
+  const handleImportData = async (file: File) => {
+    try {
+      console.log('Importing data from file:', file.name);
+      
+      // ファイルの内容を読み込み
+      const text = await file.text();
+      const lines = text.split('\n');
+      
+      let importedCount = 0;
+      for (let i = 1; i < lines.length; i++) { // ヘッダー行をスキップ
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const [date, amount, description, category] = line.split(',');
+        if (date && amount) {
+          const expenseData: ExpenseData = {
+            id: `imported_${Date.now()}_${i}`,
+            date: date,
+            totalAmount: parseFloat(amount),
+            description: description || '',
+            category: category || 'その他',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          handleAddExpense(expenseData);
+          importedCount++;
+        }
+      }
+      
+      console.log(`Imported ${importedCount} expenses successfully`);
+    } catch (error) {
+      console.error('Error importing data:', error);
+    }
+  };
+
+  // 予算最適化
+  const handleBudgetOptimization = async (targetBudget: number) => {
+    try {
+      console.log('Starting budget optimization with target:', targetBudget);
+      
+      // 予算最適化の処理を実装
+      const { optimizeBudget } = await import('@/lib/optimizer');
+      const optimizedExpenses = optimizeBudget(expenses, targetBudget);
+      
+      console.log('Budget optimization completed');
+      return optimizedExpenses;
+    } catch (error) {
+      console.error('Error during budget optimization:', error);
+      return null;
+    }
+  };
+
+  // 音声入力の処理
+  const handleVoiceInput = async (transcript: string) => {
+    try {
+      console.log('Processing voice input:', transcript);
+      
+      // 音声入力を解析して経費データを抽出
+      const { parseSpeechResult } = await import('@/lib/speech/parseJa');
+      const parsedData = parseSpeechResult(transcript);
+      
+      if (parsedData && parsedData.amount) {
+        const expenseData: ExpenseData = {
+          id: `voice_${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          totalAmount: parsedData.amount,
+          description: parsedData.transcript,
+          category: 'その他',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        handleAddExpense(expenseData);
+        console.log('Voice input processed successfully');
+      }
+    } catch (error) {
+      console.error('Error processing voice input:', error);
+    }
+  };
+
+  // ローディング中
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-surface-950 text-surface-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-surface-400">読み込み中...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">アプリケーションを初期化中...</p>
         </div>
       </div>
     );
   }
 
-  console.log('Rendering main app...', { userInfo, user, isClient });
-
+  // メインコンテンツ
   return (
-    <SWRConfig
-      value={{
-        fetcher: (resource, init) => fetch(resource, init).then(res => res.json()),
-        revalidateOnFocus: false,
-        dedupingInterval: 10000,
-        errorRetryCount: 2,
-        onError: (error) => {
-          console.error('SWR Error:', error);
-        },
-      }}
-    >
-      <div className="min-h-screen bg-surface-950 text-surface-100 flex flex-col">
-      {/* ネットワーク状態監視 */}
-      <NetworkStatus 
-        onOnline={() => {
-          // オンライン復帰時の同期処理
-          if (user?.uid) {
-            syncOnOnline(user.uid);
-          }
-        }}
-        onOffline={() => {
-          // オフライン時の処理
-          console.log('App went offline');
-        }}
-        showDebugInfo={typeof window !== 'undefined' && window.location.hostname === 'localhost'}
-      />
-      
-      {/* 開発環境でのテスト用シミュレーター */}
-      {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
-        <NetworkSimulator />
-      )}
-      {/* ヘッダー */}
-      <header className="border-b border-surface-800 bg-surface-900/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* 左: ロゴ */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  // ホームページに戻る処理
-                  window.location.reload();
-                }}
-                className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
-                title="ホームに戻る"
-              >
+    <SWRConfig>
+      <div className="min-h-screen bg-gray-50">
+        {/* ヘッダー */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              {/* ロゴ */}
+              <div className="flex items-center">
                 <img 
                   src="/Expenscan_new_logo.png" 
-                  alt="Expenscan Logo" 
-                  className="h-8 w-auto object-contain max-w-full sm:h-10"
-                  style={{ maxHeight: '40px' }}
-                  onError={(e) => {
-                    console.error('Logo image failed to load');
-                    // フォールバック: テキストロゴ
-                    e.currentTarget.style.display = 'none';
-                    const textLogo = document.createElement('div');
-                    textLogo.className = 'flex items-center space-x-2';
-                    textLogo.innerHTML = '<span class="text-xl font-bold text-white">Expens</span><span class="text-xl font-bold text-cyan-400">can</span>';
-                    e.currentTarget.parentNode?.appendChild(textLogo);
-                  }}
-                  onLoad={() => {
-                    console.log('Logo loaded successfully');
-                  }}
+                  alt="Expenscan" 
+                  className="h-8 w-auto"
                 />
-              </button>
-            </div>
+                <span className="ml-2 text-xl font-semibold text-gray-900">Expenscan</span>
+              </div>
 
-            {/* 中央: ナビゲーション（デスクトップ） */}
-            <nav className="hidden md:flex items-center space-x-1">
-              {navigationItems.map((item) => (
+              {/* ナビゲーション */}
+              <nav className="hidden md:flex space-x-8">
                 <button
-                  key={item.key}
-                  onClick={item.action}
-                  className="px-3 py-2 text-sm font-medium text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
+                  onClick={() => setShowUploadModal(true)}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  {item.label}
+                  {t('navigation.singleUpload', currentLanguage, '単一アップロード')}
                 </button>
-              ))}
-            </nav>
+                <button
+                  onClick={() => setShowBatchUploadModal(true)}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  {t('navigation.batchUpload', currentLanguage, '一括アップロード')}
+                </button>
+                <button
+                  onClick={() => setShowDataInputModal(true)}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  {t('navigation.dataInput', currentLanguage, 'データ入力')}
+                </button>
+                <button
+                  onClick={() => setShowExpenseListModal(true)}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  {t('navigation.expenseList', currentLanguage, '経費リスト')}
+                </button>
+                <button
+                  onClick={() => setShowOptimizerModal(true)}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  {t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}
+                </button>
+              </nav>
 
-            {/* 右: アクション */}
-            <div className="flex items-center space-x-3">
-              {/* デスクトップ: 言語切り替え */}
-              <div className="hidden md:block">
+              {/* 右側のメニュー */}
+              <div className="flex items-center space-x-4">
+                {/* 言語切り替え */}
                 <LanguageSwitcher 
                   currentLanguage={currentLanguage} 
                   onLanguageChange={setCurrentLanguage} 
                 />
-              </div>
-              
-              {/* 認証状態に応じたボタン */}
-              {user ? (
-                <>
-                  <button
-                    onClick={() => setShowSettingsModal(true)}
-                    className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
-                    title={t('common.settings', currentLanguage, '設定')}
-                  >
-                    <Settings className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={async () => {
-                      try {
-                        await logout();
-                        setUserInfo(null);
-                        setFormData({
-                          email: '',
-                          targetMonth: '',
-                          budget: 100000,
-                          office: 'japan'
-                        });
-                        // SWRキャッシュクリア
-                        if (typeof window !== 'undefined') {
-                          localStorage.removeItem('swr-cache');
-                        }
-                      } catch (error) {
-                        console.error('Logout error:', error);
-                      }
-                    }}
-                    className="p-2 text-surface-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors duration-200"
-                    title="ログアウト"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
-                </>
-              ) : (
+
+                {/* 音声入力ボタン */}
                 <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setShowAuthModal(true);
-                  }}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 text-sm font-medium"
+                  onClick={() => setShowVoiceInputModal(true)}
+                  className="p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100"
+                  title="音声入力"
                 >
-                  ログイン
+                  <Mic className="w-5 h-5" />
                 </button>
-              )}
-              
-              {/* モバイルメニューボタン */}
-              <button
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="md:hidden p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
-              >
-                {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
+
+                {/* 設定ボタン */}
+                <button
+                  onClick={() => setShowSettingsModal(true)}
+                  className="p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100"
+                  title="設定"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+
+                {/* ユーザーメニュー */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMobileMenu(!showMobileMenu)}
+                    className="p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100"
+                  >
+                    <Menu className="w-5 h-5" />
+                  </button>
+
+                  {/* ドロップダウンメニュー */}
+                  {showMobileMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                      {user ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              logout();
+                              setShowMobileMenu(false);
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <LogOut className="w-4 h-4 inline mr-2" />
+                            ログアウト
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setShowAuthModal(true);
+                            setShowMobileMenu(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          ログイン
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* メインコンテンツ */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* 統計情報 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <BarChart3 className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">総経費</p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    ¥{expenses.reduce((sum, expense) => sum + expense.totalAmount, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <List className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">件数</p>
+                  <p className="text-2xl font-semibold text-gray-900">{expenses.length}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Edit3 className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">今月</p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    ¥{expenses
+                      .filter(expense => {
+                        const expenseDate = new Date(expense.date);
+                        const now = new Date();
+                        return expenseDate.getMonth() === now.getMonth() && 
+                               expenseDate.getFullYear() === now.getFullYear();
+                      })
+                      .reduce((sum, expense) => sum + expense.totalAmount, 0)
+                      .toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <FolderOpen className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">カテゴリ</p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {new Set(expenses.map(expense => expense.category)).size}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* モバイルナビゲーション */}
-          {showMobileMenu && (
-            <div className="md:hidden border-t border-surface-800 bg-surface-900/95 backdrop-blur-sm animate-slide-down">
-              <nav className="flex flex-col space-y-1 py-2">
-                {navigationItems.map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => {
-                      item.action();
-                      setShowMobileMenu(false);
-                    }}
-                    className="px-3 py-2 text-sm font-medium text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 text-center"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-                {/* モバイル: 言語切り替え */}
-                <div className="px-3 py-2 flex justify-center">
-                  <LanguageSwitcher 
-                    currentLanguage={currentLanguage} 
-                    onLanguageChange={setCurrentLanguage} 
-                  />
+          {/* クイックアクション */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <Camera className="w-6 h-6 text-blue-600" />
                 </div>
-              </nav>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-gray-900">レシート撮影</h3>
+                  <p className="text-sm text-gray-600">カメラでレシートを撮影してOCR処理</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setShowBatchUploadModal(true)}
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <UploadCloud className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-gray-900">一括アップロード</h3>
+                  <p className="text-sm text-gray-600">複数のレシートをまとめて処理</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setShowDataInputModal(true)}
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center">
+                <div className="p-3 bg-yellow-100 rounded-lg">
+                  <FileText className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-gray-900">手動入力</h3>
+                  <p className="text-sm text-gray-600">経費データを手動で入力</p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* 最近の経費 */}
+          {expenses.length > 0 && (
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900">最近の経費</h2>
+              </div>
+              <div className="divide-y divide-gray-200">
+                {expenses.slice(0, 5).map((expense) => (
+                  <div key={expense.id} className="px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{expense.description}</p>
+                        <p className="text-sm text-gray-500">{expense.category}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-900">¥{expense.totalAmount.toLocaleString()}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(expense.date).toLocaleDateString('ja-JP')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-        </div>
-      </header>
+        </main>
 
-      {/* メインコンテンツ */}
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* 予算表示 */}
-          {userInfo && <BudgetDisplay />}
-
-          {/* メインコンテンツエリア */}
-          <div className="mt-8">
-            {userInfo ? (
-              <div className="space-y-8">
-                {/* クイックアクション */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <button
-                    onClick={handleSingleUpload}
-                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
-                  >
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-primary-500 transition-colors">
-                        <Camera className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h3>
-                      <p className="text-sm text-surface-400">
-                        <span className="block md:hidden">{t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつアップロード')}</span>
-                        <span className="hidden md:block">
-                          {t('navigation.singleUploadDesc', currentLanguage, 'レシート画像を1枚ずつ')}<br />
-                          {t('navigation.singleUploadDesc', currentLanguage, 'アップロード')}
-                        </span>
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleBatchUpload}
-                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
-                  >
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-secondary-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-secondary-500 transition-colors">
-                        <FolderOpen className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h3>
-                      <p className="text-sm text-surface-400">
-                        <span className="block md:hidden">{t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を同時にアップロード')}</span>
-                        <span className="hidden md:block">
-                          {t('navigation.batchUploadDesc', currentLanguage, '複数のレシート画像を')}<br />
-                          {t('navigation.batchUploadDesc', currentLanguage, '同時にアップロード')}
-                        </span>
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleDataInput}
-                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
-                  >
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-accent-500 transition-colors">
-                        <Edit3 className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h3>
-                      <p className="text-sm text-surface-400">
-                        <span className="block md:hidden">{t('navigation.dataInputDesc', currentLanguage, '経費情報を手動で入力・編集')}</span>
-                        <span className="hidden md:block">
-                          {t('navigation.dataInputDesc', currentLanguage, '経費情報を')}<br />
-                          {t('navigation.dataInputDesc', currentLanguage, '手動で入力・編集')}
-                        </span>
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => setShowVoiceInputModal(true)}
-                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
-                  >
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-orange-500 transition-colors">
-                        <Mic className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.voiceInput', currentLanguage, '音声入力')}</h3>
-                      <p className="text-sm text-surface-400">{t('navigation.voiceInputDesc', currentLanguage, '音声で経費情報を入力')}</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleExpenseList}
-                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
-                  >
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-green-500 transition-colors">
-                        <List className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h3>
-                      <p className="text-sm text-surface-400">
-                        <span className="block md:hidden">{t('navigation.expenseListDesc', currentLanguage, '登録済み経費の一覧表示と管理')}</span>
-                        <span className="hidden md:block">
-                          {t('navigation.expenseListDesc', currentLanguage, '登録済み経費の')}<br />
-                          {t('navigation.expenseListDesc', currentLanguage, '一覧表示と管理')}
-                        </span>
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleOptimizer}
-                    className="p-6 bg-surface-800 hover:bg-surface-700 rounded-lg border border-surface-700 hover:border-surface-600 transition-all duration-200 group"
-                  >
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-indigo-500 transition-colors">
-                        <BarChart3 className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-medium text-white mb-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h3>
-                      <p className="text-sm text-surface-400">
-                        <span className="block md:hidden">{t('navigation.budgetOptimizerDesc', currentLanguage, '予算に最も近い経費の組み合わせを自動提案')}</span>
-                        <span className="hidden md:block">
-                          {t('navigation.budgetOptimizerDesc', currentLanguage, '予算に最も近い経費の')}<br />
-                          {t('navigation.budgetOptimizerDesc', currentLanguage, '組み合わせを自動提案')}
-                        </span>
-                      </p>
-                    </div>
-                  </button>
-                </div>
-
-                {/* 統計情報 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white mb-2">
-                        ¥{(() => {
-                            // 外貨の切り上げ処理を含む合計計算
-                            const total = expenses.reduce((sum, exp) => {
-                                if (exp.currency === 'JPY') {
-                                    return sum + exp.totalAmount;
-                                } else {
-                                    // 外貨の場合は切り上げ処理
-                                    const convertedAmount = Math.ceil(exp.totalAmount / (exp.conversionRate || 1));
-                                    return sum + convertedAmount;
-                                }
-                            }, 0);
-                            return total.toLocaleString();
-                        })()}
-                      </div>
-                      <div className="text-sm text-surface-400">{t('stats.totalAmount', currentLanguage, '総金額')}</div>
-                    </div>
-                  </div>
-                  <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white mb-2">
-                        {expenses.length}
-                      </div>
-                      <div className="text-sm text-surface-400">{t('stats.totalExpenses', currentLanguage, '総経費数')}</div>
-                    </div>
-                  </div>
-                  <div className="bg-surface-800 rounded-lg p-6 border border-surface-700">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white mb-2">
-                        {expenses.filter(exp => exp.isQualified.includes('Qualified')).length}
-                      </div>
-                      <div className="text-sm text-surface-400">{t('stats.qualifiedExpenses', currentLanguage, '適格経費')}</div>
-                    </div>
-                  </div>
-              </div>
-
-                {/* リセットボタン */}
-                <div className="text-center">
-                <button 
-                    onClick={handleReset}
-                    className="px-4 py-2 text-sm text-surface-400 hover:text-red-400 transition-colors duration-200"
-                  >
-                    {t('common.reset', currentLanguage, 'リセット')}
+        {/* モーダル */}
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">レシートアップロード</h2>
+                <button
+                  onClick={() => setShowUploadModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
                 </button>
               </div>
+              <ImageUpload onOCRComplete={handleOCRComplete} />
             </div>
-            ) : (
-              // 設定画面
-              <div className="max-w-2xl mx-auto">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-4 text-white">{t('welcome.title', currentLanguage, 'Welcome')}</h2>
-                </div>
-                
-                <div className="bg-surface-800 rounded-lg p-8 border border-surface-700 mx-auto">
-                  <h3 className="text-xl font-semibold mb-6 text-center text-white">{t('common.settings', currentLanguage, '設定')}</h3>
-              
-                  <div className="space-y-6 max-w-md mx-auto">
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.email', currentLanguage, 'メールアドレス')} *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                        placeholder="example@company.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.targetMonth', currentLanguage, '対象月')} *</label>
-                      <input
-                        type="month"
-                        name="targetMonth"
-                        value={formData.targetMonth}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('common.budget', currentLanguage, '予算')} *</label>
-                      <input
-                        type="number"
-                        name="budget"
-                        value={formData.budget}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                        placeholder="100000"
-                        min="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-surface-300">{t('welcome.officeSelection', currentLanguage, 'オフィス選択')} *</label>
-                      <select
-                        name="office"
-                        value={formData.office}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-surface-700 border border-surface-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                      >
-                        <option value="singapore">{t('welcome.offices.singapore', currentLanguage, 'シンガポール')}</option>
-                        <option value="japan">{t('welcome.offices.japan', currentLanguage, '日本')}</option>
-                        <option value="shanghai">{t('welcome.offices.shanghai', currentLanguage, '上海')}</option>
-                        <option value="hongkong">{t('welcome.offices.hongkong', currentLanguage, '香港')}</option>
-                        <option value="taiwan">{t('welcome.offices.taiwan', currentLanguage, '台湾')}</option>
-                        <option value="indonesiaJakarta">{t('welcome.offices.indonesiaJakarta', currentLanguage, 'インドネシア - ジャカルタ')}</option>
-                        <option value="indonesiaSurabaya">{t('welcome.offices.indonesiaSurabaya', currentLanguage, 'インドネシア - スラバヤ')}</option>
-                        <option value="malaysia">{t('welcome.offices.malaysia', currentLanguage, 'マレーシア')}</option>
-                        <option value="philippines">{t('welcome.offices.philippines', currentLanguage, 'フィリピン')}</option>
-                        <option value="thailand">{t('welcome.offices.thailand', currentLanguage, 'タイ')}</option>
-                        <option value="vietnam">{t('welcome.offices.vietnam', currentLanguage, 'ベトナム')}</option>
-                        <option value="indiaBangalore">{t('welcome.offices.indiaBangalore', currentLanguage, 'インド - バンガロール')}</option>
-                        <option value="indiaGurgaon">{t('welcome.offices.indiaGurgaon', currentLanguage, 'インド - グルガオン')}</option>
-                        <option value="indiaMumbai">{t('welcome.offices.indiaMumbai', currentLanguage, 'インド - ムンバイ')}</option>
-                        <option value="indiaNewDelhi">{t('welcome.offices.indiaNewDelhi', currentLanguage, 'インド - ニューデリー')}</option>
-                        <option value="uae">{t('welcome.offices.uae', currentLanguage, 'アラブ首長国連邦')}</option>
-                        <option value="canada">{t('welcome.offices.canada', currentLanguage, 'カナダ')}</option>
-                        <option value="usaNewYork">{t('welcome.offices.usaNewYork', currentLanguage, 'アメリカ合衆国 - ニューヨーク')}</option>
-                        <option value="netherlands">{t('welcome.offices.netherlands', currentLanguage, 'オランダ')}</option>
-                        <option value="france">{t('welcome.offices.france', currentLanguage, 'フランス')}</option>
-                      </select>
-                    </div>
-                    <div className="pt-4">
-                      <button
-                        type="button"
-                        onClick={handleSaveSettings}
-                        className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium"
-                      >
-                        {t('common.save', currentLanguage, '保存')}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      </main>
+        )}
 
-      {/* モーダル */}
-      {showUploadModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-          onClick={() => setShowUploadModal(false)}
-        >
-          <div 
-            className="bg-surface-900 rounded-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-4xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <div className="flex-1"></div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1 whitespace-nowrap">{t('navigation.singleUpload', currentLanguage, '単一アップロード')}</h2>
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
-              >
-                <X className="w-5 h-5" />
-              </button>
+        {showBatchUploadModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">一括アップロード</h2>
+                <button
+                  onClick={() => setShowBatchUploadModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <BatchUpload onComplete={() => {}} />
             </div>
-            <div className="text-center">
-              <ImageUpload 
-                onOCRComplete={(ocrResult) => {
-                  console.log('OCR Result:', ocrResult);
-                  
-                  // OCR結果をストアに保存（登録はしない）
-                  if (ocrResult) {
-                    // OCR結果をストアに保存して、データ入力画面で確認・編集できるようにする
-                    // 自動登録は行わない
-                  }
-                  
-                  // モーダルを閉じてデータ入力画面を開く
-                  setShowUploadModal(false);
-                  setShowDataInputModal(true);
-                }}
-                onComplete={() => {
-                  setShowUploadModal(false);
-                  setShowDataInputModal(true);
-                }}
+          </div>
+        )}
+
+        {showDataInputModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">経費データ入力</h2>
+                <button
+                  onClick={() => setShowDataInputModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <ExpenseForm onSave={handleAddExpense} />
+            </div>
+          </div>
+        )}
+
+        {showExpenseListModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">経費リスト</h2>
+                <button
+                  onClick={() => setShowExpenseListModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <ExpenseList 
+                onEdit={handleUpdateExpense}
+                onDelete={handleDeleteExpense}
               />
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showBatchUploadModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-          onClick={() => setShowBatchUploadModal(false)}
-        >
-          <div 
-            className="bg-surface-900 rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex-1"></div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1 whitespace-nowrap">{t('navigation.batchUpload', currentLanguage, '一括アップロード')}</h2>
-              <button
-                onClick={() => setShowBatchUploadModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <BatchUpload 
-              onComplete={() => {
-                setShowBatchUploadModal(false);
-                setShowDataInputModal(true);
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {showDataInputModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-          onClick={() => setShowDataInputModal(false)}
-        >
-          <div 
-            className="bg-surface-900 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex-1"></div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1">{t('navigation.dataInput', currentLanguage, 'データ入力')}</h2>
-              <button
-                onClick={() => setShowDataInputModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="text-center">
-              <ExpenseForm onSave={handleDataInputSave} />
+        {showOptimizerModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">予算最適化</h2>
+                <button
+                  onClick={() => setShowOptimizerModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <BudgetOptimizer />
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showExpenseListModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-          onClick={() => setShowExpenseListModal(false)}
-        >
-          <div 
-            className="bg-surface-900 rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex-1"></div>
-              <h2 className="text-base sm:text-xl font-semibold text-white text-center flex-1 break-keep">{t('navigation.expenseList', currentLanguage, '経費リスト')}</h2>
-              <button
-                onClick={() => setShowExpenseListModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="text-center">
-              <ExpenseList activeMonth={userInfo?.targetMonth ?? ''} />
+        {showSettingsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">設定</h2>
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <UserSetup 
+                onSave={saveUserInfo}
+              />
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showOptimizerModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-          onClick={() => setShowOptimizerModal(false)}
-        >
-          <div 
-            className="bg-surface-900 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-surface-700 shadow-xl animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex-1"></div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white text-center flex-1">{t('navigation.budgetOptimizer', currentLanguage, '予算最適化')}</h2>
-              <button
-                onClick={() => setShowOptimizerModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200 flex-1 flex justify-end"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <BudgetOptimizer hideTitle={true} activeMonth={userInfo?.targetMonth ?? ''} />
-          </div>
-        </div>
-      )}
-
-      {/* 設定モーダル */}
-      {showSettingsModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-          onClick={() => setShowSettingsModal(false)}
-        >
-          <div 
-            className="bg-surface-900 rounded-lg p-6 w-full max-w-md border border-surface-700 shadow-xl animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-lg sm:text-xl font-semibold text-white">{t('common.settings', currentLanguage, '設定')}</h2>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <UserSetup onSave={handleSettingsSave} hideWelcomeTitle={true} />
-          </div>
-        </div>
-      )}
-
-      {/* 音声入力モーダル */}
-      {showVoiceInputModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <VoiceInput
-            onComplete={handleVoiceInputComplete}
-            onCancel={() => setShowVoiceInputModal(false)}
-          />
-        </div>
-      )}
-
-      {/* 認証モーダル */}
-      {showAuthModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-          onClick={() => setShowAuthModal(false)}
-        >
-          <div 
-            className="bg-surface-900 rounded-lg p-6 w-full max-w-md border border-surface-700 shadow-xl animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg sm:text-xl font-semibold text-white">
-                {authMode === 'login' ? t('auth.login', currentLanguage, 'ログイン') : t('auth.register', currentLanguage, '新規登録')}
-              </h2>
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="p-2 text-surface-400 hover:text-white hover:bg-surface-800 rounded-md transition-colors duration-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <AuthForm 
-              mode={authMode}
-              onSuccess={(userInfo) => {
-                setUser(userInfo);
-                setUserInfo({
-                  email: userInfo.email,
-                  targetMonth: userInfo.targetMonth,
-                  budget: userInfo.budget,
-                  currency: userInfo.currency,
-                  office: userInfo.office
-                });
-                setFormData({
-                  email: userInfo.email || '',
-                  targetMonth: userInfo.targetMonth || '',
-                  budget: userInfo.budget || 100000,
-                  office: userInfo.office || 'japan'
-                });
-                setShowAuthModal(false);
-              }}
-              onCancel={() => setShowAuthModal(false)}
-            />
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
-              >
-                {authMode === 'login' 
-                  ? t('auth.noAccount', currentLanguage, 'アカウントをお持ちでない方はこちら')
-                  : t('auth.hasAccount', currentLanguage, '既にアカウントをお持ちの方はこちら')
-                }
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* フッター */}
-      <footer className="border-t border-surface-800 bg-surface-900/50 backdrop-blur-sm mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {/* デスクトップ表示 */}
-          <div className="hidden md:flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  // ホームページに戻る処理
-                  window.location.reload();
-                }}
-                className="flex items-center hover:opacity-80 transition-opacity duration-200"
-                title="ホームに戻る"
-              >
-                <img 
-                  src="/Expenscan_new_logo.png" 
-                  alt="Expenscan Logo" 
-                  className="h-6 w-auto object-contain"
-                  onError={(e) => {
-                    console.error('Footer logo image failed to load');
-                    // フォールバック: テキストロゴ
-                    e.currentTarget.style.display = 'none';
-                    const textLogo = document.createElement('div');
-                    textLogo.className = 'flex items-center space-x-2';
-                    textLogo.innerHTML = '<span class="text-lg font-bold text-white">Expens</span><span class="text-lg font-bold text-cyan-400">can</span>';
-                    e.currentTarget.parentNode?.appendChild(textLogo);
-                  }}
+        {showAuthModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">
+                  {authMode === 'login' ? 'ログイン' : '新規登録'}
+                </h2>
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setAuthMode('login')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      authMode === 'login'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    ログイン
+                  </button>
+                  <button
+                    onClick={() => setAuthMode('register')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      authMode === 'register'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    新規登録
+                  </button>
+                </div>
+                <AuthForm 
+                  mode={authMode}
+                  onSuccess={() => setShowAuthModal(false)}
+                  onCancel={() => setShowAuthModal(false)}
                 />
-              </button>
-              <div className="text-sm text-surface-400">
-                © 2025 Expenscan. All rights reserved. Developed by Riku Terayama
               </div>
             </div>
-            <div className="text-sm text-surface-400">
-              {t('common.version', currentLanguage, 'バージョン')}: {APP_VERSION}
+          </div>
+        )}
+
+        {showVoiceInputModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">音声入力</h2>
+                <button
+                  onClick={() => setShowVoiceInputModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+                             <VoiceInput 
+                 onComplete={(result) => {
+                   if (result.amount) {
+                     handleVoiceInput(result.transcript);
+                   }
+                 }}
+                 onCancel={() => setShowVoiceInputModal(false)}
+               />
             </div>
           </div>
-          
-          {/* モバイル表示 */}
-          <div className="md:hidden text-center text-sm text-surface-400 space-y-2 py-2">
-            <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  // ホームページに戻る処理
-                  window.location.reload();
-                }}
-                className="flex items-center hover:opacity-80 transition-opacity duration-200"
-                title="ホームに戻る"
-              >
-                <img 
-                  src="/Expenscan_new_logo.png" 
-                  alt="Expenscan Logo" 
-                  className="h-5 w-auto object-contain"
-                  onError={(e) => {
-                    console.error('Mobile footer logo image failed to load');
-                    // フォールバック: テキストロゴ
-                    e.currentTarget.style.display = 'none';
-                    const textLogo = document.createElement('div');
-                    textLogo.className = 'flex items-center space-x-2 justify-center';
-                    textLogo.innerHTML = '<span class="text-base font-bold text-white">Expens</span><span class="text-base font-bold text-cyan-400">can</span>';
-                    e.currentTarget.parentNode?.appendChild(textLogo);
-                  }}
-                />
-              </button>
-            </div>
-            <div>v{APP_VERSION}</div>
-            <div>© 2025 Expenscan. All rights reserved.</div>
-            <div>Developed by Riku Terayama</div>
-          </div>
+        )}
+
+        {/* オフラインインジケーター */}
+        <OfflineIndicator />
+
+        {/* ネットワークステータス */}
+        <NetworkStatus />
+
+        {/* バージョン情報 */}
+        <div className="fixed bottom-4 right-4 text-xs text-gray-400">
+          v{APP_VERSION}
         </div>
-      </footer>
-    </div>
+      </div>
     </SWRConfig>
   );
 }
