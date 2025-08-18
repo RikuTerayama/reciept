@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { SWRConfig } from 'swr';
-import { useExpenseStore } from './src/lib/store';
-import { getCurrentLanguage, t } from './src/lib/i18n';
-import { loadUserDataByEmail } from './src/lib/storage';
-import { APP_VERSION } from './src/lib/constants';
-import { useAuthStore } from './src/lib/auth-store';
-import { onAuthStateChange } from './src/lib/auth-service';
+import { useExpenseStore } from '../src/lib/store';
+import { getCurrentLanguage, t } from '../src/lib/i18n';
+import { loadUserDataByEmail } from '../src/lib/storage';
+import { APP_VERSION } from '../src/lib/constants';
+import { useAuthStore } from '../src/lib/auth-store';
+import { onAuthStateChange } from '../src/lib/auth-service';
 import { 
   syncUserData, 
   syncExpenseData, 
@@ -296,7 +296,7 @@ export default function Home() {
       
       // 経費データをExcelファイルとしてエクスポート
       const filename = `expenses_${new Date().toISOString().split('T')[0]}.xlsx`;
-      await import('@/lib/excel').then(({ exportExpensesToExcel }) => 
+      await import('../src/lib/excel').then(({ exportExpensesToExcel }) => 
         exportExpensesToExcel(expenses, filename)
       );
       
@@ -349,7 +349,7 @@ export default function Home() {
       console.log('Starting budget optimization with target:', targetBudget);
       
       // 予算最適化の処理を実装
-      const { optimizeBudget } = await import('@/lib/optimizer');
+             const { optimizeBudget } = await import('../src/lib/optimizer');
       const optimizedExpenses = optimizeBudget(expenses, targetBudget);
       
       console.log('Budget optimization completed');
@@ -366,7 +366,7 @@ export default function Home() {
       console.log('Processing voice input:', transcript);
       
       // 音声入力を解析して経費データを抽出
-      const { parseSpeechResult } = await import('@/lib/speech/parseJa');
+             const { parseSpeechResult } = await import('../src/lib/speech/parseJa');
       const parsedData = parseSpeechResult(transcript);
       
       if (parsedData && parsedData.amount) {
