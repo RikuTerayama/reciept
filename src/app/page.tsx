@@ -832,14 +832,14 @@ export default function Home() {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <VoiceInput 
-                onComplete={(result) => {
-                  if (result.amount) {
-                    handleVoiceInput(result.transcript);
-                  }
-                }}
-                onCancel={() => setShowVoiceInputModal(false)}
-              />
+                             <VoiceInput 
+                 onComplete={(result) => {
+                   if (result.amount) {
+                     handleVoiceInput(result.transcript);
+                   }
+                 }}
+                 onCancel={() => setShowVoiceInputModal(false)}
+               />
             </div>
           </div>
         )}
