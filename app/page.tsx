@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { SWRConfig } from 'swr';
-import { useExpenseStore } from '../src/lib/store';
-import { getCurrentLanguage, t } from '../src/lib/i18n';
-import { loadUserDataByEmail } from '../src/lib/storage';
-import { APP_VERSION } from '../src/lib/constants';
-import { useAuthStore } from '../src/lib/auth-store';
-import { onAuthStateChange } from '../src/lib/auth-service';
+import { useExpenseStore } from '@/lib/store';
+import { getCurrentLanguage, t } from '@/lib/i18n';
+import { loadUserDataByEmail } from '@/lib/storage';
+import { APP_VERSION } from '@/lib/constants';
+import { useAuthStore } from '@/lib/auth-store';
+import { onAuthStateChange } from '@/lib/auth-service';
 import { 
   syncUserData, 
   syncExpenseData, 
