@@ -1,6 +1,6 @@
 'use client';
 
-import dynamicImport from 'next/dynamic';
+import dynamic from 'next/dynamic';
 import React, { useState, useEffect } from 'react';
 import { SWRConfig } from 'swr';
 import { useExpenseStore } from '@/lib/store';
@@ -27,9 +27,21 @@ import UserSetup from '@/components/UserSetup';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import BudgetDisplay from '@/components/BudgetDisplay';
 import AuthForm from '@/components/AuthForm';
-import OfflineIndicator from '@/components/OfflineIndicator';
-import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
-import VoiceInput from '@/components/VoiceInput';
+// 動的インポートでクライアントコンポーネントを読み込み
+const OfflineIndicator = dynamic(() => import('@/components/OfflineIndicator'), {
+  ssr: false,
+  loading: () => <div className="hidden" />
+});
+
+const NetworkStatus = dynamic(() => import('@/components/NetworkStatus').then(mod => ({ default: mod.default })), {
+  ssr: false,
+  loading: () => <div className="hidden" />
+});
+
+const VoiceInput = dynamic(() => import('@/components/VoiceInput'), {
+  ssr: false,
+  loading: () => <div className="hidden" />
+});
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut, Mic } from 'lucide-react';
 import { ExpenseData, OCRResult } from '@/types';
 import { calculateTotalAmountWithRounding } from '@/lib/currency';
