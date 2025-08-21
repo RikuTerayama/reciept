@@ -20,9 +20,10 @@ const nextConfig = {
     // 静的生成を無効化
     workerThreads: false,
     cpus: 1,
-    // 静的ページ生成のタイムアウトを設定
-    staticPageGenerationTimeout: 0,
   },
+  
+  // 静的エクスポートを無効化してSSRのみ使用
+  output: 'standalone',
   
   // ESM外部モジュールの適切な処理
   experimental: {
