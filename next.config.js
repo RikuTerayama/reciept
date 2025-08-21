@@ -50,11 +50,10 @@ const nextConfig = {
       'node_modules'
     ];
 
-    // undiciのESM構文エラーを回避（null-loaderの代わりにexternalsを使用）
-
-    // Firebase AuthのESM問題を解決
+    // パスエイリアスの設定（tsconfig.jsonのpathsと一致）
     config.resolve.alias = {
       ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
       'undici': false,
       '@firebase/auth': false,
     };
