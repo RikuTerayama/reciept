@@ -12,8 +12,8 @@ const nextConfig = {
   poweredByHeader: false,
 
   // Vercel用の設定（SSRを有効化）
-  output: undefined, // 静的エクスポートを無効化
-  trailingSlash: false, // トレーリングスラッシュを無効化
+  // output: 'export', // 静的エクスポートを無効化
+  // trailingSlash: true, // トレーリングスラッシュを無効化
   images: {
     unoptimized: true,
   },
@@ -76,6 +76,9 @@ const nextConfig = {
     return config;
   },
 
+  // 静的ページ生成を無効化
+  generateStaticParams: false,
+  
   // TypeScriptエラーを無視
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
