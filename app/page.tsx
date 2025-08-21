@@ -33,6 +33,8 @@ import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, Fo
 import { ExpenseData, OCRResult } from '../src/types';
 import { calculateTotalAmountWithRounding } from '../src/lib/currency';
 
+'use client';
+
 // 型定義
 interface UserData {
   email: string;
