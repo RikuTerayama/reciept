@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { SWRConfig } from 'swr';
-import { useExpenseStore } from '@/lib/store';
-import { getCurrentLanguage, t } from '@/lib/i18n';
-import { loadUserDataByEmail } from '@/lib/storage';
-import { APP_VERSION } from '@/lib/constants';
-import { useAuthStore } from '@/lib/auth-store';
-import { onAuthStateChange } from '@/lib/auth-service';
+import { useExpenseStore } from '../src/lib/store';
+import { getCurrentLanguage, t } from '../src/lib/i18n';
+import { loadUserDataByEmail } from '../src/lib/storage';
+import { APP_VERSION } from '../src/lib/constants';
+import { useAuthStore } from '../src/lib/auth-store';
+import { onAuthStateChange } from '../src/lib/auth-service';
 import { 
   syncUserData, 
   syncExpenseData, 
@@ -16,7 +16,7 @@ import {
   syncOnOnline,
   clearAllData,
   setupNetworkListener 
-  } from '@/lib/sync-service';
+  } from '../src/lib/sync-service';
 import ImageUpload from '../src/components/ImageUpload';
 import BatchUpload from '../src/components/BatchUpload';
 import ExpenseForm from '../src/components/ExpenseForm';
@@ -32,8 +32,6 @@ import VoiceInput from '../src/components/VoiceInput';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut, Mic } from 'lucide-react';
 import { ExpenseData, OCRResult } from '../src/types';
 import { calculateTotalAmountWithRounding } from '../src/lib/currency';
-
-'use client';
 
 // 型定義
 interface UserData {
