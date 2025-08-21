@@ -12,8 +12,15 @@ const nextConfig = {
   poweredByHeader: false,
 
   // Vercel用の設定（SSRを有効化）
-  output: 'standalone', // スタンドアロンモードでSSRを有効化
   trailingSlash: false, // トレーリングスラッシュを無効化
+  
+  // 静的生成を無効化
+  experimental: {
+    esmExternals: true,
+    // 静的生成を無効化
+    workerThreads: false,
+    cpus: 1,
+  },
   
   // ESM外部モジュールの適切な処理
   experimental: {
@@ -23,9 +30,7 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // ESM外部モジュールの適切な処理（experimentalセクションに統合）
-
-  // Webpack設定でundiciとfirebaseのESM問題を解決
+    // Webpack設定でundiciとfirebaseのESM問題を解決
   webpack: (config, { isServer }) => {
     // Node.jsモジュールのfallback設定
     config.resolve.fallback = {
