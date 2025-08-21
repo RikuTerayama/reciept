@@ -55,6 +55,9 @@ interface UserData {
   office?: string;
 }
 
+// 静的生成を無効化
+export const dynamicConfig = 'force-dynamic';
+
 export default function Home() {
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
   const [userInfo, setUserInfo] = useState<UserData | null>(null);
