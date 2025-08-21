@@ -3,12 +3,12 @@
 import dynamicImport from 'next/dynamic';
 import React, { useState, useEffect } from 'react';
 import { SWRConfig } from 'swr';
-import { useExpenseStore } from '../src/lib/store';
-import { getCurrentLanguage, t } from '../src/lib/i18n';
-import { loadUserDataByEmail } from '../src/lib/storage';
-import { APP_VERSION } from '../src/lib/constants';
-import { useAuthStore } from '../src/lib/auth-store';
-import { onAuthStateChange } from '../src/lib/auth-service';
+import { useExpenseStore } from '@/lib/store';
+import { getCurrentLanguage, t } from '@/lib/i18n';
+import { loadUserDataByEmail } from '@/lib/storage';
+import { APP_VERSION } from '@/lib/constants';
+import { useAuthStore } from '@/lib/auth-store';
+import { onAuthStateChange } from '@/lib/auth-service';
 import { 
   syncUserData, 
   syncExpenseData, 
@@ -17,22 +17,22 @@ import {
   syncOnOnline,
   clearAllData,
   setupNetworkListener 
-  } from '../src/lib/sync-service';
-import ImageUpload from '../src/components/ImageUpload';
-import BatchUpload from '../src/components/BatchUpload';
-import ExpenseForm from '../src/components/ExpenseForm';
-import ExpenseList from '../src/components/ExpenseList';
-import BudgetOptimizer from '../src/components/BudgetOptimizer';
-import UserSetup from '../src/components/UserSetup';
-import LanguageSwitcher from '../src/components/LanguageSwitcher';
-import BudgetDisplay from '../src/components/BudgetDisplay';
-import AuthForm from '../src/components/AuthForm';
-import OfflineIndicator from '../src/components/OfflineIndicator';
-import NetworkStatus, { NetworkSimulator } from '../src/components/NetworkStatus';
-import VoiceInput from '../src/components/VoiceInput';
+  } from '@/lib/sync-service';
+import ImageUpload from '@/components/ImageUpload';
+import BatchUpload from '@/components/BatchUpload';
+import ExpenseForm from '@/components/ExpenseForm';
+import ExpenseList from '@/components/ExpenseList';
+import BudgetOptimizer from '@/components/BudgetOptimizer';
+import UserSetup from '@/components/UserSetup';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import BudgetDisplay from '@/components/BudgetDisplay';
+import AuthForm from '@/components/AuthForm';
+import OfflineIndicator from '@/components/OfflineIndicator';
+import NetworkStatus, { NetworkSimulator } from '@/components/NetworkStatus';
+import VoiceInput from '@/components/VoiceInput';
 import { Settings, Menu, X, UploadCloud, FileText, Pencil, BarChart3, Camera, FolderOpen, Edit3, List, LogOut, Mic } from 'lucide-react';
-import { ExpenseData, OCRResult } from '../src/types';
-import { calculateTotalAmountWithRounding } from '../src/lib/currency';
+import { ExpenseData, OCRResult } from '@/types';
+import { calculateTotalAmountWithRounding } from '@/lib/currency';
 
 // 型定義
 interface UserData {
@@ -297,7 +297,7 @@ export default function Home() {
       
       // 経費データをExcelファイルとしてエクスポート
       const filename = `expenses_${new Date().toISOString().split('T')[0]}.xlsx`;
-      await import('../src/lib/excel').then(({ exportExpensesToExcel }) => 
+      await import('@/lib/excel').then(({ exportExpensesToExcel }) => 
         exportExpensesToExcel(expenses, filename)
       );
       
@@ -350,7 +350,7 @@ export default function Home() {
       console.log('Starting budget optimization with target:', targetBudget);
       
       // 予算最適化の処理を実装
-             const { optimizeBudget } = await import('../src/lib/optimizer');
+             const { optimizeBudget } = await import('@/lib/optimizer');
       const optimizedExpenses = optimizeBudget(expenses, targetBudget);
       
       console.log('Budget optimization completed');
@@ -367,7 +367,7 @@ export default function Home() {
       console.log('Processing voice input:', transcript);
       
       // 音声入力を解析して経費データを抽出
-             const { parseSpeechResult } = await import('../src/lib/speech/parseJa');
+             const { parseSpeechResult } = await import('@/lib/speech/parseJa');
       const parsedData = parseSpeechResult(transcript);
       
       if (parsedData && parsedData.amount) {
