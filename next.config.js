@@ -15,11 +15,9 @@ const nextConfig = {
   output: 'standalone', // スタンドアロンモードでSSRを有効化
   trailingSlash: false, // トレーリングスラッシュを無効化
   
-  // 静的生成を無効化
+  // ESM外部モジュールの適切な処理
   experimental: {
     esmExternals: true,
-    // 静的生成を無効化
-    staticPageGenerationTimeout: 0,
   },
   images: {
     unoptimized: true,
@@ -80,10 +78,7 @@ const nextConfig = {
     return config;
   },
 
-  // 静的ページ生成の設定
-  generateBuildId: async () => {
-    return 'build-' + Date.now();
-  },
+  // 静的ページ生成の設定（ページレベルで制御）
   
   // ビルド設定
   onDemandEntries: {
