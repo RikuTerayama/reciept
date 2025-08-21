@@ -860,5 +860,4 @@ export default function Home() {
   );
 }
 
-// 動的レンダリングを強制
-export const dynamic = 'force-dynamic';
+
