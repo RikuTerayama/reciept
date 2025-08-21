@@ -1,7 +1,10 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import React, { useState, useEffect } from 'react';
+
+// 静的生成を無効化してSSRを強制
+export const dynamic = 'force-dynamic';
 import { SWRConfig } from 'swr';
 import { useExpenseStore } from '@/lib/store';
 import { getCurrentLanguage, t } from '@/lib/i18n';
@@ -28,17 +31,17 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import BudgetDisplay from '@/components/BudgetDisplay';
 import AuthForm from '@/components/AuthForm';
 // 動的インポートでクライアントコンポーネントを読み込み
-const OfflineIndicator = dynamic(() => import('@/components/OfflineIndicator'), {
+const OfflineIndicator = dynamicImport(() => import('@/components/OfflineIndicator'), {
   ssr: false,
   loading: () => <div className="hidden" />
 });
 
-const NetworkStatus = dynamic(() => import('@/components/NetworkStatus').then(mod => ({ default: mod.default })), {
+const NetworkStatus = dynamicImport(() => import('@/components/NetworkStatus').then(mod => ({ default: mod.default })), {
   ssr: false,
   loading: () => <div className="hidden" />
 });
 
-const VoiceInput = dynamic(() => import('@/components/VoiceInput'), {
+const VoiceInput = dynamicImport(() => import('@/components/VoiceInput'), {
   ssr: false,
   loading: () => <div className="hidden" />
 });
@@ -55,8 +58,7 @@ interface UserData {
   office?: string;
 }
 
-// 静的生成を無効化
-export const dynamicConfig = 'force-dynamic';
+
 
 export default function Home() {
   const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
