@@ -5,11 +5,6 @@ import React, { useState, useEffect } from 'react';
 
 // 静的生成を無効化してSSRを強制
 export const dynamic = 'force-dynamic';
-
-// 静的生成を無効化
-export function generateStaticParams() {
-  return [];
-}
 import { SWRConfig } from 'swr';
 import { useExpenseStore } from '@/lib/store';
 import { getCurrentLanguage, t } from '@/lib/i18n';
