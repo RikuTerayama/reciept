@@ -76,8 +76,7 @@ const nextConfig = {
     return config;
   },
 
-  // 静的ページ生成を無効化
-  generateStaticParams: false,
+  // 静的ページ生成を無効化（このオプションは無効です）
   
   // TypeScriptエラーを無視
   onDemandEntries: {
