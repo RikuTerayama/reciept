@@ -12,8 +12,8 @@ const nextConfig = {
   poweredByHeader: false,
 
   // Vercel用の設定（SSRを有効化）
-  // output: 'export', // 静的エクスポートは無効化
-  // trailingSlash: true, // トレーリングスラッシュは無効化
+  output: undefined, // 静的エクスポートを無効化
+  trailingSlash: false, // トレーリングスラッシュを無効化
   images: {
     unoptimized: true,
   },
