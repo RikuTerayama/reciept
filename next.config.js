@@ -14,14 +14,18 @@ const nextConfig = {
   // Vercel用の設定（SSRを有効化）
   output: 'standalone', // スタンドアロンモードでSSRを有効化
   trailingSlash: false, // トレーリングスラッシュを無効化
+  
+  // 静的生成を無効化
+  experimental: {
+    esmExternals: true,
+    // 静的生成を無効化
+    staticPageGenerationTimeout: 0,
+  },
   images: {
     unoptimized: true,
   },
 
-  // ESM外部モジュールの適切な処理
-  experimental: {
-    esmExternals: true,
-  },
+  // ESM外部モジュールの適切な処理（experimentalセクションに統合）
 
   // Webpack設定でundiciとfirebaseのESM問題を解決
   webpack: (config, { isServer }) => {
