@@ -1,5 +1,6 @@
 'use client';
 
+import dynamicImport from 'next/dynamic';
 import React, { useState, useEffect } from 'react';
 import { SWRConfig } from 'swr';
 import { useExpenseStore } from '../src/lib/store';
@@ -858,3 +859,6 @@ export default function Home() {
     </SWRConfig>
   );
 }
+
+// 動的レンダリングを強制
+export const dynamic = 'force-dynamic';
