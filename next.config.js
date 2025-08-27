@@ -20,14 +20,10 @@ const nextConfig = {
     // 静的生成を無効化
     workerThreads: false,
     cpus: 1,
-    staticPageGenerationTimeout: 0,
   },
   
   // 静的エクスポートを無効化してSSRのみ使用
   output: undefined,
-  
-  // 静的生成を無効化
-  staticPageGeneration: false,
   images: {
     unoptimized: true,
   },
@@ -85,8 +81,7 @@ const nextConfig = {
     return config;
   },
 
-  // 静的生成を完全に無効化
-  generateStaticParams: false,
+
   
   // ビルド設定
   onDemandEntries: {
