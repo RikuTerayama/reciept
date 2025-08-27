@@ -20,6 +20,7 @@ const nextConfig = {
     // 静的生成を無効化
     workerThreads: false,
     cpus: 1,
+    staticPageGenerationTimeout: 0,
   },
   
   // 静的エクスポートを無効化してSSRのみ使用
@@ -27,11 +28,6 @@ const nextConfig = {
   
   // 静的生成を無効化
   staticPageGeneration: false,
-  
-  // ESM外部モジュールの適切な処理
-  experimental: {
-    esmExternals: true,
-  },
   images: {
     unoptimized: true,
   },
@@ -89,15 +85,8 @@ const nextConfig = {
     return config;
   },
 
-  // 静的ページ生成を無効化（SSRのみ使用）
-  experimental: {
-    ...config.experimental,
-    staticPageGenerationTimeout: 0,
-  },
-  
   // 静的生成を完全に無効化
   generateStaticParams: false,
-  trailingSlash: false,
   
   // ビルド設定
   onDemandEntries: {
