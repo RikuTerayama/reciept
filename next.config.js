@@ -24,6 +24,12 @@ const nextConfig = {
   
   // 静的エクスポートを無効化してSSRのみ使用
   output: undefined,
+  
+  // ビルド最適化
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   images: {
     unoptimized: true,
   },
