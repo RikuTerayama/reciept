@@ -33,6 +33,11 @@ const nextConfig = {
   
   // パス解決の最適化
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  
+  // ディレクトリ構造の明示的指定
+  distDir: '.next',
+  
+  // 静的ファイルの最適化
   images: {
     unoptimized: true,
   },
@@ -71,6 +76,15 @@ const nextConfig = {
       'undici': false,
       '@firebase/auth': false,
     };
+    
+    // パス解決の優先順位を明示的に設定
+    config.resolve.modules = [
+      require('path').resolve(__dirname, 'src'),
+      'node_modules'
+    ];
+    
+    // ファイル拡張子の解決順序を最適化
+    config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
 
     // ESMモジュールの処理を改善
     config.module.rules.push({
