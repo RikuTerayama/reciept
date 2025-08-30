@@ -30,6 +30,9 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  
+  // パス解決の最適化
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
   images: {
     unoptimized: true,
   },
