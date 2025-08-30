@@ -20,6 +20,8 @@ const nextConfig = {
     // 静的生成を無効化
     workerThreads: false,
     cpus: 1,
+    // Vercel用の最適化
+    serverComponentsExternalPackages: ['@prisma/client', 'bcrypt'],
   },
   
   // 静的エクスポートを無効化してSSRのみ使用
